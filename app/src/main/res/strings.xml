@@ -1,0 +1,117 @@
+<resources>
+    <!-- App & Status -->
+    <string name="app_name">Nothing Tweaks</string>
+    <string name="status_active">Modül etkin</string>
+    <string name="status_inactive">Modül etkin değil</string>
+    <string name="status_active_desc">Hook\'lar başarıyla yüklendi.</string>
+    <string name="status_inactive_desc">LSPosed\'de Nothing Tweaks\'i etkinleştirin, kapsamdaki uygulamaları seçin, ardından cihazı yeniden başlatın.</string>
+
+    <!-- System -->
+    <string name="category_system">Sistem</string>
+    
+    <string name="title_allow_180_rotation">180° Döndürmeye İzin Ver</string>
+    <string name="summary_allow_180_rotation">Ekranın tamamen baş aşağı dönmesine izin ver.</string>
+    
+    <string name="pref_advanced_power_menu_title">Gelişmiş Güç Menüsü</string>
+    <string name="pref_advanced_power_menu_summary">Güç menüsünde Recovery ve Bootloader\'a yeniden başlatma seçeneklerini göster.</string>
+
+    <!-- Lockscreen -->
+    <string name="cat_lockscreen">Kilit Ekranı</string>
+
+    <string name="pref_power_off_verify">Kapatma doğrulamasını atla</string>
+    <string name="pref_power_off_verify_desc">Kilit ekranından cihazı kapatırken kimlik bilgisi istenmesin.</string>
+
+    <string name="pref_glimpse_ads">Glimpse reklam duvar kağıdını kaldır</string>
+    <string name="pref_glimpse_ads_desc">Kilit ekranındaki sponsorlu dergi duvar kağıdını devre dışı bırak.</string>
+
+    <string name="title_scramble_pin">PIN Tuşlarını Karıştır</string>
+    <string name="summary_scramble_pin">PIN tuş takımındaki rakamların konumunu rastgele hale getirir.</string>
+
+    <!-- Navigation -->
+    <string name="cat_navigation">Gezinme</string>
+
+    <string name="pref_transparent_nav_bar">Gezinme Çubuğunu Gizle (Circle to Search ile)</string>
+    <string name="pref_transparent_nav_bar_desc">Hareket çubuğunu (pill) görünmez yapar ancak hareketler ve Circle to Search için tam işlevselliğini korur.\n\nNOT: Önce sistem ayarlarınızdan gezinme çubuğunu etkinleştirmeniz, ayrıca Circle to Search özelliğinin sistem ayarlarınızda açık olduğundan emin olmanız GEREKİR, ardından çubuğu gizlemek için bunu açın!</string>
+
+    <string name="title_hide_ime_bar">Klavye Boşluğunu Gizle</string>
+    <string name="summary_hide_ime_bar">Klavyenin altındaki boş alanı kaldırır ve yazarken gezinme tutamacını gizler</string>
+
+    <string name="pref_back_gesture_kill_title">Uygulamayı Kapatmak İçin Uzun Geri Kaydırma</string>
+    <string name="pref_back_gesture_kill_summary">Geri kaydırma hareketini basılı tutup bırakarak ön plandaki uygulamayı zorla durdurun.</string>
+
+    <!-- Status bar -->
+    <string name="cat_statusbar">Durum çubuğu</string>
+
+    <string name="pref_force_earphone_icon">Tüm kulaklıklar için kulaklık simgesi</string>
+    <string name="pref_force_earphone_icon_desc">Herhangi bir ses cihazı bağlandığında genel Bluetooth simgesi yerine Nothing kulaklık simgesini gösterir.</string>
+
+    <!-- Status bar clock -->
+    <string name="cat_clock">Durum çubuğu saati</string>
+
+    <string name="pref_clock_seconds">Saniyeleri göster</string>
+    <string name="pref_clock_seconds_desc">Her saniye ilerler.</string>
+
+    <string name="pref_clock_dow">Haftanın gününü göster</string>
+    <string name="pref_clock_dow_desc">Kısa gün adını başa ekler, örn. Pzt 10:10.</string>
+
+    <string name="pref_clock_text">Özel metin</string>
+    <string name="pref_clock_text_desc">Saatten sonra eklenecek özel metin. Boş bırakırsanız eklenmez. En fazla 24 karakter.</string>
+
+    <!-- Volume -->
+    <string name="cat_volume">Ses</string>
+
+    <string name="pref_volume_timeout">Ses paneli zaman aşımı</string>
+    <string name="pref_volume_timeout_desc">Ses panelinin gizlenmesine kalan milisaniye. Varsayılan (3000 ms) için boş bırakın.</string>
+
+    <!-- Screenshots & recording -->
+    <string name="cat_capture">Ekran Görüntüleri &amp; Ekran Kaydı</string>
+
+    <string name="pref_watermark">Ekran görüntülerine seri numarası ekle</string>
+    <string name="pref_watermark_desc">Varsayılan olarak kapalıdır. Açıldığında her ekran görüntüsünün üzerine \"SN:\" + cihaz seri numaranızı çizer.</string>
+
+    <string name="pref_record_limit">Ekran Kaydı Kalitesi</string>
+    <string name="pref_record_limit_desc">ScreenMediaRecorder içinde çözünürlük veya kare hızı sınırlaması uygular. Kapalıyken varsayılan davranış değişmez.</string>
+    
+    <string name="record_limit_off">Kapalı — varsayılanı koru</string>
+    <string name="record_limit_720p">720p</string>
+    <string name="record_limit_60fps_1080p">1080p / 60fps</string>
+
+    <!-- Fingerprint -->
+    <string name="cat_fingerprint">Parmak İzi</string>
+
+    <string name="pref_fp_enabled">Tarama noktalarını renklendir</string>
+    <string name="pref_fp_enabled_desc">Sensör parmağınızı okurken etrafında beliren hareketli noktaların rengini değiştirir.</string>
+
+    <string name="pref_fp_random">Her dokunuşta rastgele renk</string>
+    <string name="pref_fp_random_desc">Sensöre her dokunduğunuzda yeni bir renk. Kendi renginizi seçmek için aşağıdan bunu kapatın.</string>
+
+    <string name="pref_fp_color">Özel renk</string>
+    <string name="pref_fp_color_desc">Rastgele kapalıyken kullanılır.</string>
+
+    <!-- Device Features -->
+    <string name="cat_features">Cihaz Özellikleri</string>
+
+    <string name="pref_stepless_volume">Kademesiz ses</string>
+    <string name="pref_stepless_volume_desc">Akıcı, kademesiz ses kontrolünü etkinleştirir.</string>
+
+    <string name="pref_super_volume">Süper ses artırma</string>
+    <string name="pref_super_volume_desc">Maksimum ses düzeyini artırır.</string>
+
+    <string name="pref_palm_touch_sleep">Avuç içiyle uyutma</string>
+    <string name="pref_palm_touch_sleep_desc">Ekranı avucunuzla örterek kapatın. Yalnızca kilit ekranında çalışır.</string>
+
+    <string name="pref_flip_to_record">Kaydetmek için çevir</string>
+    <string name="pref_flip_to_record_desc">Ses kaydını başlatmak için telefonu çevirin. Kaydı başlatmak için Essential tuşunu basılı tutun.</string>
+
+    <!-- AI & Misc -->
+    <string name="cat_ai_misc">Yapay Zeka &amp; Diğer</string>
+    
+    <string name="pref_ai_clipboard_gemini">Gemini AI Pano Çipi</string>
+    <string name="pref_ai_clipboard_gemini_desc">ChatGPT pano yapay zeka özelliğinin Gemini ile çalışmasını zorunlu kılar.</string>
+    
+    <string name="pref_temp_warning_bypass">Sıcaklık Uyarılarını Devre Dışı Bırak</string>
+    <string name="pref_temp_warning_bypass_desc">Sistemin yüksek sıcaklık uyarı açılır pencerelerini devre dışı bırakır.</string>
+    
+    <string name="restart_txt">Yeniden Başlat</string>
+
+</resources>
