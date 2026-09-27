@@ -30,6 +30,9 @@
     <string name="title_hide_lockscreen_clock">Saati Gizle</string>
     <string name="summary_hide_lockscreen_clock">Kilit ekranından saati gizle. Derinlik efektli duvar kağıtları için üçüncü taraf uygulamaları kullanırken kullanışlıdır.</string>
 
+    <string name="pref_lockscreen_charging_info_title">Kilit ekranında ek şarj bilgisi</string>
+    <string name="pref_lockscreen_charging_info_summary">Kilit ekranında şarj olurken gerçek zamanlı watt, akım, voltaj ve sıcaklığı gösterin.</string>
+
     <!-- Navigation -->
     <string name="cat_navigation">Gezinme</string>
 

@@ -33,6 +33,13 @@
             app:summary="@string/pref_power_off_verify_desc"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_lockscreen_charging_info"
+            app:title="@string/pref_lockscreen_charging_info_title"
+            app:summary="@string/pref_lockscreen_charging_info_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

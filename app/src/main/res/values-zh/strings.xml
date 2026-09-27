@@ -30,6 +30,9 @@
     <string name="title_hide_lockscreen_clock">隐藏时钟</string>
     <string name="summary_hide_lockscreen_clock">从锁屏界面隐藏时钟。在使用第三方景深壁纸应用时非常有用。</string>
 
+    <string name="pref_lockscreen_charging_info_title">锁屏额外充电信息</string>
+    <string name="pref_lockscreen_charging_info_summary">在锁屏充电时实时显示充电功率、电流、电压和电池温度。</string>
+
     <!-- Navigation -->
     <string name="cat_navigation">导航栏</string>
 

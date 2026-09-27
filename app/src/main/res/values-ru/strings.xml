@@ -30,6 +30,9 @@
     <string name="title_hide_lockscreen_clock">Скрыть часы</string>
     <string name="summary_hide_lockscreen_clock">Скрыть часы на экране блокировки. Полезно при использовании сторонних приложений для обоев с эффектом глубины.</string>
 
+    <string name="pref_lockscreen_charging_info_title">Дополнительная информация о зарядке на экране блокировки</string>
+    <string name="pref_lockscreen_charging_info_summary">Отображение мощности, тока, напряжения и температуры в реальном времени на экране блокировки во время зарядки.</string>
+
     <!-- Navigation -->
     <string name="cat_navigation">Навигация</string>
 

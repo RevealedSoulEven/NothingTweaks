@@ -30,6 +30,9 @@
     <string name="title_hide_lockscreen_clock">घड़ी छिपाएं</string>
     <string name="summary_hide_lockscreen_clock">लॉकस्क्रीन से घड़ी छिपाएं। गहराई प्रभाव वाले वॉलपेपर के लिए तृतीय-पक्ष ऐप्स का उपयोग करते समय उपयोगी।</string>
 
+    <string name="pref_lockscreen_charging_info_title">लॉकस्क्रीन पर अतिरिक्त चार्जिंग जानकारी</string>
+    <string name="pref_lockscreen_charging_info_summary">चार्जिंग के दौरान लॉकस्क्रीन पर रीयल-टाइम वाटेज, करंट, वोल्टेज और तापमान दिखाएं।</string>
+
     <!-- Navigation -->
     <string name="cat_navigation">नेविगेशन</string>
 

@@ -30,6 +30,9 @@
     <string name="title_hide_lockscreen_clock">時計を隠す</string>
     <string name="summary_hide_lockscreen_clock">ロック画面から時計を非表示にします。被写界深度エフェクト壁紙のサードパーティアプリを使用する場合に便利です。</string>
 
+    <string name="pref_lockscreen_charging_info_title">ロック画面の追加充電情報</string>
+    <string name="pref_lockscreen_charging_info_summary">充電中にロック画面にリアルタイムのワット数、電流、電圧、温度を表示します。</string>
+
     <!-- Navigation -->
     <string name="cat_navigation">ナビゲーション</string>
 
