@@ -5,6 +5,7 @@ import android.os.Bundle
 import android.view.View
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
+import androidx.preference.SeekBarPreference
 import androidx.preference.SwitchPreferenceCompat
 import com.souleven.nothingos.MainHook
 import com.souleven.nothingos.R
@@ -33,7 +34,6 @@ class SettingsFragment : PreferenceFragmentCompat() {
 
         wireFingerprintDependencies()
 
-        // Use the reusable reboot function for preferences that require a reboot
         requireRebootOnEnable("allow_180_rotation")
         requireRebootOnEnable("pref_advanced_power_menu")
         requireRebootOnEnable("pref_back_gesture_kill")

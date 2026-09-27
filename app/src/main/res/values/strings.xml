@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">Reduce Edge Padding</string>
     <string name="pref_reduce_edge_padding_summary">Reduces the empty space at the left and right edges of the status bar.</string>
+    <string name="pref_status_bar_padding_title">Status bar edge padding</string>
+    <string name="pref_status_bar_padding_summary">Slide complete left for default</string>
+    <string name="status_bar_padding_default">Default</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Status bar clock</string>

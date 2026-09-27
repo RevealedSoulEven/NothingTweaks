@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">Reducir margen de los bordes</string>
     <string name="pref_reduce_edge_padding_summary">Reduce el espacio vacío en los bordes izquierdo y derecho de la barra de estado.</string>
+    <string name="pref_status_bar_padding_title">Margen de los bordes de la barra de estado</string>
+    <string name="pref_status_bar_padding_summary">Desliza totalmente a la izquierda para el valor predeterminado</string>
+    <string name="status_bar_padding_default">Predeterminado</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Reloj de barra de estado</string>

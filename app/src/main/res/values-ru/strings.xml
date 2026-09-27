@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">Уменьшить отступы по краям</string>
     <string name="pref_reduce_edge_padding_summary">Уменьшает пустое пространство по левому и правому краям строки состояния.</string>
+    <string name="pref_status_bar_padding_title">Отступ по краям строки состояния</string>
+    <string name="pref_status_bar_padding_summary">Сдвиньте до конца влево для значения по умолчанию</string>
+    <string name="status_bar_padding_default">По умолчанию</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Часы в строке состояния</string>

@@ -29,6 +29,19 @@ class Prefs(private val delegate: XSharedPreferences) {
         return delegate.getString(key, default) ?: default
     }
 
+    fun getInt(key: String, default: Int): Int {
+        maybeReload()
+        return try {
+            delegate.getInt(key, default)
+        } catch (_: Throwable) {
+            try {
+                delegate.getString(key, null)?.toIntOrNull() ?: default
+            } catch (_: Throwable) {
+                default
+            }
+        }
+    }
+
     fun forceReload() {
         lastReload = System.currentTimeMillis()
         delegate.reload()

@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">Randabstand reduzieren</string>
     <string name="pref_reduce_edge_padding_summary">Reduziert den leeren Platz am linken und rechten Rand der Statusleiste.</string>
+    <string name="pref_status_bar_padding_title">Statusleisten-Randabstand</string>
+    <string name="pref_status_bar_padding_summary">Ganz nach links für Standard schieben</string>
+    <string name="status_bar_padding_default">Standard</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Uhr in der Statusleiste</string>

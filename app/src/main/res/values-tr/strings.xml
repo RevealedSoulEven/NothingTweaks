@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">Kenar Boşluğunu Azalt</string>
     <string name="pref_reduce_edge_padding_summary">Durum çubuğunun sol ve sağ kenarlarındaki boş alanı azaltır.</string>
+    <string name="pref_status_bar_padding_title">Durum çubuğu kenar boşluğu</string>
+    <string name="pref_status_bar_padding_summary">Varsayılan için en sola kaydırın</string>
+    <string name="status_bar_padding_default">Varsayılan</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Durum Çubuğu saati</string>

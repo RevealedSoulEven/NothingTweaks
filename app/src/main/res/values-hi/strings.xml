@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">किनारे की पैडिंग कम करें</string>
     <string name="pref_reduce_edge_padding_summary">स्टेटस बार के बाएँ और दाएँ किनारों पर खाली जगह को कम करता है।</string>
+    <string name="pref_status_bar_padding_title">स्टेटस बार किनारे की पैडिंग</string>
+    <string name="pref_status_bar_padding_summary">डिफ़ॉल्ट के लिए पूरा बाईं ओर स्लाइड करें</string>
+    <string name="status_bar_padding_default">डिफ़ॉल्ट</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">स्टेटस बार घड़ी</string>

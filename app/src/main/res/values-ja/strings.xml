@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">端の余白を減らす</string>
     <string name="pref_reduce_edge_padding_summary">ステータスバーの左右の端の空白部分を減らします。</string>
+    <string name="pref_status_bar_padding_title">ステータスバーの端の余白</string>
+    <string name="pref_status_bar_padding_summary">左端にスライドするとデフォルト</string>
+    <string name="status_bar_padding_default">デフォルト</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">ステータスバーの時計</string>

@@ -128,11 +128,15 @@
         app:title="@string/cat_statusbar"
         app:iconSpaceReserved="false">
 
-        <SwitchPreferenceCompat
-            app:key="pref_reduce_edge_padding"
-            app:title="@string/pref_reduce_edge_padding_title"
-            app:summary="@string/pref_reduce_edge_padding_summary"
-            app:defaultValue="false"
+        <com.souleven.nothingos.hooks.StatusBarPaddingSeekBarPreference
+            app:key="pref_status_bar_padding"
+            app:title="@string/pref_status_bar_padding_title"
+            app:summary="@string/pref_status_bar_padding_summary"
+            app:defaultValue="-1"
+            app:min="-1"
+            android:max="20"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true"
             app:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat

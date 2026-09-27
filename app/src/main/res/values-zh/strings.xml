@@ -53,6 +53,9 @@
 
     <string name="pref_reduce_edge_padding_title">减小边缘边距</string>
     <string name="pref_reduce_edge_padding_summary">减小状态栏左右两端的空白区域。</string>
+    <string name="pref_status_bar_padding_title">状态栏边缘边距</string>
+    <string name="pref_status_bar_padding_summary">完全向左滑动以设为默认</string>
+    <string name="status_bar_padding_default">默认</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">状态栏时钟</string>
