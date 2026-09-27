@@ -153,6 +153,13 @@
             app:dialogTitle="@string/pref_max_notif_icons_title"
             app:iconSpaceReserved="false"
             app:useSimpleSummaryProvider="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_status_bar_brightness_slider"
+            app:title="@string/pref_status_bar_brightness_title"
+            app:summary="@string/pref_status_bar_brightness_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

@@ -57,6 +57,9 @@
     <string name="pref_status_bar_padding_summary">Сдвиньте до конца влево для значения по умолчанию</string>
     <string name="status_bar_padding_default">По умолчанию</string>
 
+    <string name="pref_status_bar_brightness_title">Регулятор яркости в строке состояния</string>
+    <string name="pref_status_bar_brightness_summary">Проведите горизонтально по строке состояния для регулировки яркости экрана.</string>
+
     <!-- Status bar clock -->
     <string name="cat_clock">Часы в строке состояния</string>
 

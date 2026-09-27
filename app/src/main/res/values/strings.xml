@@ -57,6 +57,9 @@
     <string name="pref_status_bar_padding_summary">Slide complete left for default</string>
     <string name="status_bar_padding_default">Default</string>
 
+    <string name="pref_status_bar_brightness_title">Status Bar Brightness Slider</string>
+    <string name="pref_status_bar_brightness_summary">Slide horizontally across the status bar to adjust screen brightness.</string>
+
     <!-- Status bar clock -->
     <string name="cat_clock">Status bar clock</string>
 

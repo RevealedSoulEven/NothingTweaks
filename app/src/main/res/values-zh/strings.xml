@@ -57,6 +57,9 @@
     <string name="pref_status_bar_padding_summary">完全向左滑动以设为默认</string>
     <string name="status_bar_padding_default">默认</string>
 
+    <string name="pref_status_bar_brightness_title">状态栏亮度滑动调节</string>
+    <string name="pref_status_bar_brightness_summary">在状态栏上水平滑动以调节屏幕亮度。</string>
+
     <!-- Status bar clock -->
     <string name="cat_clock">状态栏时钟</string>
 

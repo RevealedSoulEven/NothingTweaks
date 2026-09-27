@@ -57,6 +57,9 @@
     <string name="pref_status_bar_padding_summary">Ganz nach links für Standard schieben</string>
     <string name="status_bar_padding_default">Standard</string>
 
+    <string name="pref_status_bar_brightness_title">Helligkeitsregler in Statusleiste</string>
+    <string name="pref_status_bar_brightness_summary">Horizontal über die Statusleiste wischen, um die Bildschirmhelligkeit anzupassen.</string>
+
     <!-- Status bar clock -->
     <string name="cat_clock">Uhr in der Statusleiste</string>
 

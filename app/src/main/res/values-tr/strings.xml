@@ -57,6 +57,9 @@
     <string name="pref_status_bar_padding_summary">Varsayılan için en sola kaydırın</string>
     <string name="status_bar_padding_default">Varsayılan</string>
 
+    <string name="pref_status_bar_brightness_title">Durum Çubuğu Parlaklık Kaydırıcısı</string>
+    <string name="pref_status_bar_brightness_summary">Ekran parlaklığını ayarlamak için durum çubuğu üzerinde yatay olarak kaydırın.</string>
+
     <!-- Status bar clock -->
     <string name="cat_clock">Durum Çubuğu saati</string>
 

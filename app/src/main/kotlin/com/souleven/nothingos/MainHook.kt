@@ -18,6 +18,7 @@ import com.souleven.nothingos.hooks.BackGestureKillHooks
 import com.souleven.nothingos.hooks.SystemFrameworkHooks
 import com.souleven.nothingos.hooks.NotificationIconHooks
 import com.souleven.nothingos.hooks.SpacingHooks
+import com.souleven.nothingos.hooks.StatusBarBrightnessHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XSharedPreferences
@@ -97,6 +98,7 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("BackGestureKillHooks" to BackGestureKillHooks())
             hooks.add("NotificationIconHooks" to NotificationIconHooks())
             hooks.add("SpacingHooks" to SpacingHooks())
+            hooks.add("StatusBarBrightnessHooks" to StatusBarBrightnessHooks())
         }
         hooks.add("NavBarHooks" to NavBarHooks())
         if (lpparam.packageName == "com.google.android.inputmethod.latin") {

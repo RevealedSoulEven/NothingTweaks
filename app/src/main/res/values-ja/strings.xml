@@ -57,6 +57,9 @@
     <string name="pref_status_bar_padding_summary">左端にスライドするとデフォルト</string>
     <string name="status_bar_padding_default">デフォルト</string>
 
+    <string name="pref_status_bar_brightness_title">ステータスバーの明るさスライダー</string>
+    <string name="pref_status_bar_brightness_summary">ステータスバーを左右にスワイプして画面の明るさを調整します。</string>
+
     <!-- Status bar clock -->
     <string name="cat_clock">ステータスバーの時計</string>
 

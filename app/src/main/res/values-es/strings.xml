@@ -57,6 +57,9 @@
     <string name="pref_status_bar_padding_summary">Desliza totalmente a la izquierda para el valor predeterminado</string>
     <string name="status_bar_padding_default">Predeterminado</string>
 
+    <string name="pref_status_bar_brightness_title">Control de brillo en barra de estado</string>
+    <string name="pref_status_bar_brightness_summary">Desliza horizontalmente por la barra de estado para ajustar el brillo de la pantalla.</string>
+
     <!-- Status bar clock -->
     <string name="cat_clock">Reloj de barra de estado</string>
 
