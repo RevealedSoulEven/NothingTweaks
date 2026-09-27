@@ -33,11 +33,11 @@
     <!-- Navigation -->
     <string name="cat_navigation">导航栏</string>
 
-    <string name="pref_transparent_nav_bar">隐藏导航条（兼容画圈搜索）</string>
-    <string name="pref_transparent_nav_bar_desc">使导航条（小白条）隐形，但完全保留手势和“画圈搜索”功能。\n\n注意：您必须先在系统设置中启用导航条，并确保已开启“画圈搜索”，然后再开启此选项以隐藏导航条！</string>
+    <string name="pref_transparent_nav_bar">隐藏导航条（兼容圈定即搜）</string>
+    <string name="pref_transparent_nav_bar_desc">使导航条（小白条）隐形，但完全保留手势和“圈定即搜”功能。\n\n注意：您必须先在系统设置中启用导航条，并确保已开启“圈定即搜”，然后再开启此选项以隐藏导航条！</string>
 
     <string name="title_hide_ime_bar">隐藏键盘底部空白</string>
-    <string name="summary_hide_ime_bar">打字时移除键盘底部的空白区域并隐藏导航指示条。</string>
+    <string name="summary_hide_ime_bar">打字时移除键盘底部的空白区域并隐藏导航条。</string>
 
     <string name="pref_back_gesture_kill_title">长按返回手势强行停止应用</string>
     <string name="pref_back_gesture_kill_summary">按住返回侧滑手势然后松开，强制停止前台应用。</string>
