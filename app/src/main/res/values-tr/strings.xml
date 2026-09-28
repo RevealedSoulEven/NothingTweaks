@@ -4,40 +4,40 @@
     <string name="status_active">Modül etkin</string>
     <string name="status_inactive">Modül etkin değil</string>
     <string name="status_active_desc">Hook\'lar başarıyla yüklendi.</string>
-    <string name="status_inactive_desc">LSPosed\'de Nothing Tweaks\'i etkinleştirin, kapsamdaki uygulamaları seçin, ardından cihazı yeniden başlatın.</string>
+    <string name="status_inactive_desc">LSPosed\'de Nothing Tweaks\'i etkinleştirin, istenilen uygulamaları seçin, ardından cihazı yeniden başlatın.</string>
 
     <!-- System -->
     <string name="category_system">Sistem</string>
     
     <string name="title_allow_180_rotation">180° Döndürmeye İzin Ver</string>
-    <string name="summary_allow_180_rotation">Ekranın tamamen baş aşağı dönmesine izin ver.</string>
+    <string name="summary_allow_180_rotation">Ekranın tamamen baş aşağı dönmesine izin verir.</string>
     
     <string name="pref_advanced_power_menu_title">Gelişmiş Güç Menüsü</string>
-    <string name="pref_advanced_power_menu_summary">Güç menüsünde Recovery ve Bootloader\'a yeniden başlatma seçeneklerini göster.</string>
+    <string name="pref_advanced_power_menu_summary">Güç menüsüne Recovery ve Bootloader\'a yeniden başlatma seçeneklerini ekler.</string>
 
     <!-- Lockscreen -->
     <string name="cat_lockscreen">Kilit Ekranı</string>
 
     <string name="pref_power_off_verify">Kapatma doğrulamasını atla</string>
-    <string name="pref_power_off_verify_desc">Kilit ekranından cihazı kapatırken kimlik bilgisi istenmesin.</string>
+    <string name="pref_power_off_verify_desc">Kilit ekranındayken cihaz kapatılmaya çalışılınca kimlik bilgisi istenmesin.</string>
 
-    <string name="pref_glimpse_ads">Glimpse reklam duvar kağıdını kaldır</string>
-    <string name="pref_glimpse_ads_desc">Kilit ekranındaki sponsorlu dergi duvar kağıdını devre dışı bırak.</string>
+    <string name="pref_glimpse_ads">Lock Glimpse'i kaldır</string>
+    <string name="pref_glimpse_ads_desc">Kilit ekranındaki sponsorlu dergi duvar kağıdını devre dışı bırakır.</string>
 
     <string name="title_scramble_pin">PIN Tuşlarını Karıştır</string>
     <string name="summary_scramble_pin">PIN tuş takımındaki rakamların konumunu rastgele hale getirir.</string>
 
     <string name="title_hide_lockscreen_clock">Saati Gizle</string>
-    <string name="summary_hide_lockscreen_clock">Kilit ekranından saati gizle. Derinlik efektli duvar kağıtları için üçüncü taraf uygulamaları kullanırken kullanışlıdır.</string>
+    <string name="summary_hide_lockscreen_clock">Kilit ekranından saati gizler. Derinlik efektli duvar kağıtları için üçüncü taraf uygulamaları kullanırken kullanışlıdır.</string>
 
     <string name="pref_lockscreen_charging_info_title">Kilit ekranında ek şarj bilgisi</string>
-    <string name="pref_lockscreen_charging_info_summary">Kilit ekranında şarj olurken gerçek zamanlı watt, akım, voltaj ve sıcaklığı gösterin.</string>
+    <string name="pref_lockscreen_charging_info_summary">Şarj olurken kilit ekranında gerçek zamanlı watt, akım, voltaj ve sıcaklık bilgilerini gösterir.</string>
 
     <!-- Navigation -->
     <string name="cat_navigation">Gezinme</string>
 
     <string name="pref_transparent_nav_bar">Gezinme Çubuğunu Gizle (Circle to Search ile)</string>
-    <string name="pref_transparent_nav_bar_desc">Hareket çubuğunu (pill) görünmez yapar ancak hareketler ve Circle to Search için tam işlevselliğini korur.\n\nNOT: Önce sistem ayarlarınızdan gezinme çubuğunu etkinleştirmeniz, ayrıca Circle to Search özelliğinin sistem ayarlarınızda açık olduğundan emin olmanız GEREKİR, ardından çubuğu gizlemek için bunu açın!</string>
+    <string name="pref_transparent_nav_bar_desc">Gezinme çubuğunu (pill) görünmez yapar ancak hareketler ve Circle to Search için tam işlevselliğini korur.\n\nNOT: Önce sistem ayarlarınızdan gezinme çubuğunu etkinleştirmeniz, ayrıca Circle to Search özelliğinin sistem ayarlarınızda açık olduğundan emin olmanız GEREKİR, ardından çubuğu gizlemek için bunu açın!</string>
 
     <string name="title_hide_ime_bar">Klavye Boşluğunu Gizle</string>
     <string name="summary_hide_ime_bar">Klavyenin altındaki boş alanı kaldırır ve yazarken gezinme tutamacını gizler</string>
@@ -70,7 +70,7 @@
     <string name="pref_clock_seconds_desc">Her saniye ilerler.</string>
 
     <string name="pref_clock_dow">Haftanın gününü göster</string>
-    <string name="pref_clock_dow_desc">Kısa gün adını başa ekler, örn. Pzt 10:10.</string>
+    <string name="pref_clock_dow_desc">Kısaltılmış gün adını başa ekler, örn. Pzt 10:10.</string>
 
     <string name="pref_clock_text">Özel metin</string>
     <string name="pref_clock_text_desc">Saatten sonra eklenecek özel metin. Boş bırakırsanız eklenmez. En fazla 24 karakter.</string>
@@ -101,7 +101,7 @@
     <string name="pref_fp_enabled_desc">Sensör parmağınızı okurken etrafında beliren hareketli noktaların rengini değiştirir.</string>
 
     <string name="pref_fp_random">Her dokunuşta rastgele renk</string>
-    <string name="pref_fp_random_desc">Sensöre her dokunduğunuzda yeni bir renk. Kendi renginizi seçmek için aşağıdan bunu kapatın.</string>
+    <string name="pref_fp_random_desc">Sensöre her dokunduğunuzda yeni bir renk görünür. Kendi renginizi seçmek için bu seçeneği kapatın ve aşağıdan ayarlayın.</string>
 
     <string name="pref_fp_color">Özel renk</string>
     <string name="pref_fp_color_desc">Rastgele kapalıyken kullanılır.</string>
