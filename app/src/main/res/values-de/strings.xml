@@ -33,6 +33,10 @@
     <string name="pref_lockscreen_charging_info_title">Zusätzliche Ladeinformationen auf dem Sperrbildschirm</string>
     <string name="pref_lockscreen_charging_info_summary">Echtzeit-Wattzahl, Stromstärke, Spannung und Temperatur beim Laden auf dem Sperrbildschirm anzeigen.</string>
 
+    <string name="pref_lockscreen_double_tap_to_sleep_title">Doppeltippen zum Ausschalten</string>
+    <string name="pref_lockscreen_double_tap_to_sleep_summary">Tippen Sie doppelt auf einen freien Bereich des Sperrbildschirms, um den Bildschirm auszuschalten.</string>
+
+
     <!-- Navigation -->
     <string name="cat_navigation">Navigation</string>
 

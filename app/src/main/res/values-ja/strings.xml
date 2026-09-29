@@ -33,6 +33,10 @@
     <string name="pref_lockscreen_charging_info_title">ロック画面の追加充電情報</string>
     <string name="pref_lockscreen_charging_info_summary">充電中にロック画面にリアルタイムのワット数、電流、電圧、温度を表示します。</string>
 
+    <string name="pref_lockscreen_double_tap_to_sleep_title">ダブルタップでスリープ</string>
+    <string name="pref_lockscreen_double_tap_to_sleep_summary">ロック画面の空いている場所をダブルタップして画面をオフにします。</string>
+
+
     <!-- Navigation -->
     <string name="cat_navigation">ナビゲーション</string>
 

@@ -7,6 +7,8 @@ import android.content.res.ColorStateList
 import android.graphics.Color
 import android.os.BatteryManager
 import android.os.Handler
+import android.os.PowerManager
+import android.os.SystemClock
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
@@ -27,6 +29,8 @@ class LockScreenHooks : HookModule {
     private val className = "com.nothing.keyguard.KeyguardSecurityContainerControllerEx"
     private var chargingInfoView: TextView? = null
     private var batteryUpdateRunnable: Runnable? = null
+    private var powerManager: PowerManager? = null
+    private var isBouncerVisible: Boolean = false
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         val clazz = XposedHelpers.findClassIfExists(className, lpparam.classLoader)
@@ -89,6 +93,7 @@ class LockScreenHooks : HookModule {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         try {
                             val root = param.thisObject as? ViewGroup ?: return
+                            powerManager = root.context.getSystemService(Context.POWER_SERVICE) as? PowerManager
                             setupHideClock(root, prefs)
                         } catch (t: Throwable) {
                             XposedBridge.log("$TAG   [LockScreen] Error in setupHideClock: ${t.message}")
@@ -200,6 +205,163 @@ class LockScreenHooks : HookModule {
                     }
                 )
             } catch (_: Throwable) {}
+        }
+
+        val securityContainerClass = XposedHelpers.findClassIfExists("com.android.keyguard.KeyguardSecurityContainer", lpparam.classLoader)
+        if (securityContainerClass != null) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    securityContainerClass,
+                    "setVisibility",
+                    Int::class.javaPrimitiveType,
+                    object : XC_MethodHook() {
+                        override fun afterHookedMethod(param: MethodHookParam) {
+                            val vis = param.args[0] as? Int ?: return
+                            isBouncerVisible = (vis == View.VISIBLE)
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
+        }
+
+        val touchHandlingViewClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.common.ui.view.TouchHandlingView",
+            lpparam.classLoader
+        )
+        if (touchHandlingViewClass != null) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    touchHandlingViewClass,
+                    "setDoublePressHandlingEnabled",
+                    Boolean::class.javaPrimitiveType,
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            if (prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
+                                param.args[0] = true
+                            }
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
+
+            try {
+                XposedHelpers.findAndHookMethod(
+                    touchHandlingViewClass,
+                    "onAttachedToWindow",
+                    object : XC_MethodHook() {
+                        override fun afterHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            if (prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
+                                try {
+                                    XposedHelpers.callMethod(param.thisObject, "setDoublePressHandlingEnabled", true)
+                                } catch (_: Throwable) {}
+                            }
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
+        }
+
+        val interactorClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.keyguard.domain.interactor.KeyguardTouchHandlingInteractor",
+            lpparam.classLoader
+        )
+        if (interactorClass != null) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    interactorClass,
+                    "onDoubleClick",
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            if (prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
+                                val pm = (XposedHelpers.getObjectField(param.thisObject, "powerManager") as? PowerManager)
+                                    ?: powerManager
+                                if (pm != null) {
+                                    try {
+                                        XposedHelpers.callMethod(pm, "goToSleep", SystemClock.uptimeMillis(), 4, 0)
+                                    } catch (_: Throwable) {
+                                        try {
+                                            XposedHelpers.callMethod(pm, "goToSleep", SystemClock.uptimeMillis())
+                                        } catch (_: Throwable) {}
+                                    }
+                                }
+                                param.result = null
+                            }
+                        }
+                    }
+                )
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] FAILED to hook onDoubleClick: ${t.message}")
+            }
+
+            try {
+                XposedHelpers.findAndHookMethod(
+                    interactorClass,
+                    "isDoubleTapFeatureEnabled",
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            if (prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
+                                param.result = true
+                            }
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
+        }
+
+        val pulsingGestureListenerClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.shade.PulsingGestureListener",
+            lpparam.classLoader
+        )
+        if (pulsingGestureListenerClass != null) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    pulsingGestureListenerClass,
+                    "onDoubleTapEvent",
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            val ssc = XposedHelpers.getObjectField(param.thisObject, "statusBarStateController")
+                            val isDozing = try {
+                                XposedHelpers.callMethod(ssc, "isDozing") as? Boolean ?: false
+                            } catch (_: Throwable) { false }
+                            val state = try {
+                                XposedHelpers.callMethod(ssc, "getState") as? Int ?: -1
+                            } catch (_: Throwable) { -1 }
+
+                            if (!isDozing && state == 1 && !isBouncerVisible && prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
+                                val falsingManager = XposedHelpers.getObjectField(param.thisObject, "falsingManager")
+                                val isFalseTap = try {
+                                    XposedHelpers.callMethod(falsingManager, "isFalseDoubleTap") as? Boolean ?: false
+                                } catch (_: Throwable) { false }
+                                if (!isFalseTap) {
+                                    val pm = powerManager ?: run {
+                                        val ac = try { XposedHelpers.getObjectField(param.thisObject, "ambientDisplayConfiguration") } catch (_: Throwable) { null }
+                                        val ctx = try { XposedHelpers.getObjectField(ac, "mContext") as? Context } catch (_: Throwable) { null }
+                                        ctx?.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                                    }
+                                    pm?.let {
+                                        try {
+                                            XposedHelpers.callMethod(it, "goToSleep", SystemClock.uptimeMillis(), 4, 0)
+                                        } catch (_: Throwable) {
+                                            try {
+                                                XposedHelpers.callMethod(it, "goToSleep", SystemClock.uptimeMillis())
+                                            } catch (_: Throwable) {}
+                                        }
+                                    }
+                                    param.result = true
+                                    return
+                                }
+                            }
+                        }
+                    }
+                )
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] FAILED to hook PulsingGestureListener: ${t.message}")
+            }
         }
     }
 

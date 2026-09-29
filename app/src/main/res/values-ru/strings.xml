@@ -33,6 +33,10 @@
     <string name="pref_lockscreen_charging_info_title">Дополнительная информация о зарядке на экране блокировки</string>
     <string name="pref_lockscreen_charging_info_summary">Отображение мощности, тока, напряжения и температуры в реальном времени на экране блокировки во время зарядки.</string>
 
+    <string name="pref_lockscreen_double_tap_to_sleep_title">Двойной тап для сна</string>
+    <string name="pref_lockscreen_double_tap_to_sleep_summary">Дважды коснитесь пустого места на экране блокировки, чтобы выключить экран.</string>
+
+
     <!-- Navigation -->
     <string name="cat_navigation">Навигация</string>
 

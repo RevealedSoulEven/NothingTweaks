@@ -33,6 +33,10 @@
     <string name="pref_lockscreen_charging_info_title">锁屏额外充电信息</string>
     <string name="pref_lockscreen_charging_info_summary">在锁屏充电时实时显示充电功率、电流、电压和电池温度。</string>
 
+    <string name="pref_lockscreen_double_tap_to_sleep_title">双击锁屏</string>
+    <string name="pref_lockscreen_double_tap_to_sleep_summary">双击锁屏空白区域关闭屏幕。</string>
+
+
     <!-- Navigation -->
     <string name="cat_navigation">导航栏</string>
 

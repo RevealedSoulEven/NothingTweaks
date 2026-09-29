@@ -33,6 +33,10 @@
     <string name="pref_lockscreen_charging_info_title">Additional lockscreen charging info</string>
     <string name="pref_lockscreen_charging_info_summary">Display real-time wattage, current, voltage, and temperature while charging on the lockscreen.</string>
 
+    <string name="pref_lockscreen_double_tap_to_sleep_title">Double tap to sleep</string>
+    <string name="pref_lockscreen_double_tap_to_sleep_summary">Double tap an empty area on the lockscreen to turn off the screen.</string>
+
+
     <!-- Navigation -->
     <string name="cat_navigation">Navigation</string>
 

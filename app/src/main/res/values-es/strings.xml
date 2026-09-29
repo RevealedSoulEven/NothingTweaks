@@ -33,6 +33,10 @@
     <string name="pref_lockscreen_charging_info_title">Información de carga adicional en pantalla de bloqueo</string>
     <string name="pref_lockscreen_charging_info_summary">Muestra potencia, corriente, voltaje y temperatura en tiempo real en la pantalla de bloqueo mientras carga.</string>
 
+    <string name="pref_lockscreen_double_tap_to_sleep_title">Doble toque para suspender</string>
+    <string name="pref_lockscreen_double_tap_to_sleep_summary">Toca dos veces un área vacía de la pantalla de bloqueo para apagar la pantalla.</string>
+
+
     <!-- Navigation -->
     <string name="cat_navigation">Navegación</string>
 
