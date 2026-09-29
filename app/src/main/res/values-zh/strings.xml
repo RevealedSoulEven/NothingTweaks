@@ -36,6 +36,9 @@
     <string name="pref_lockscreen_double_tap_to_sleep_title">双击锁屏</string>
     <string name="pref_lockscreen_double_tap_to_sleep_summary">双击锁屏空白区域关闭屏幕。</string>
 
+    <string name="pref_lockscreen_double_tap_to_wake_title">双击亮屏</string>
+    <string name="pref_lockscreen_double_tap_to_wake_summary">双击屏幕唤醒设备。\n\n注意：您必须在系统设置 → 锁屏中开启“轻触显示锁屏”。</string>
+
 
     <!-- Navigation -->
     <string name="cat_navigation">导航栏</string>

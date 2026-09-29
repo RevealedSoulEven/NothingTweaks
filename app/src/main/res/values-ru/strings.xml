@@ -36,6 +36,9 @@
     <string name="pref_lockscreen_double_tap_to_sleep_title">Двойной тап для сна</string>
     <string name="pref_lockscreen_double_tap_to_sleep_summary">Дважды коснитесь пустого места на экране блокировки, чтобы выключить экран.</string>
 
+    <string name="pref_lockscreen_double_tap_to_wake_title">Двойное нажатие для включения</string>
+    <string name="pref_lockscreen_double_tap_to_wake_summary">Дважды коснитесь экрана, чтобы разбудить устройство.\n\nПРИМЕЧАНИЕ: Необходимо включить «Коснуться для отображения экрана блокировки» в Настройки телефона → Экран блокировки.</string>
+
 
     <!-- Navigation -->
     <string name="cat_navigation">Навигация</string>

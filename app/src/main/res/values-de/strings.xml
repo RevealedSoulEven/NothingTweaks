@@ -36,6 +36,9 @@
     <string name="pref_lockscreen_double_tap_to_sleep_title">Doppeltippen zum Ausschalten</string>
     <string name="pref_lockscreen_double_tap_to_sleep_summary">Tippen Sie doppelt auf einen freien Bereich des Sperrbildschirms, um den Bildschirm auszuschalten.</string>
 
+    <string name="pref_lockscreen_double_tap_to_wake_title">Doppeltippen zum Aktivieren</string>
+    <string name="pref_lockscreen_double_tap_to_wake_summary">Tippen Sie doppelt auf den Bildschirm, um das Gerät zu aktivieren.\n\nHINWEIS: Sie müssen „Zum Einblenden des Sperrbildschirms tippen“ in Telefoneinstellungen → Sperrbildschirm aktivieren.</string>
+
 
     <!-- Navigation -->
     <string name="cat_navigation">Navigation</string>

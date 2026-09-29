@@ -36,6 +36,9 @@
     <string name="pref_lockscreen_double_tap_to_sleep_title">ダブルタップでスリープ</string>
     <string name="pref_lockscreen_double_tap_to_sleep_summary">ロック画面の空いている場所をダブルタップして画面をオフにします。</string>
 
+    <string name="pref_lockscreen_double_tap_to_wake_title">ダブルタップして起動</string>
+    <string name="pref_lockscreen_double_tap_to_wake_summary">画面をダブルタップして端末を起動します。\n\n注意: 端末の設定 → ロック画面 で「タップしてロック画面を表示」を有効にする必要があります。</string>
+
 
     <!-- Navigation -->
     <string name="cat_navigation">ナビゲーション</string>

@@ -31,6 +31,7 @@ class LockScreenHooks : HookModule {
     private var batteryUpdateRunnable: Runnable? = null
     private var powerManager: PowerManager? = null
     private var isBouncerVisible: Boolean = false
+    private var lastScreenOffTapTime: Long = 0L
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         val clazz = XposedHelpers.findClassIfExists(className, lpparam.classLoader)
@@ -362,6 +363,47 @@ class LockScreenHooks : HookModule {
             } catch (t: Throwable) {
                 XposedBridge.log("$TAG   [LockScreen] FAILED to hook PulsingGestureListener: ${t.message}")
             }
+        }
+
+        val mediatorClass = XposedHelpers.findClassIfExists("com.nothing.systemui.keyguard.KeyguardViewMediatorEx", lpparam.classLoader)
+        if (mediatorClass != null) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    mediatorClass,
+                    "onKeyGestureSingleTap",
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            if (!prefs.getBoolean("pref_lockscreen_double_tap_to_wake", false)) return
+
+                            val now = SystemClock.uptimeMillis()
+                            val diff = now - lastScreenOffTapTime
+                            if (diff in 80..600) {
+                                // double tap : reset timer and allow native "Tap to show lock screen" to execute
+                                lastScreenOffTapTime = 0L
+                            } else {
+                                // single tap: nerf single tap so the screen stays off
+                                lastScreenOffTapTime = now
+                                param.result = null
+                            }
+                        }
+                    }
+                )
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] FAILED to hook onKeyGestureSingleTap: ${t.message}")
+            }
+
+            try {
+                XposedHelpers.findAndHookMethod(
+                    mediatorClass,
+                    "handleNotifyStartedWakingUp",
+                    object : XC_MethodHook() {
+                        override fun afterHookedMethod(param: MethodHookParam) {
+                            lastScreenOffTapTime = 0L
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
         }
     }
 
