@@ -27,5 +27,6 @@
     <color name="md_outline_variant">#C8C6C6</color>
     <color name="md_error">#BA1A1A</color>
     <color name="md_on_error">#FFFFFF</color>
+    <color name="restart_icon_color">#000000</color>
 
 </resources>
