@@ -12,6 +12,7 @@ import android.os.SystemClock
 import android.text.TextUtils
 import android.util.TypedValue
 import android.view.Gravity
+import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
@@ -31,7 +32,7 @@ class LockScreenHooks : HookModule {
     private var batteryUpdateRunnable: Runnable? = null
     private var powerManager: PowerManager? = null
     private var isBouncerVisible: Boolean = false
-    private var lastScreenOffTapTime: Long = 0L
+    private var lastDozeTapTime: Long = 0L
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         val clazz = XposedHelpers.findClassIfExists(className, lpparam.classLoader)
@@ -333,6 +334,7 @@ class LockScreenHooks : HookModule {
                                 XposedHelpers.callMethod(ssc, "getState") as? Int ?: -1
                             } catch (_: Throwable) { -1 }
 
+                            // Double tap to sleep on lockscreen
                             if (!isDozing && state == 1 && !isBouncerVisible && prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
                                 val falsingManager = XposedHelpers.getObjectField(param.thisObject, "falsingManager")
                                 val isFalseTap = try {
@@ -357,12 +359,75 @@ class LockScreenHooks : HookModule {
                                     return
                                 }
                             }
+
+                            // Double tap to wake while in AOD/dozing
+                            if (isDozing && prefs.getBoolean("pref_lockscreen_double_tap_to_wake", false)) {
+                                val falsingManager = XposedHelpers.getObjectField(param.thisObject, "falsingManager")
+                                val isProxNear = try {
+                                    XposedHelpers.callMethod(falsingManager, "isProximityNear") as? Boolean ?: false
+                                } catch (_: Throwable) { false }
+                                if (!isProxNear) {
+                                    val powerInteractor = try { XposedHelpers.getObjectField(param.thisObject, "powerInteractor") } catch (_: Throwable) { null }
+                                    if (powerInteractor != null) {
+                                        try {
+                                            XposedHelpers.callMethod(powerInteractor, "wakeUpIfDozing", "PULSING_DOUBLE_TAP", 15)
+                                        } catch (_: Throwable) {}
+                                    }
+                                    val pm = powerManager ?: run {
+                                        val ac = try { XposedHelpers.getObjectField(param.thisObject, "ambientDisplayConfiguration") } catch (_: Throwable) { null }
+                                        val ctx = try { XposedHelpers.getObjectField(ac, "mContext") as? Context } catch (_: Throwable) { null }
+                                        ctx?.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                                    }
+                                    pm?.let {
+                                        try {
+                                            XposedHelpers.callMethod(it, "wakeUp", SystemClock.uptimeMillis(), 15, "PULSING_DOUBLE_TAP")
+                                        } catch (_: Throwable) {}
+                                    }
+                                    param.result = true
+                                    return
+                                }
+                            }
                         }
                     }
                 )
             } catch (t: Throwable) {
                 XposedBridge.log("$TAG   [LockScreen] FAILED to hook PulsingGestureListener: ${t.message}")
             }
+
+            try {
+                XposedHelpers.findAndHookMethod(
+                    pulsingGestureListenerClass,
+                    "onSingleTapUp",
+                    Float::class.javaPrimitiveType,
+                    Float::class.javaPrimitiveType,
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            if (prefs.getBoolean("pref_lockscreen_double_tap_to_wake", false)) {
+                                // nerf single tap wake while dozing/AOD!
+                                param.result = false
+                            }
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
+
+            try {
+                XposedHelpers.findAndHookMethod(
+                    pulsingGestureListenerClass,
+                    "onSingleTapUp",
+                    MotionEvent::class.java,
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            prefs.forceReload()
+                            if (prefs.getBoolean("pref_lockscreen_double_tap_to_wake", false)) {
+                                // Nerf single tap wake while dozing/AOD!
+                                param.result = false
+                            }
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
         }
 
         val mediatorClass = XposedHelpers.findClassIfExists("com.nothing.systemui.keyguard.KeyguardViewMediatorEx", lpparam.classLoader)
@@ -370,40 +435,84 @@ class LockScreenHooks : HookModule {
             try {
                 XposedHelpers.findAndHookMethod(
                     mediatorClass,
-                    "onKeyGestureSingleTap",
-                    object : XC_MethodHook() {
-                        override fun beforeHookedMethod(param: MethodHookParam) {
-                            prefs.forceReload()
-                            if (!prefs.getBoolean("pref_lockscreen_double_tap_to_wake", false)) return
-
-                            val now = SystemClock.uptimeMillis()
-                            val diff = now - lastScreenOffTapTime
-                            if (diff in 80..600) {
-                                // double tap : reset timer and allow native "Tap to show lock screen" to execute
-                                lastScreenOffTapTime = 0L
-                            } else {
-                                // single tap: nerf single tap so the screen stays off
-                                lastScreenOffTapTime = now
-                                param.result = null
-                            }
-                        }
-                    }
-                )
-            } catch (t: Throwable) {
-                XposedBridge.log("$TAG   [LockScreen] FAILED to hook onKeyGestureSingleTap: ${t.message}")
-            }
-
-            try {
-                XposedHelpers.findAndHookMethod(
-                    mediatorClass,
                     "handleNotifyStartedWakingUp",
                     object : XC_MethodHook() {
                         override fun afterHookedMethod(param: MethodHookParam) {
-                            lastScreenOffTapTime = 0L
+                            lastDozeTapTime = 0L
                         }
                     }
                 )
             } catch (_: Throwable) {}
+        }
+
+        val dozeTriggersExClass = XposedHelpers.findClassIfExists("com.nothing.systemui.doze.DozeTriggersEx", lpparam.classLoader)
+        if (dozeTriggersExClass != null) {
+            try {
+                val dozeHostClass = XposedHelpers.findClassIfExists("com.android.systemui.doze.DozeHost", lpparam.classLoader)
+                val dozeMachineStateClass = XposedHelpers.findClassIfExists("com.android.systemui.doze.DozeMachine\$State", lpparam.classLoader)
+                val consumerClass = java.util.function.Consumer::class.java
+
+                if (dozeHostClass != null && dozeMachineStateClass != null) {
+                    XposedHelpers.findAndHookMethod(
+                        dozeTriggersExClass,
+                        "handleSingleTapEvent",
+                        dozeHostClass,
+                        dozeMachineStateClass,
+                        consumerClass,
+                        Float::class.javaPrimitiveType,
+                        Float::class.javaPrimitiveType,
+                        Int::class.javaPrimitiveType,
+                        object : XC_MethodHook() {
+                            override fun beforeHookedMethod(param: MethodHookParam) {
+                                prefs.forceReload()
+                                if (!prefs.getBoolean("pref_lockscreen_double_tap_to_wake", false)) return
+
+                                val now = SystemClock.uptimeMillis()
+                                val diff = now - lastDozeTapTime
+                                if (diff in 80..800) {
+                                    // double tap: wake device straight to lockscreen
+                                    lastDozeTapTime = 0L
+
+                                    val dozeHost = param.args[0]
+                                    val x = param.args[3] as? Float ?: -1.0f
+                                    val y = param.args[4] as? Float ?: -1.0f
+                                    val consumer = param.args[2]
+                                    val reason = param.args[5]
+
+                                    try {
+                                        XposedHelpers.callMethod(dozeHost, "onSlpiTap", x, y)
+                                    } catch (_: Throwable) {}
+
+                                    if (consumer != null && reason != null) {
+                                        try {
+                                            XposedHelpers.callMethod(consumer, "accept", reason)
+                                        } catch (_: Throwable) {}
+                                    }
+
+                                    val pm = powerManager ?: run {
+                                        val ctx = try { XposedHelpers.getObjectField(param.thisObject, "mContext") as? Context } catch (_: Throwable) { null }
+                                        ctx?.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                                    }
+                                    pm?.let {
+                                        try {
+                                            XposedHelpers.callMethod(it, "wakeUp", SystemClock.uptimeMillis(), 15, "DOUBLE_TAP_TO_WAKE")
+                                        } catch (_: Throwable) {}
+                                    }
+
+                                    // cancel stock method so it NEVER requests DOZE_AOD (shows doze again)
+                                    param.result = null
+                                } else {
+                                    // single tap: nerf completely! screen stays off/dozing, do not transition to AOD
+                                    lastDozeTapTime = now
+                                    param.result = null
+                                }
+                            }
+                        }
+                    )
+                }
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] FAILED to hook handleSingleTapEvent: ${t.message}")
+            }
         }
     }
 
