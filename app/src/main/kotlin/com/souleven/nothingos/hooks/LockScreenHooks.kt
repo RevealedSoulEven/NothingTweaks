@@ -23,11 +23,13 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
+import java.lang.ref.WeakReference
 import java.util.Locale
 
 class LockScreenHooks : HookModule {
 
     private val className = "com.nothing.keyguard.KeyguardSecurityContainerControllerEx"
+    private var keyguardRootViewRef: WeakReference<ViewGroup>? = null
     private var chargingInfoView: TextView? = null
     private var batteryUpdateRunnable: Runnable? = null
     private var powerManager: PowerManager? = null
@@ -95,10 +97,12 @@ class LockScreenHooks : HookModule {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         try {
                             val root = param.thisObject as? ViewGroup ?: return
+                            keyguardRootViewRef = WeakReference(root)
                             powerManager = root.context.getSystemService(Context.POWER_SERVICE) as? PowerManager
                             setupHideClock(root, prefs)
+                            setupChargingInfoView(root)
                         } catch (t: Throwable) {
-                            XposedBridge.log("$TAG   [LockScreen] Error in setupHideClock: ${t.message}")
+                            XposedBridge.log("$TAG   [LockScreen] Error in setup KeyguardRootView: ${t.message}")
                         }
                     }
                 })
@@ -116,9 +120,7 @@ class LockScreenHooks : HookModule {
                     ViewGroup::class.java,
                     object : XC_MethodHook() {
                         override fun afterHookedMethod(param: MethodHookParam) {
-                            val area = param.args[0] as? ViewGroup ?: return
-                            ensureChargingView(param.thisObject, area, prefs)
-                            updateChargingInfo(param.thisObject, area, prefs, lpparam.classLoader)
+                            updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
                         }
                     }
                 )
@@ -149,11 +151,9 @@ class LockScreenHooks : HookModule {
                         override fun afterHookedMethod(param: MethodHookParam) {
                             val visible = param.args[0] as? Boolean ?: return
                             if (visible) {
-                                updateChargingInfo(param.thisObject, null, prefs, lpparam.classLoader)
+                                updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
                             } else {
                                 chargingInfoView?.visibility = View.GONE
-                                val area = XposedHelpers.getObjectField(param.thisObject, "mIndicationArea") as? ViewGroup
-                                area?.translationY = 0f
                             }
                         }
                     }
@@ -167,7 +167,7 @@ class LockScreenHooks : HookModule {
                     Boolean::class.javaPrimitiveType,
                     object : XC_MethodHook() {
                         override fun afterHookedMethod(param: MethodHookParam) {
-                            updateChargingInfo(param.thisObject, null, prefs, lpparam.classLoader)
+                            updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
                         }
                     }
                 )
@@ -182,27 +182,7 @@ class LockScreenHooks : HookModule {
                     Boolean::class.javaPrimitiveType,
                     object : XC_MethodHook() {
                         override fun afterHookedMethod(param: MethodHookParam) {
-                            updateChargingInfo(param.thisObject, null, prefs, lpparam.classLoader)
-                        }
-                    }
-                )
-            } catch (_: Throwable) {}
-        }
-
-        val indicationAreaClass = XposedHelpers.findClassIfExists("com.android.systemui.keyguard.ui.view.KeyguardIndicationArea", lpparam.classLoader)
-        if (indicationAreaClass != null) {
-            try {
-                XposedHelpers.findAndHookMethod(
-                    indicationAreaClass,
-                    "setTranslationY",
-                    Float::class.javaPrimitiveType,
-                    object : XC_MethodHook() {
-                        override fun beforeHookedMethod(param: MethodHookParam) {
-                            val tv = chargingInfoView
-                            if (tv != null && tv.visibility == View.VISIBLE && tv.height > 0) {
-                                val orig = param.args[0] as Float
-                                param.args[0] = orig + (tv.height * 0.35f)
-                            }
+                            updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
                         }
                     }
                 )
@@ -535,12 +515,93 @@ class LockScreenHooks : HookModule {
         return false
     }
 
-    private fun updateChargingInfo(controller: Any, indicationArea: ViewGroup?, prefs: Prefs, classLoader: ClassLoader) {
+    private fun getRootView(controller: Any?): ViewGroup? {
+        keyguardRootViewRef?.get()?.let { return it }
+        if (controller != null) {
+            val area = try { XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup } catch (_: Throwable) { null }
+            var p = area?.parent
+            while (p != null) {
+                if (p.javaClass.name.endsWith("KeyguardRootView")) {
+                    val kr = p as ViewGroup
+                    keyguardRootViewRef = WeakReference(kr)
+                    return kr
+                }
+                p = p.parent
+            }
+            val root = area?.rootView as? ViewGroup
+            if (root != null) {
+                val resId = root.context.resources.getIdentifier("keyguard_root_view", "id", "com.android.systemui")
+                if (resId != 0) {
+                    val kr = root.findViewById<ViewGroup>(resId)
+                    if (kr != null) {
+                        keyguardRootViewRef = WeakReference(kr)
+                        return kr
+                    }
+                }
+                if (root.javaClass.name.endsWith("KeyguardRootView")) {
+                    keyguardRootViewRef = WeakReference(root)
+                    return root
+                }
+            }
+        }
+        return null
+    }
+
+    private fun setupChargingInfoView(root: ViewGroup) {
+        root.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
+            override fun onPreDraw(): Boolean {
+                try {
+                    val tv = chargingInfoView
+                    if (tv != null && tv.visibility == View.VISIBLE && tv.height > 0) {
+                        updateChargingViewPosition(root, tv)
+                    }
+                } catch (_: Throwable) {}
+                return true
+            }
+        })
+    }
+
+    private fun updateChargingViewPosition(root: ViewGroup, tv: TextView) {
+        if (tv.visibility != View.VISIBLE || tv.height == 0) return
+
+        val paddingPx = TypedValue.applyDimension(
+            TypedValue.COMPLEX_UNIT_DIP,
+            10f,
+            root.resources.displayMetrics
+        )
+
+        // if fingerprint icon (or device entry lock icon) is visible on screen, position 10dp above it
+        val resIdFp = root.context.resources.getIdentifier("device_entry_icon_view", "id", "com.android.systemui")
+        val fpView = if (resIdFp != 0) root.findViewById<View>(resIdFp) else null
+
+        val targetY: Float = if (fpView != null && fpView.visibility == View.VISIBLE && fpView.top > 0) {
+            fpView.y - tv.height - paddingPx
+        } else {
+            // position 10dp above the indication area so it never collides with the gesture bar
+            val resIdIndication = root.context.resources.getIdentifier("keyguard_indication_area", "id", "com.android.systemui")
+            val indicationArea = if (resIdIndication != 0) root.findViewById<View>(resIdIndication) else null
+            if (indicationArea != null && indicationArea.visibility == View.VISIBLE && indicationArea.top > 0) {
+                indicationArea.y - tv.height - paddingPx
+            } else {
+                // fallback: safe distance above the bottom of the screen (well above gesture bar)
+                val baseBottomOffset = TypedValue.applyDimension(
+                    TypedValue.COMPLEX_UNIT_DIP,
+                    72f,
+                    root.resources.displayMetrics
+                )
+                root.height - tv.height - baseBottomOffset
+            }
+        }
+
+        if (kotlin.math.abs(tv.y - targetY) > 1f) {
+            tv.y = targetY
+        }
+    }
+
+    private fun updateChargingInfo(controller: Any, prefs: Prefs, classLoader: ClassLoader) {
         try {
             if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
                 chargingInfoView?.visibility = View.GONE
-                val area = indicationArea ?: (XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup)
-                area?.translationY = 0f
                 return
             }
 
@@ -549,55 +610,50 @@ class LockScreenHooks : HookModule {
             val dozing = try { XposedHelpers.getBooleanField(controller, "mDozing") } catch (_: Throwable) { false }
             val plugged = isPluggedIn(controller, context)
 
-            val area = indicationArea ?: (XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup)
-            if (plugged && visible && !dozing) {
-                val view = ensureChargingView(controller, area, prefs)
+            val root = getRootView(controller)
+            if (plugged && visible && !dozing && !isBouncerVisible && root != null) {
+                val view = ensureChargingView(root, prefs)
                 if (view != null) {
-                    val lockView = XposedHelpers.getObjectField(controller, "mLockScreenIndicationView") as? TextView
+                    val lockView = try { XposedHelpers.getObjectField(controller, "mLockScreenIndicationView") as? TextView } catch (_: Throwable) { null }
                     if (lockView != null) {
                         view.setTextColor(lockView.textColors)
                         view.typeface = lockView.typeface
+                    } else {
+                        val colors = try { XposedHelpers.getObjectField(controller, "mInitialTextColorState") as? ColorStateList } catch (_: Throwable) { null }
+                        if (colors != null) view.setTextColor(colors)
+                        else view.setTextColor(Color.WHITE)
                     }
                     val extra = getChargingExtraInfo(context, classLoader)
                     if (extra.isNotEmpty()) {
                         view.text = extra
                         view.visibility = View.VISIBLE
-                        if (view.height > 0) {
-                            area?.translationY = (view.height * 0.35f)
-                        }
+                        updateChargingViewPosition(root, view)
                     } else {
                         view.visibility = View.GONE
-                        area?.translationY = 0f
                     }
                 }
                 val handler = XposedHelpers.getObjectField(controller, "mHandler") as? Handler
                 if (handler != null) scheduleBatteryMsgUpdate(controller, handler, prefs, classLoader)
             } else {
                 chargingInfoView?.visibility = View.GONE
-                area?.translationY = 0f
             }
         } catch (t: Throwable) {
             XposedBridge.log("$TAG   [LockScreen] Error in updateChargingInfo: ${t.message}")
         }
     }
 
-    private fun ensureChargingView(controller: Any, indicationArea: ViewGroup?, prefs: Prefs): TextView? {
+    private fun ensureChargingView(root: ViewGroup, prefs: Prefs): TextView? {
         if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
             chargingInfoView?.visibility = View.GONE
-            val area = indicationArea ?: (XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup)
-            area?.translationY = 0f
             return null
         }
-        val area = indicationArea ?: (XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup) ?: return null
-        val existing = area.findViewWithTag<TextView>("nt_lockscreen_charging_info_view")
+        val existing = root.findViewWithTag<TextView>("nt_lockscreen_charging_info_view")
         if (existing != null) {
             chargingInfoView = existing
             return existing
         }
 
-        val context = area.context
-        val lockView = XposedHelpers.getObjectField(controller, "mLockScreenIndicationView") as? TextView
-
+        val context = root.context
         val tv = TextView(context).apply {
             tag = "nt_lockscreen_charging_info_view"
             gravity = Gravity.CENTER
@@ -605,45 +661,36 @@ class LockScreenHooks : HookModule {
             ellipsize = TextUtils.TruncateAt.END
             includeFontPadding = false
             setPadding(0, 0, 0, 0)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 10f)
-            alpha = 0.85f
+            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f)
+            alpha = 0.9f
             visibility = View.GONE
+            setTextColor(Color.WHITE)
+            isClickable = false
+            isFocusable = false
+            isLongClickable = false
 
-            if (lockView != null) {
-                typeface = lockView.typeface
-                setTextColor(lockView.textColors)
-            } else {
-                val colors = XposedHelpers.getObjectField(controller, "mInitialTextColorState") as? ColorStateList
-                if (colors != null) setTextColor(colors)
-                else setTextColor(Color.WHITE)
-            }
-
-            addOnLayoutChangeListener { _, _, top, _, bottom, _, _, _, _ ->
-                val h = bottom - top
-                if (visibility == View.VISIBLE && h > 0) {
-                    area.translationY = (h * 0.35f)
-                } else if (visibility != View.VISIBLE) {
-                    area.translationY = 0f
-                }
+            addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
+                updateChargingViewPosition(root, this)
             }
         }
 
-        val lp = LinearLayout.LayoutParams(
-            ViewGroup.LayoutParams.MATCH_PARENT,
-            ViewGroup.LayoutParams.WRAP_CONTENT
-        ).apply {
-            gravity = Gravity.CENTER_HORIZONTAL
-        }
-
-        val targetIndex = if (lockView != null) {
-            val idx = area.indexOfChild(lockView)
-            if (idx >= 0) idx + 1 else area.childCount
-        } else {
-            area.childCount
+        val lp = try {
+            val lpClass = root.javaClass.classLoader?.loadClass("androidx.constraintlayout.widget.ConstraintLayout\$LayoutParams")
+            val ctor = lpClass?.getConstructor(Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+            val p = ctor?.newInstance(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+            if (p != null) {
+                try {
+                    XposedHelpers.setIntField(p, "startToStart", 0)
+                    XposedHelpers.setIntField(p, "endToEnd", 0)
+                } catch (_: Throwable) {}
+            }
+            p as? ViewGroup.LayoutParams ?: ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
+        } catch (_: Throwable) {
+            ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
         }
 
         try {
-            area.addView(tv, targetIndex, lp)
+            root.addView(tv, lp)
             chargingInfoView = tv
         } catch (_: Throwable) {
             return null
@@ -658,8 +705,6 @@ class LockScreenHooks : HookModule {
                 try {
                     if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
                         chargingInfoView?.visibility = View.GONE
-                        val area = XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup
-                        area?.translationY = 0f
                         batteryUpdateRunnable = null
                         return
                     }
@@ -668,11 +713,11 @@ class LockScreenHooks : HookModule {
                     val dozing = try { XposedHelpers.getBooleanField(controller, "mDozing") } catch (_: Throwable) { false }
                     val plugged = if (context != null) isPluggedIn(controller, context) else XposedHelpers.getBooleanField(controller, "mPowerPluggedIn")
 
-                    if (plugged && visible && !dozing) {
-                        val view = ensureChargingView(controller, null, prefs)
-                        val area = XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup
+                    val root = getRootView(controller)
+                    if (plugged && visible && !dozing && !isBouncerVisible && root != null) {
+                        val view = ensureChargingView(root, prefs)
                         if (view != null && context != null) {
-                            val lockView = XposedHelpers.getObjectField(controller, "mLockScreenIndicationView") as? TextView
+                            val lockView = try { XposedHelpers.getObjectField(controller, "mLockScreenIndicationView") as? TextView } catch (_: Throwable) { null }
                             if (lockView != null) {
                                 view.setTextColor(lockView.textColors)
                                 view.typeface = lockView.typeface
@@ -681,19 +726,14 @@ class LockScreenHooks : HookModule {
                             if (extra.isNotEmpty()) {
                                 view.text = extra
                                 view.visibility = View.VISIBLE
-                                if (view.height > 0) {
-                                    area?.translationY = (view.height * 0.35f)
-                                }
+                                updateChargingViewPosition(root, view)
                             } else {
                                 view.visibility = View.GONE
-                                area?.translationY = 0f
                             }
                         }
                         handler.postDelayed(this, 2000L)
                     } else {
                         chargingInfoView?.visibility = View.GONE
-                        val area = XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup
-                        area?.translationY = 0f
                         batteryUpdateRunnable = null
                     }
                 } catch (_: Throwable) {
