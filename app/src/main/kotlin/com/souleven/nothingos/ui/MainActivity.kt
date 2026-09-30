@@ -31,6 +31,7 @@ class MainActivity : AppCompatActivity() {
 
         val toolbar = findViewById<MaterialToolbar>(R.id.toolbar)
         toolbar.inflateMenu(R.menu.main_menu)
+        toolbar.menu.findItem(R.id.action_restart)?.icon?.setTint(getColor(R.color.restart_icon_color))
 
         CoroutineScope(Dispatchers.Main).launch {
             val hasRoot = withContext(Dispatchers.IO) {

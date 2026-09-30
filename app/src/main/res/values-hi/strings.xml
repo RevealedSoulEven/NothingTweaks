@@ -33,6 +33,13 @@
     <string name="pref_lockscreen_charging_info_title">लॉकस्क्रीन पर अतिरिक्त चार्जिंग जानकारी</string>
     <string name="pref_lockscreen_charging_info_summary">चार्जिंग के दौरान लॉकस्क्रीन पर रीयल-टाइम वाटेज, करंट, वोल्टेज और तापमान दिखाएं।</string>
 
+    <string name="pref_lockscreen_double_tap_to_sleep_title">स्क्रीन बंद करने के लिए दो बार टैप करें</string>
+    <string name="pref_lockscreen_double_tap_to_sleep_summary">स्क्रीन बंद करने के लिए लॉकस्क्रीन के खाली हिस्से पर दो बार टैप करें।</string>
+
+    <string name="pref_lockscreen_double_tap_to_wake_title">स्क्रीन चालू करने के लिए दो बार टैप करें</string>
+    <string name="pref_lockscreen_double_tap_to_wake_summary">डिवाइस को जगाने के लिए स्क्रीन पर दो बार टैप करें।\n\nनोट: आपको फ़ोन सेटिंग्स → लॉकस्क्रीन में \"लॉक स्क्रीन दिखाने के लिए टैप करें\" को चालू करना होगा।</string>
+
+
     <!-- Navigation -->
     <string name="cat_navigation">नेविगेशन</string>
 

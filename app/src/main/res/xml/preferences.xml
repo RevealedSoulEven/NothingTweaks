@@ -40,6 +40,20 @@
             app:summary="@string/pref_lockscreen_charging_info_summary"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_lockscreen_double_tap_to_sleep"
+            app:title="@string/pref_lockscreen_double_tap_to_sleep_title"
+            app:summary="@string/pref_lockscreen_double_tap_to_sleep_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_lockscreen_double_tap_to_wake"
+            app:title="@string/pref_lockscreen_double_tap_to_wake_title"
+            app:summary="@string/pref_lockscreen_double_tap_to_wake_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

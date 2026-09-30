@@ -6,6 +6,7 @@
         android:id="@+id/action_restart"
         android:title="@string/restart_txt"
         android:icon="@drawable/ic_restart"
+        app:iconTint="@color/restart_icon_color"
         app:showAsAction="always" />
 
 </menu>
