@@ -19,6 +19,7 @@ import com.souleven.nothingos.hooks.SystemFrameworkHooks
 import com.souleven.nothingos.hooks.NotificationIconHooks
 import com.souleven.nothingos.hooks.SpacingHooks
 import com.souleven.nothingos.hooks.StatusBarBrightnessHooks
+import com.souleven.nothingos.hooks.FlagSecureHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodReplacement
 import de.robv.android.xposed.XSharedPreferences
@@ -110,6 +111,10 @@ class MainHook : IXposedHookLoadPackage {
 
         if (lpparam.packageName == "android") {
             hooks.add("SystemFrameworkHooks" to SystemFrameworkHooks())
+        }
+
+        if (lpparam.packageName == "android" || lpparam.packageName == PKG_SYSTEMUI) {
+            hooks.add("FlagSecureHooks" to FlagSecureHooks())
         }
         
         for ((name, hook) in hooks) {

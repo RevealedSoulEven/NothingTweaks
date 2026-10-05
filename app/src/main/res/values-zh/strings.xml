@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">截图与录屏</string>
 
+    <string name="pref_disable_flag_secure">允许在任何地方截图和录屏</string>
+    <string name="pref_disable_flag_secure_desc">允许在受限应用和整个系统中截屏、录屏和投屏。</string>
+
     <string name="pref_watermark">截屏添加序列号</string>
     <string name="pref_watermark_desc">默认关闭。开启后，会在每张截屏上绘制 "SN:" + 您的设备序列号。</string>
 

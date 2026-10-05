@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">Ekran Görüntüleri &amp; Ekran Kaydı</string>
 
+    <string name="pref_disable_flag_secure">Her yerde ekran görüntüsü ve kayda izin ver</string>
+    <string name="pref_disable_flag_secure_desc">Kısıtlanmış uygulamalarda ve tüm sistemde ekran görüntüsü alma, ekran kaydı ve yayınlamaya izin verir.</string>
+
     <string name="pref_watermark">Ekran görüntülerine seri numarası ekle</string>
     <string name="pref_watermark_desc">Varsayılan olarak kapalıdır. Açıldığında her ekran görüntüsünün üzerine "SN:" + cihaz seri numaranızı çizer.</string>
 

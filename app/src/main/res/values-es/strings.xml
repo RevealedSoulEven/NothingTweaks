@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">Capturas y Grabación de pantalla</string>
 
+    <string name="pref_disable_flag_secure">Permitir capturas y grabación en todas partes</string>
+    <string name="pref_disable_flag_secure_desc">Permite realizar capturas de pantalla, grabación de pantalla y transmitir en aplicaciones restringidas y en todo el sistema.</string>
+
     <string name="pref_watermark">Añadir número de serie a las capturas</string>
     <string name="pref_watermark_desc">Desactivado por defecto. Al activarlo dibuja "SN:" + el número de serie de tu dispositivo en cada captura de pantalla.</string>
 

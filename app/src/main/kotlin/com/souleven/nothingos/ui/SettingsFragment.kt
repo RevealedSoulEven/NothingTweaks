@@ -37,6 +37,7 @@ class SettingsFragment : PreferenceFragmentCompat() {
         requireRebootOnEnable("allow_180_rotation")
         requireRebootOnEnable("pref_advanced_power_menu")
         requireRebootOnEnable("pref_back_gesture_kill")
+        requireRebootOnEnable("pref_disable_flag_secure")
     }
 
     private fun requireRebootOnEnable(preferenceKey: String) {

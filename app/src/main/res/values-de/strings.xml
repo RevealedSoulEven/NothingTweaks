@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">Screenshots &amp; Bildschirmaufnahme</string>
 
+    <string name="pref_disable_flag_secure">Screenshots &amp; Aufnahme überall erlauben</string>
+    <string name="pref_disable_flag_secure_desc">Ermöglicht das Erstellen von Screenshots, Bildschirmaufnahmen und Streaming in eingeschränkten Apps und im gesamten System.</string>
+
     <string name="pref_watermark">Seriennummer zu Screenshots hinzufügen</string>
     <string name="pref_watermark_desc">Standardmäßig deaktiviert. Wenn aktiviert, wird \"SN:\" + Ihre Geräteseriennummer auf jeden Screenshot gezeichnet.</string>
 

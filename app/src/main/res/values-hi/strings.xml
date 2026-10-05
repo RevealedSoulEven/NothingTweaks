@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग</string>
 
+    <string name="pref_disable_flag_secure">हर जगह स्क्रीनशॉट और रिकॉर्डिंग की अनुमति दें</string>
+    <string name="pref_disable_flag_secure_desc">प्रतिबंधित ऐप्स और पूरे सिस्टम में स्क्रीनशॉट लेने, स्क्रीन रिकॉर्डिंग और कास्ट करने की अनुमति देता है।</string>
+
     <string name="pref_watermark">स्क्रीनशॉट में सीरियल नंबर जोड़ें</string>
     <string name="pref_watermark_desc">डिफ़ॉल्ट रूप से बंद। इसे चालू करने पर हर स्क्रीनशॉट पर "SN:" + आपके डिवाइस का सीरियल नंबर लिखा जाएगा।</string>
 

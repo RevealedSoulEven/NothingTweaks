@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">Screenshots &amp; Screen recording</string>
 
+    <string name="pref_disable_flag_secure">Allow screenshots &amp; recording everywhere</string>
+    <string name="pref_disable_flag_secure_desc">Allows taking screenshots, screen recording, and casting in restricted apps and throughout the system.</string>
+
     <string name="pref_watermark">Add serial number to screenshots</string>
     <string name="pref_watermark_desc">Off by default. Turning it on draws "SN:" + your device serial onto every screenshot.</string>
 

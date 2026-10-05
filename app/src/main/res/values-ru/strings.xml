@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">Скриншоты и запись экрана</string>
 
+    <string name="pref_disable_flag_secure">Разрешить скриншоты и запись экрана везде</string>
+    <string name="pref_disable_flag_secure_desc">Разрешает создание скриншотов, запись экрана и трансляцию в защищенных приложениях и по всей системе.</string>
+
     <string name="pref_watermark">Добавить серийный номер на скриншоты</string>
     <string name="pref_watermark_desc">По умолчанию отключено. При включении рисует «SN:» + серийный номер вашего устройства на каждом скриншоте.</string>
 

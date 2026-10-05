@@ -91,6 +91,9 @@
     <!-- Screenshots & recording -->
     <string name="cat_capture">スクリーンショットと画面録画</string>
 
+    <string name="pref_disable_flag_secure">どこでもスクリーンショットと画面録画を許可</string>
+    <string name="pref_disable_flag_secure_desc">制限されたアプリやシステム全体で、スクリーンショットの撮影、画面録画、画面キャストを許可します。</string>
+
     <string name="pref_watermark">スクリーンショットにシリアル番号を追加</string>
     <string name="pref_watermark_desc">デフォルトではオフです。オンにすると、すべてのスクリーンショットに「SN:」+デバイスのシリアル番号が描画されます。</string>
 
