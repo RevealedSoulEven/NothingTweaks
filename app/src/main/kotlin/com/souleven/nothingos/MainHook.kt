@@ -32,6 +32,7 @@ class MainHook : IXposedHookLoadPackage {
         const val TAG = "NothingTweaks:"
         const val PREFS_NAME = "settings"
         const val PKG_SYSTEMUI = "com.android.systemui"
+        const val PKG_LAUNCHER = "com.nothing.launcher"
         const val PKG_SELF = "com.souleven.nothingos"
     }
 
@@ -43,7 +44,7 @@ class MainHook : IXposedHookLoadPackage {
 
         val allowedPackages = listOf(
             PKG_SYSTEMUI,
-            "com.nothing.launcher",
+            PKG_LAUNCHER,
             "android",
             "com.google.android.inputmethod.latin"
         )
@@ -100,7 +101,9 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("SpacingHooks" to SpacingHooks())
             hooks.add("StatusBarBrightnessHooks" to StatusBarBrightnessHooks())
         }
-        hooks.add("NavBarHooks" to NavBarHooks())
+        if (lpparam.packageName == PKG_SYSTEMUI || lpparam.packageName == PKG_LAUNCHER) {
+            hooks.add("NavBarHooks" to NavBarHooks())
+        }
         if (lpparam.packageName == "com.google.android.inputmethod.latin") {
             hooks.add("ImeNavBarHooks" to ImeNavBarHooks())
         }

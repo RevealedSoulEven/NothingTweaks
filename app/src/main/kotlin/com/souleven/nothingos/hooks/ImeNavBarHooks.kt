@@ -145,9 +145,20 @@ class ImeNavBarHooks : HookModule {
             val existing = XposedHelpers.getAdditionalInstanceField(decor, IME_LAYOUT_WATCHER_KEY)
             if (existing != null) return
 
+            var isHandlingLayout = false
+            var lastLayoutCheck = 0L
             val listener = ViewTreeObserver.OnGlobalLayoutListener {
                 if (!isHideImeBarEnabled()) return@OnGlobalLayoutListener
-                hideImeSwitcher(ims)
+                if (isHandlingLayout) return@OnGlobalLayoutListener
+                val now = android.os.SystemClock.uptimeMillis()
+                if (now - lastLayoutCheck < 100) return@OnGlobalLayoutListener
+                lastLayoutCheck = now
+                isHandlingLayout = true
+                try {
+                    hideImeSwitcher(ims)
+                } finally {
+                    isHandlingLayout = false
+                }
             }
             decor.viewTreeObserver.addOnGlobalLayoutListener(listener)
             XposedHelpers.setAdditionalInstanceField(decor, IME_LAYOUT_WATCHER_KEY, listener)
@@ -174,6 +185,7 @@ class ImeNavBarHooks : HookModule {
             val dialog = XposedHelpers.callMethod(ims, "getWindow") as? android.app.Dialog ?: return
             val window = dialog.window ?: return
             val decor = window.decorView
+            var anyChanged = false
             val ids = listOf(
                 "input_method_nav_bar",
                 "input_method_nav_back",
@@ -185,21 +197,32 @@ class ImeNavBarHooks : HookModule {
                 val id = decor.resources.getIdentifier(name, "id", "android")
                 if (id == 0) continue
                 val v = decor.findViewById<View>(id) ?: continue
-                v.visibility = View.GONE
-                v.alpha = 0f
-                v.layoutParams?.let { lp -> lp.height = 0 }
-                (v.parent as? ViewGroup)?.requestLayout()
-                zeroBottomPaddingUp(v)
+                if (v.visibility != View.GONE) {
+                    v.visibility = View.GONE
+                    anyChanged = true
+                }
+                if (v.alpha != 0f) {
+                    v.alpha = 0f
+                    anyChanged = true
+                }
+                val lp = v.layoutParams
+                if (lp != null && lp.height != 0) {
+                    lp.height = 0
+                    v.layoutParams = lp
+                    anyChanged = true
+                }
+                if (zeroBottomPaddingUp(v)) {
+                    anyChanged = true
+                }
             }
-            hideImeNavBarClasses(decor)
-            zeroBottomPaddingUp(decor, 6)
-            adjustImeInputViewPadding(decor)
-            decor.post {
-                hideImeNavBarClasses(decor)
-                adjustImeInputViewPadding(decor)
-                stripImeBottomInset(decor)
+            if (hideImeNavBarClasses(decor)) anyChanged = true
+            if (zeroBottomPaddingUp(decor, 6)) anyChanged = true
+            if (adjustImeInputViewPadding(decor)) anyChanged = true
+            if (stripImeBottomInset(decor)) anyChanged = true
+
+            if (anyChanged) {
+                decor.requestLayout()
             }
-            decor.requestLayout()
         } catch (t: Throwable) {
             log("Failed to hide IME nav bar: $t")
         }
@@ -240,26 +263,26 @@ class ImeNavBarHooks : HookModule {
             }
         }
         visit(root)
-        if (changed) {
-            root.requestLayout()
-        }
         return changed
     }
-    
-    private fun zeroBottomPaddingUp(view: View?, depth: Int = 3) {
+
+    private fun zeroBottomPaddingUp(view: View?, depth: Int = 3): Boolean {
+        var changed = false
         var current: Any? = view
         repeat(depth) {
-            val v = current as? View ?: return
+            val v = current as? View ?: return changed
             if (v.paddingBottom != 0) {
                 v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, 0)
+                changed = true
             }
             current = v.parent
         }
+        return changed
     }
-    
-    private fun stripImeBottomInset(root: View) {
-        val navBarHeight = getNavBarHeight(root) ?: return
-        if (root.height <= 0) return
+
+    private fun stripImeBottomInset(root: View): Boolean {
+        val navBarHeight = getNavBarHeight(root) ?: return false
+        if (root.height <= 0) return false
         var changed = false
         fun visit(v: View) {
             if (v is ViewGroup) {
@@ -267,7 +290,11 @@ class ImeNavBarHooks : HookModule {
                     visit(v.getChildAt(i))
                 }
             }
-            val name = runCatching { v.resources.getResourceEntryName(v.id) }.getOrNull()?.lowercase()
+            val resId = v.id
+            val pkgId = (resId ushr 24) and 0xFF
+            val name = if (resId > 0 && (pkgId == 0x01 || pkgId == 0x7F)) {
+                runCatching { v.resources.getResourceEntryName(resId) }.getOrNull()?.lowercase()
+            } else null
             val lp = v.layoutParams
             val heightMatches = v.height == navBarHeight || lp?.height == navBarHeight
             val nearBottom = v.bottom >= (root.height - navBarHeight - 4)
@@ -285,20 +312,28 @@ class ImeNavBarHooks : HookModule {
                 return
             }
             if (nearBottom && (heightMatches || nameMatches || isSpacer)) {
-                v.visibility = View.GONE
-                v.alpha = 0f
+                if (v.visibility != View.GONE) {
+                    v.visibility = View.GONE
+                    changed = true
+                }
+                if (v.alpha != 0f) {
+                    v.alpha = 0f
+                    changed = true
+                }
                 if (lp != null && lp.height != 0) {
                     lp.height = 0
                     v.layoutParams = lp
+                    changed = true
                 }
                 if (lp is ViewGroup.MarginLayoutParams && lp.bottomMargin != 0) {
                     lp.bottomMargin = 0
                     v.layoutParams = lp
+                    changed = true
                 }
                 if (v.paddingBottom != 0) {
                     v.setPadding(v.paddingLeft, v.paddingTop, v.paddingRight, 0)
+                    changed = true
                 }
-                changed = true
             }
         }
         visit(root)
@@ -306,11 +341,9 @@ class ImeNavBarHooks : HookModule {
             root.setPadding(root.paddingLeft, root.paddingTop, root.paddingRight, 0)
             changed = true
         }
-        if (changed) {
-            root.requestLayout()
-        }
+        return changed
     }
-    
+
     private fun adjustImeInputViewPadding(root: View): Boolean {
         var changed = false
         fun visit(v: View) {
@@ -327,9 +360,6 @@ class ImeNavBarHooks : HookModule {
             }
         }
         visit(root)
-        if (changed) {
-            root.requestLayout()
-        }
         return changed
     }
     
