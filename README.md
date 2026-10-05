@@ -12,7 +12,7 @@ By leveraging the modern Xposed framework, this module injects deep system-level
 
 ## ✨ Features
 
-Nothing Tweaks comes packed with a variety of modifications to elevate your Nothing OS experience:
+Nothing Tweaks comes packed with a variety of modifications to elevate your Nothing OS experience. _Click any section below to expand and view the available tweaks:_
 
 <details>
 <summary><b>🔒 Lockscreen</b></summary>
@@ -46,6 +46,7 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 
 | Feature | Description |
 | :--- | :--- |
+| **Allow Screenshots &amp; Recording Everywhere** | Allows taking screenshots, screen recording, and casting in restricted apps and throughout the system, while blocking screenshot and recording detection. |
 | **Screenshot Serial Number** | Optionally watermarks your device serial number (`SN: <serial>`) onto captured screenshots. |
 | **Screen Recording Quality Clamp** | Force the built-in screen recorder to clamp at 720p or 1080p @ 60fps for smoother or lower-bandwidth recordings. |
 
@@ -152,6 +153,7 @@ This project would not have been possible without the amazing work of the Androi
 * **[rovo89](https://github.com/rovo89)** - For creating the original [Xposed Framework](https://github.com/rovo89/Xposed), which pioneered this level of Android customization.
 * **[LSPosed Team](https://github.com/LSPosed/LSPosed)** - For maintaining and advancing the modern ART hooking framework that powers this module today.
 * **[Rares6567](https://github.com/Rares6567)** - For _"hide space under keyboard"_ feature. And his project [NothingXpert](https://github.com/Rares6567/NothingXpert).
+* **[LSPosed/DisableFlagSecure](https://github.com/LSPosed/DisableFlagSecure)** - For the logic and research behind bypassing screenshot / screen recording detection.
 
 <br>
 
