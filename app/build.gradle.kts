@@ -10,7 +10,7 @@ android {
 
     defaultConfig {
         applicationId = "com.souleven.nothingos"
-        minSdk = 28
+        minSdk = 34
         targetSdk = 37
         versionCode = 25
         versionName = "2.5"
