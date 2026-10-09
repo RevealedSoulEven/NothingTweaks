@@ -101,6 +101,9 @@ class SpacingHooks : HookModule {
             val insetsClass = XposedHelpers.findClassIfExists(
                 "com.android.systemui.statusbar.layout.StatusBarContentInsetsProviderImpl",
                 lpparam.classLoader
+            ) ?: XposedHelpers.findClassIfExists(
+                "com.android.systemui.statusbar.phone.StatusBarContentInsetsProvider",
+                lpparam.classLoader
             )
             if (insetsClass != null) {
                 val insetsHook = object : XC_MethodHook() {
@@ -108,11 +111,17 @@ class SpacingHooks : HookModule {
                         val step = prefs.getInt("pref_status_bar_padding", -1)
                         if (step < 0) return
                         val padding = step * 5
-                        val orig = param.result as? Insets
-                        param.result = if (orig != null) {
-                            Insets.of(padding, orig.top, padding, orig.bottom)
-                        } else {
-                            Insets.of(padding, 0, padding, 0)
+
+                        when (val res = param.result) {
+                            is Insets -> {
+                                param.result = Insets.of(padding, res.top, padding, res.bottom)
+                            }
+                            is Pair<*, *> -> {
+                                param.result = Pair(padding, padding)
+                            }
+                            is android.util.Pair<*, *> -> {
+                                param.result = android.util.Pair(padding, padding)
+                            }
                         }
                     }
                 }
@@ -120,7 +129,7 @@ class SpacingHooks : HookModule {
                 XposedBridge.hookAllMethods(insetsClass, "getStatusBarContentInsetsForRotation", insetsHook)
             }
         } catch (t: Throwable) {
-            XposedBridge.log("NothingTweaks: [SpacingHooks] FAILED to hook StatusBarContentInsetsProviderImpl: ${t.message}")
+            XposedBridge.log("NothingTweaks: [SpacingHooks] FAILED to hook StatusBarContentInsetsProvider: ${t.message}")
         }
 
         try {

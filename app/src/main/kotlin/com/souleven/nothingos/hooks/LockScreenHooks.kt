@@ -109,6 +109,22 @@ class LockScreenHooks : HookModule {
             } catch (t: Throwable) {
                 XposedBridge.log("$TAG   [LockScreen] FAILED to hook KeyguardRootView: ${t.message}")
             }
+
+            try {
+                XposedHelpers.findAndHookMethod(
+                    keyguardRootViewClass,
+                    "onViewAdded",
+                    View::class.java,
+                    object : XC_MethodHook() {
+                        override fun afterHookedMethod(param: MethodHookParam) {
+                            val child = param.args[0] as? View ?: return
+                            if (child.id == View.NO_ID) {
+                                child.id = View.generateViewId()
+                            }
+                        }
+                    }
+                )
+            } catch (_: Throwable) {}
         }
 
         val controllerClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.KeyguardIndicationController", lpparam.classLoader)
@@ -551,6 +567,12 @@ class LockScreenHooks : HookModule {
         root.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
             override fun onPreDraw(): Boolean {
                 try {
+                    for (i in 0 until root.childCount) {
+                        val child = root.getChildAt(i)
+                        if (child != null && child.id == View.NO_ID) {
+                            child.id = View.generateViewId()
+                        }
+                    }
                     val tv = chargingInfoView
                     if (tv != null && tv.visibility == View.VISIBLE && tv.height > 0) {
                         updateChargingViewPosition(root, tv)
@@ -601,7 +623,13 @@ class LockScreenHooks : HookModule {
     private fun updateChargingInfo(controller: Any, prefs: Prefs, classLoader: ClassLoader) {
         try {
             if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                val r = getRootView(controller)
+                val existing = r?.findViewWithTag<View>("nt_lockscreen_charging_info_view")
+                if (existing != null) {
+                    r.removeView(existing)
+                }
                 chargingInfoView?.visibility = View.GONE
+                chargingInfoView = null
                 return
             }
 
@@ -644,17 +672,26 @@ class LockScreenHooks : HookModule {
 
     private fun ensureChargingView(root: ViewGroup, prefs: Prefs): TextView? {
         if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+            val existing = root.findViewWithTag<View>("nt_lockscreen_charging_info_view")
+            if (existing != null) {
+                root.removeView(existing)
+            }
             chargingInfoView?.visibility = View.GONE
+            chargingInfoView = null
             return null
         }
         val existing = root.findViewWithTag<TextView>("nt_lockscreen_charging_info_view")
         if (existing != null) {
+            if (existing.id == View.NO_ID) {
+                existing.id = View.generateViewId()
+            }
             chargingInfoView = existing
             return existing
         }
 
         val context = root.context
         val tv = TextView(context).apply {
+            id = View.generateViewId()
             tag = "nt_lockscreen_charging_info_view"
             gravity = Gravity.CENTER
             setSingleLine(true)

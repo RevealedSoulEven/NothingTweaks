@@ -29,12 +29,14 @@ class NotificationIconHooks : HookModule {
             try {
                 XposedBridge.hookAllMethods(containerClass, "initResources", object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        val maxIconsStr = prefs.getString("pref_max_notif_icons", "")
-                        val maxIcons = maxIconsStr.toIntOrNull()
-                        if (maxIcons != null) {
-                            XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnAod", maxIcons)
-                            XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnLockscreen", maxIcons)
-                        }
+                        try {
+                            val maxIconsStr = prefs.getString("pref_max_notif_icons", "")
+                            val maxIcons = maxIconsStr.toIntOrNull()
+                            if (maxIcons != null) {
+                                XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnAod", maxIcons)
+                                XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnLockscreen", maxIcons)
+                            }
+                        } catch (_: Throwable) {}
                     }
                 })
             } catch (t: Throwable) {
