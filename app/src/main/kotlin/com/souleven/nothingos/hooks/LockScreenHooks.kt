@@ -601,7 +601,11 @@ class LockScreenHooks : HookModule {
     private fun updateChargingInfo(controller: Any, prefs: Prefs, classLoader: ClassLoader) {
         try {
             if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
-                chargingInfoView?.visibility = View.GONE
+                chargingInfoView?.let { v ->
+                    v.visibility = View.GONE
+                    try { (v.parent as? ViewGroup)?.removeView(v) } catch (_: Throwable) {}
+                }
+                chargingInfoView = null
                 return
             }
 
@@ -644,17 +648,25 @@ class LockScreenHooks : HookModule {
 
     private fun ensureChargingView(root: ViewGroup, prefs: Prefs): TextView? {
         if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
-            chargingInfoView?.visibility = View.GONE
+            chargingInfoView?.let { v ->
+                v.visibility = View.GONE
+                try { (v.parent as? ViewGroup)?.removeView(v) } catch (_: Throwable) {}
+            }
+            chargingInfoView = null
             return null
         }
         val existing = root.findViewWithTag<TextView>("nt_lockscreen_charging_info_view")
         if (existing != null) {
+            if (existing.id == View.NO_ID) {
+                existing.id = View.generateViewId()
+            }
             chargingInfoView = existing
             return existing
         }
 
         val context = root.context
         val tv = TextView(context).apply {
+            id = View.generateViewId()
             tag = "nt_lockscreen_charging_info_view"
             gravity = Gravity.CENTER
             setSingleLine(true)

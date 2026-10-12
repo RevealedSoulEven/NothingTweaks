@@ -32,8 +32,8 @@ class NotificationIconHooks : HookModule {
                         val maxIconsStr = prefs.getString("pref_max_notif_icons", "")
                         val maxIcons = maxIconsStr.toIntOrNull()
                         if (maxIcons != null) {
-                            XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnAod", maxIcons)
-                            XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnLockscreen", maxIcons)
+                            try { XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnAod", maxIcons) } catch (_: Throwable) {}
+                            try { XposedHelpers.setIntField(param.thisObject, "mMaxIconsOnLockscreen", maxIcons) } catch (_: Throwable) {}
                         }
                     }
                 })
