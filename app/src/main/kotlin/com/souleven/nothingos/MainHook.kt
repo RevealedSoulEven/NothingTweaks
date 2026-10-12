@@ -18,11 +18,13 @@ import com.souleven.nothingos.hooks.BackGestureKillHooks
 import com.souleven.nothingos.hooks.SystemFrameworkHooks
 import com.souleven.nothingos.hooks.NotificationIconHooks
 import com.souleven.nothingos.hooks.SpacingHooks
+import android.app.Application
+import android.app.Instrumentation
 import com.souleven.nothingos.hooks.StatusBarBrightnessHooks
 import com.souleven.nothingos.hooks.FlagSecureHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
+import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
-import de.robv.android.xposed.XSharedPreferences
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
@@ -51,37 +53,28 @@ class MainHook : IXposedHookLoadPackage {
         )
         if (lpparam.packageName !in allowedPackages) return
 
-        val raw = try {
-            XSharedPreferences(PKG_SELF, PREFS_NAME).apply {
-                makeWorldReadable()
+        val isSystemServer = lpparam.packageName == "android"
+        val prefs = Prefs(isSystemServer = isSystemServer)
+
+        if (!isSystemServer) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    Instrumentation::class.java,
+                    "callApplicationOnCreate",
+                    Application::class.java,
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            val app = param.args.getOrNull(0) as? Application ?: return
+                            prefs.init(app)
+                        }
+                    }
+                )
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG Failed to hook callApplicationOnCreate: ${t.message}")
             }
-        } catch (t: Throwable) {
-            XposedBridge.log("$TAG FATAL: could not load prefs: ${t.message}")
-            XposedBridge.log(t)
-            null
         }
 
-        if (raw == null) {
-            XposedBridge.log("$TAG Aborting hook install — no prefs available")
-            return
-        }
-
-        val prefs = Prefs(raw)
-        prefs.forceReload()
-
-        val readable = try {
-            prefs.file.canRead()
-        } catch (t: Throwable) {
-            false
-        }
-        if (!readable) {
-            XposedBridge.log(
-                "$TAG WARNING: prefs file not readable yet. Open the Nothing Tweaks app once " +
-                        "and toggle a setting so the file is created, then restart SystemUI."
-            )
-        }
-
-        if (lpparam.packageName == "android") {
+        if (isSystemServer) {
             com.souleven.nothingos.hooks.SystemHooks.init(lpparam.classLoader, prefs)
         }
 

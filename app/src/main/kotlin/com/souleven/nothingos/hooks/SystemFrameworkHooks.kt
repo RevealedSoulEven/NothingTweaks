@@ -15,6 +15,8 @@ class SystemFrameworkHooks : HookModule {
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         if (lpparam.packageName != "android") return
 
+        hookAppsFilter(lpparam.classLoader)
+
         try {
             val activityManagerServiceClass = XposedHelpers.findClassIfExists(
                 "com.android.server.am.ActivityManagerService",
@@ -31,6 +33,7 @@ class SystemFrameworkHooks : HookModule {
                             val context = XposedHelpers.getObjectField(ams, "mContext") as? Context
                             
                             if (context != null) {
+                                prefs.init(context)
                                 registerSystemReceiver(context)
                             } else {
                                 XposedBridge.log("$TAG SystemFrameworkHooks: mContext is null in AMS")
@@ -42,6 +45,43 @@ class SystemFrameworkHooks : HookModule {
         } catch (t: Throwable) {
             XposedBridge.log("$TAG Failed to hook System Framework: ${t.message}")
             XposedBridge.log(t)
+        }
+    }
+
+    private fun hookAppsFilter(classLoader: ClassLoader) {
+        try {
+            val appsFilterClass = XposedHelpers.findClassIfExists(
+                "com.android.server.pm.AppsFilterBase",
+                classLoader
+            ) ?: XposedHelpers.findClassIfExists(
+                "com.android.server.pm.AppsFilterImpl",
+                classLoader
+            ) ?: return
+
+            XposedBridge.hookAllMethods(
+                appsFilterClass,
+                "shouldFilterApplication",
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        if (param.result != true) return
+                        val targetPkgSetting = param.args.getOrNull(3) ?: return
+                        val pkgName = try {
+                            XposedHelpers.callMethod(targetPkgSetting, "getPackageName") as? String
+                        } catch (_: Throwable) {
+                            try {
+                                XposedHelpers.getObjectField(targetPkgSetting, "mName") as? String
+                            } catch (_: Throwable) {
+                                null
+                            }
+                        }
+                        if (pkgName == com.souleven.nothingos.MainHook.PKG_SELF) {
+                            param.result = false
+                        }
+                    }
+                }
+            )
+        } catch (t: Throwable) {
+            XposedBridge.log("$TAG Failed to hook AppsFilter: ${t.message}")
         }
     }
 

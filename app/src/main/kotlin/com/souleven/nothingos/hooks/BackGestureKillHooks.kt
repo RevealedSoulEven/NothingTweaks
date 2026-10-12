@@ -25,7 +25,6 @@ class BackGestureKillHooks : HookModule {
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         if (lpparam.packageName != "com.android.systemui") return
-        if (!prefs.getBoolean("pref_back_gesture_kill", false)) return
 
         try {
             val handlerClass = XposedHelpers.findClassIfExists(
@@ -42,6 +41,7 @@ class BackGestureKillHooks : HookModule {
                 handlerClass,
                 object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
+                        if (!prefs.getBoolean("pref_back_gesture_kill", false)) return
                         try {
                             XposedHelpers.setIntField(param.thisObject, "mLongPressTimeout", Int.MAX_VALUE)
                         } catch (e: Exception) {
@@ -59,6 +59,7 @@ class BackGestureKillHooks : HookModule {
                 MotionEvent::class.java,
                 object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
+                        if (!prefs.getBoolean("pref_back_gesture_kill", false)) return
                         val handler = param.thisObject
                         val event = param.args[0] as MotionEvent
                         val action = event.actionMasked

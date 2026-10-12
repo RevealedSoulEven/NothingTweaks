@@ -1,36 +1,26 @@
 package com.souleven.nothingos.ui
 
 import android.content.Context
+import android.content.SharedPreferences
+import android.net.Uri
 import android.os.Bundle
 import android.view.View
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
-import androidx.preference.SeekBarPreference
 import androidx.preference.SwitchPreferenceCompat
 import com.souleven.nothingos.MainHook
 import com.souleven.nothingos.R
+import com.souleven.nothingos.hooks.RemotePreferenceProvider
 
-class SettingsFragment : PreferenceFragmentCompat() {
+class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
     override fun onCreatePreferences(savedInstanceState: Bundle?, rootKey: String?) {
+        RemotePreferenceProvider.getDeviceProtectedPrefs(requireContext())
+        preferenceManager.setStorageDeviceProtected()
         preferenceManager.sharedPreferencesName = MainHook.PREFS_NAME
+        preferenceManager.sharedPreferencesMode = Context.MODE_PRIVATE
 
-        @Suppress("DEPRECATION")
-        if (com.souleven.nothingos.ModuleStatus.isModuleActive()) {
-            try {
-                preferenceManager.sharedPreferencesMode = Context.MODE_WORLD_READABLE
-            } catch (t: Throwable) {
-                // Ignored
-            }
-        }
-
-        try {
-            setPreferencesFromResource(R.xml.preferences, rootKey)
-        } catch (t: SecurityException) {
-            // Fallback just in case setting preferences still throws
-            preferenceManager.sharedPreferencesMode = Context.MODE_PRIVATE
-            setPreferencesFromResource(R.xml.preferences, rootKey)
-        }
+        setPreferencesFromResource(R.xml.preferences, rootKey)
 
         wireFingerprintDependencies()
 
@@ -38,6 +28,28 @@ class SettingsFragment : PreferenceFragmentCompat() {
         requireRebootOnEnable("pref_advanced_power_menu")
         requireRebootOnEnable("pref_back_gesture_kill")
         requireRebootOnEnable("pref_disable_flag_secure")
+    }
+
+    override fun onResume() {
+        super.onResume()
+        preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
+    }
+
+    override fun onPause() {
+        preferenceManager.sharedPreferences?.unregisterOnSharedPreferenceChangeListener(this)
+        super.onPause()
+    }
+
+    override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
+        val ctx = context ?: return
+        try {
+            val uri = if (key != null) {
+                Uri.withAppendedPath(RemotePreferenceProvider.CONTENT_URI, key)
+            } else {
+                RemotePreferenceProvider.CONTENT_URI
+            }
+            ctx.contentResolver.notifyChange(uri, null)
+        } catch (_: Throwable) {}
     }
 
     private fun requireRebootOnEnable(preferenceKey: String) {
