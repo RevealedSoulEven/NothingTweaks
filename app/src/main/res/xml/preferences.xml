@@ -2,117 +2,53 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- 1. Status Bar -->
     <PreferenceCategory
-        app:title="@string/cat_lockscreen"
+        app:title="@string/cat_statusbar"
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
-            app:key="scramble_pin"
-            app:title="@string/title_scramble_pin"
-            app:summary="@string/summary_scramble_pin"
+            app:key="pref_status_bar_brightness_slider"
+            app:title="@string/pref_status_bar_brightness_title"
+            app:summary="@string/pref_status_bar_brightness_summary"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat
-            app:key="pref_hide_lockscreen_clock"
-            app:title="@string/title_hide_lockscreen_clock"
-            app:summary="@string/summary_hide_lockscreen_clock"
+            app:key="pref_status_bar_double_tap_to_sleep"
+            app:title="@string/pref_status_bar_double_tap_to_sleep_title"
+            app:summary="@string/pref_status_bar_double_tap_to_sleep_summary"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
 
-        <SwitchPreferenceCompat
-            app:key="disable_glimpse_ads"
-            app:title="@string/pref_glimpse_ads"
-            app:summary="@string/pref_glimpse_ads_desc"
-            app:defaultValue="false"
+        <com.souleven.nothingos.hooks.StatusBarPaddingSeekBarPreference
+            app:key="pref_status_bar_padding"
+            app:title="@string/pref_status_bar_padding_title"
+            app:summary="@string/pref_status_bar_padding_summary"
+            app:defaultValue="-1"
+            app:min="-1"
+            android:max="20"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true"
             app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="disable_power_off_verify"
-            app:title="@string/pref_power_off_verify"
-            app:summary="@string/pref_power_off_verify_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_lockscreen_charging_info"
-            app:title="@string/pref_lockscreen_charging_info_title"
-            app:summary="@string/pref_lockscreen_charging_info_summary"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_lockscreen_double_tap_to_sleep"
-            app:title="@string/pref_lockscreen_double_tap_to_sleep_title"
-            app:summary="@string/pref_lockscreen_double_tap_to_sleep_summary"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_lockscreen_double_tap_to_wake"
-            app:title="@string/pref_lockscreen_double_tap_to_wake_title"
-            app:summary="@string/pref_lockscreen_double_tap_to_wake_summary"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:title="@string/cat_volume"
-        app:iconSpaceReserved="false">
 
         <EditTextPreference
-            app:key="volume_panel_timeout"
-            app:title="@string/pref_volume_timeout"
-            app:summary="@string/pref_volume_timeout_desc"
-            app:dialogTitle="@string/pref_volume_timeout"
-            app:defaultValue=""
-            app:useSimpleSummaryProvider="false"
-            app:iconSpaceReserved="false" />
+            app:key="pref_max_notif_icons"
+            app:title="@string/pref_max_notif_icons_title"
+            app:summary="@string/pref_max_notif_icons_summary"
+            app:dialogTitle="@string/pref_max_notif_icons_title"
+            app:iconSpaceReserved="false"
+            app:useSimpleSummaryProvider="false" />
 
         <SwitchPreferenceCompat
-            app:key="pref_disable_safe_volume"
-            app:title="@string/pref_disable_safe_volume_title"
-            app:summary="@string/pref_disable_safe_volume_summary"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_volume_both_for_torch"
-            app:title="@string/pref_volume_both_for_torch_title"
-            app:summary="@string/pref_volume_both_for_torch_summary"
+            app:key="force_earphone_icon"
+            app:title="@string/pref_force_earphone_icon"
+            app:summary="@string/pref_force_earphone_icon_desc"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
-    <PreferenceCategory
-        app:title="@string/cat_capture"
-        app:iconSpaceReserved="false">
-
-        <SwitchPreferenceCompat
-            app:key="pref_disable_flag_secure"
-            app:title="@string/pref_disable_flag_secure"
-            app:summary="@string/pref_disable_flag_secure_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="watermark_force_on"
-            app:title="@string/pref_watermark"
-            app:summary="@string/pref_watermark_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <ListPreference
-            app:key="record_limit"
-            app:title="@string/pref_record_limit"
-            app:dialogTitle="@string/pref_record_limit"
-            app:entries="@array/record_limit_entries"
-            app:entryValues="@array/record_limit_values"
-            app:defaultValue="off"
-            app:useSimpleSummaryProvider="true"
-            app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-
+    <!-- 2. Status Bar Clock -->
     <PreferenceCategory
         app:title="@string/cat_clock"
         app:iconSpaceReserved="false">
@@ -141,6 +77,196 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
+    <!-- 3. Device Features -->
+    <PreferenceCategory
+        app:title="@string/cat_features"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="flag_isSupportPalmTouchSleep"
+            app:title="@string/pref_palm_touch_sleep"
+            app:summary="@string/pref_palm_touch_sleep_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="flag_isSupportFlipToRecord"
+            app:title="@string/pref_flip_to_record"
+            app:summary="@string/pref_flip_to_record_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="flag_isSupportSupperVolume"
+            app:title="@string/pref_super_volume"
+            app:summary="@string/pref_super_volume_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="flag_isSupportSteplessVolume"
+            app:title="@string/pref_stepless_volume"
+            app:summary="@string/pref_stepless_volume_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <!-- 4. Navigation -->
+    <PreferenceCategory
+        app:title="@string/cat_navigation"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_back_gesture_kill"
+            app:title="@string/pref_back_gesture_kill_title"
+            app:summary="@string/pref_back_gesture_kill_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_hide_ime_bar"
+            app:title="@string/title_hide_ime_bar"
+            app:summary="@string/summary_hide_ime_bar"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="transparent_nav_bar"
+            app:title="@string/pref_transparent_nav_bar"
+            app:summary="@string/pref_transparent_nav_bar_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <!-- 5. Lockscreen -->
+    <PreferenceCategory
+        app:title="@string/cat_lockscreen"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_lockscreen_double_tap_to_sleep"
+            app:title="@string/pref_lockscreen_double_tap_to_sleep_title"
+            app:summary="@string/pref_lockscreen_double_tap_to_sleep_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_lockscreen_double_tap_to_wake"
+            app:title="@string/pref_lockscreen_double_tap_to_wake_title"
+            app:summary="@string/pref_lockscreen_double_tap_to_wake_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_lockscreen_charging_info"
+            app:title="@string/pref_lockscreen_charging_info_title"
+            app:summary="@string/pref_lockscreen_charging_info_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="scramble_pin"
+            app:title="@string/title_scramble_pin"
+            app:summary="@string/summary_scramble_pin"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="disable_power_off_verify"
+            app:title="@string/pref_power_off_verify"
+            app:summary="@string/pref_power_off_verify_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_hide_lockscreen_clock"
+            app:title="@string/title_hide_lockscreen_clock"
+            app:summary="@string/summary_hide_lockscreen_clock"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="disable_glimpse_ads"
+            app:title="@string/pref_glimpse_ads"
+            app:summary="@string/pref_glimpse_ads_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <!-- 6. AI & Misc -->
+    <PreferenceCategory
+        app:title="@string/cat_ai_misc"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_volume_both_for_torch"
+            app:title="@string/pref_volume_both_for_torch_title"
+            app:summary="@string/pref_volume_both_for_torch_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_disable_safe_volume"
+            app:title="@string/pref_disable_safe_volume_title"
+            app:summary="@string/pref_disable_safe_volume_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="ai_clipboard_gemini"
+            app:title="@string/pref_ai_clipboard_gemini"
+            app:summary="@string/pref_ai_clipboard_gemini_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            app:key="volume_panel_timeout"
+            app:title="@string/pref_volume_timeout"
+            app:summary="@string/pref_volume_timeout_desc"
+            app:dialogTitle="@string/pref_volume_timeout"
+            app:defaultValue=""
+            app:useSimpleSummaryProvider="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="temp_warning_bypass"
+            app:title="@string/pref_temp_warning_bypass"
+            app:summary="@string/pref_temp_warning_bypass_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <!-- 7. Screenshot & Screen recording -->
+    <PreferenceCategory
+        app:title="@string/cat_capture"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_disable_flag_secure"
+            app:title="@string/pref_disable_flag_secure"
+            app:summary="@string/pref_disable_flag_secure_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="record_limit"
+            app:title="@string/pref_record_limit"
+            app:dialogTitle="@string/pref_record_limit"
+            app:entries="@array/record_limit_entries"
+            app:entryValues="@array/record_limit_values"
+            app:defaultValue="off"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="watermark_force_on"
+            app:title="@string/pref_watermark"
+            app:summary="@string/pref_watermark_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
+    <!-- 8. Fingerprint -->
     <PreferenceCategory
         app:title="@string/cat_fingerprint"
         app:iconSpaceReserved="false">
@@ -166,144 +292,22 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
-    <PreferenceCategory
-        app:title="@string/cat_statusbar"
-        app:iconSpaceReserved="false">
-
-        <com.souleven.nothingos.hooks.StatusBarPaddingSeekBarPreference
-            app:key="pref_status_bar_padding"
-            app:title="@string/pref_status_bar_padding_title"
-            app:summary="@string/pref_status_bar_padding_summary"
-            app:defaultValue="-1"
-            app:min="-1"
-            android:max="20"
-            app:showSeekBarValue="true"
-            app:updatesContinuously="true"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="force_earphone_icon"
-            app:title="@string/pref_force_earphone_icon"
-            app:summary="@string/pref_force_earphone_icon_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-            
-        <EditTextPreference
-            app:key="pref_max_notif_icons"
-            app:title="@string/pref_max_notif_icons_title"
-            app:summary="@string/pref_max_notif_icons_summary"
-            app:dialogTitle="@string/pref_max_notif_icons_title"
-            app:iconSpaceReserved="false"
-            app:useSimpleSummaryProvider="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_status_bar_brightness_slider"
-            app:title="@string/pref_status_bar_brightness_title"
-            app:summary="@string/pref_status_bar_brightness_summary"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_status_bar_double_tap_to_sleep"
-            app:title="@string/pref_status_bar_double_tap_to_sleep_title"
-            app:summary="@string/pref_status_bar_double_tap_to_sleep_summary"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:title="@string/cat_features"
-        app:iconSpaceReserved="false">
-
-        <SwitchPreferenceCompat
-            app:key="flag_isSupportSteplessVolume"
-            app:title="@string/pref_stepless_volume"
-            app:summary="@string/pref_stepless_volume_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="flag_isSupportSupperVolume"
-            app:title="@string/pref_super_volume"
-            app:summary="@string/pref_super_volume_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="flag_isSupportPalmTouchSleep"
-            app:title="@string/pref_palm_touch_sleep"
-            app:summary="@string/pref_palm_touch_sleep_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="flag_isSupportFlipToRecord"
-            app:title="@string/pref_flip_to_record"
-            app:summary="@string/pref_flip_to_record_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:title="@string/cat_navigation"
-        app:iconSpaceReserved="false">
-        <SwitchPreferenceCompat
-            app:key="transparent_nav_bar"
-            app:title="@string/pref_transparent_nav_bar"
-            app:summary="@string/pref_transparent_nav_bar_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_hide_ime_bar"
-            app:title="@string/title_hide_ime_bar"
-            app:summary="@string/summary_hide_ime_bar"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="pref_back_gesture_kill"
-            app:title="@string/pref_back_gesture_kill_title"
-            app:summary="@string/pref_back_gesture_kill_summary"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-
-    <PreferenceCategory
-        app:title="@string/cat_ai_misc"
-        app:iconSpaceReserved="false">
-
-        <SwitchPreferenceCompat
-            app:key="ai_clipboard_gemini"
-            app:title="@string/pref_ai_clipboard_gemini"
-            app:summary="@string/pref_ai_clipboard_gemini_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
-            app:key="temp_warning_bypass"
-            app:title="@string/pref_temp_warning_bypass"
-            app:summary="@string/pref_temp_warning_bypass_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-    </PreferenceCategory>
-
-
-
+    <!-- 9. System -->
     <PreferenceCategory
         app:title="@string/category_system"
         app:iconSpaceReserved="false">
-        <SwitchPreferenceCompat
-            app:key="allow_180_rotation"
-            app:title="@string/title_allow_180_rotation"
-            app:summary="@string/summary_allow_180_rotation"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat
             app:key="pref_advanced_power_menu"
             app:title="@string/pref_advanced_power_menu_title"
             app:summary="@string/pref_advanced_power_menu_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="allow_180_rotation"
+            app:title="@string/title_allow_180_rotation"
+            app:summary="@string/summary_allow_180_rotation"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>

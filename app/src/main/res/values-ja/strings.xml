@@ -84,8 +84,6 @@
     <string name="pref_clock_text">カスタムテキスト</string>
     <string name="pref_clock_text_desc">時間の後に追加するカスタムテキスト。空白の場合は追加されません。最大24文字。</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">音量</string>
 
     <string name="pref_volume_timeout">音量パネルのタイムアウト</string>
     <string name="pref_volume_timeout_desc">音量パネルが非表示になるまでのミリ秒数。空白の場合はデフォルト (3000ミリ秒) です。</string>

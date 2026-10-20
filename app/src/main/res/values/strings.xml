@@ -84,8 +84,6 @@
     <string name="pref_clock_text">Custom text</string>
     <string name="pref_clock_text_desc">Appended custom text after the time. Leave blank for none. Max 24 chars.</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">Volume</string>
 
     <string name="pref_volume_timeout">Volume panel timeout</string>
     <string name="pref_volume_timeout_desc">Milliseconds before the volume panel hides. Leave blank for stock (3000 ms).</string>

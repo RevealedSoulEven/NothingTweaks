@@ -84,8 +84,6 @@
     <string name="pref_clock_text">Пользовательский текст</string>
     <string name="pref_clock_text_desc">Текст, добавляемый после времени. Оставьте пустым, чтобы ничего не добавлять. Максимум 24 символа.</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">Громкость</string>
 
     <string name="pref_volume_timeout">Тайм-аут панели громкости</string>
     <string name="pref_volume_timeout_desc">Миллисекунды до скрытия панели громкости. Оставьте пустым для значения по умолчанию (3000 мс).</string>

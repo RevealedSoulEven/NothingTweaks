@@ -84,8 +84,6 @@
     <string name="pref_clock_text">Texto personalizado</string>
     <string name="pref_clock_text_desc">Texto personalizado después de la hora. Déjalo en blanco para ninguno. Máx 24 caracteres.</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">Volumen</string>
 
     <string name="pref_volume_timeout">Tiempo de espera del panel de volumen</string>
     <string name="pref_volume_timeout_desc">Milisegundos antes de que el panel de volumen se oculte. Déjalo en blanco para usar el de fábrica (3000 ms).</string>

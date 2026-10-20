@@ -84,8 +84,6 @@
     <string name="pref_clock_text">Özel metin</string>
     <string name="pref_clock_text_desc">Saatten sonra eklenecek özel metin. Boş bırakırsanız eklenmez. En fazla 24 karakter.</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">Ses</string>
 
     <string name="pref_volume_timeout">Ses paneli zaman aşımı</string>
     <string name="pref_volume_timeout_desc">Ses panelinin gizlenmesine kalan milisaniye. Varsayılan (3000 ms) için boş bırakın.</string>

@@ -84,8 +84,6 @@
     <string name="pref_clock_text">Eigener Text</string>
     <string name="pref_clock_text_desc">Eigener Text nach der Uhrzeit. Leer lassen für keinen Text. Max. 24 Zeichen.</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">Lautstärke</string>
 
     <string name="pref_volume_timeout">Timeout des Lautstärkepanels</string>
     <string name="pref_volume_timeout_desc">Millisekunden, bis das Lautstärkepanel ausgeblendet wird. Leer lassen für Standard (3000 ms).</string>

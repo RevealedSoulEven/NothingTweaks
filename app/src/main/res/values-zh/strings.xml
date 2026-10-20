@@ -84,8 +84,6 @@
     <string name="pref_clock_text">自定义文本</string>
     <string name="pref_clock_text_desc">在时间后附加的自定义文本。留空则不显示。最多 24 个字符。</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">音量</string>
 
     <string name="pref_volume_timeout">音量面板显示时长</string>
     <string name="pref_volume_timeout_desc">音量面板隐藏前的等待时间（毫秒）。留空则使用默认值 (3000 ms)。</string>

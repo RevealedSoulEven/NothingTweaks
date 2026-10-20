@@ -84,8 +84,6 @@
     <string name="pref_clock_text">कस्टम टेक्स्ट</string>
     <string name="pref_clock_text_desc">समय के बाद जोड़ा गया कस्टम टेक्स्ट। खाली छोड़ने पर कुछ नहीं जुड़ेगा। अधिकतम 24 अक्षर।</string>
 
-    <!-- Volume -->
-    <string name="cat_volume">वॉल्यूम</string>
 
     <string name="pref_volume_timeout">वॉल्यूम पैनल टाइमआउट</string>
     <string name="pref_volume_timeout_desc">वॉल्यूम पैनल छिपने से पहले के मिलीसेकंड। डिफ़ॉल्ट (3000 ms) के लिए खाली छोड़ दें।</string>
