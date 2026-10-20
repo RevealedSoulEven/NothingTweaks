@@ -1,18 +1,17 @@
-
 name: Build and Release NothingTweaks
 
 on:
   workflow_dispatch:
     inputs:
       version_name:
-        description: "Version name (e.g., 2.8)"
+        description: "Release version (e.g. 1.0)"
         required: true
-        default: "2.8"
+        default: "1.0"
         type: string
       release:
-        description: "Publish a GitHub Release"
+        description: "Publish GitHub Release"
         required: true
-        default: false
+        default: true
         type: boolean
 
 permissions:
@@ -32,7 +31,7 @@ jobs:
           fetch-depth: 0
 
       - name: Set up JDK 17
-        uses: actions/setup-java@v5
+        uses: actions/setup-java@v4
         with:
           distribution: zulu
           java-version: "17"
@@ -41,28 +40,39 @@ jobs:
       - name: Grant Execute Permission for Gradle Wrapper
         run: chmod +x gradlew
 
-      - name: Decode Release Keystore
+      - name: Decode and Verify Keystore
         env:
           KEYSTORE_BASE64: ${{ secrets.ANDROID_KEYSTORE_BASE64 }}
+          KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
+          KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
         shell: bash
         run: |
           set -euo pipefail
 
-          if [ -z "$KEYSTORE_BASE64" ]; then
+          if [ -z "${KEYSTORE_BASE64:-}" ]; then
             echo "::error::Missing ANDROID_KEYSTORE_BASE64 secret"
             exit 1
           fi
 
-          echo "$KEYSTORE_BASE64" | base64 --decode \
-            > "$RUNNER_TEMP/nothingtweaks-release.jks"
+          KEYSTORE_FILE="${RUNNER_TEMP}/nothingtweaks-release.jks"
 
-          if [ ! -s "$RUNNER_TEMP/nothingtweaks-release.jks" ]; then
-            echo "::error::Keystore file is empty"
+          # Decode the base64 secret to binary
+          echo "$KEYSTORE_BASE64" | base64 -d > "$KEYSTORE_FILE"
+
+          # Verify it is actually binary data
+          FILE_TYPE=$(file -b "$KEYSTORE_FILE")
+          echo "Decoded Keystore type: $FILE_TYPE"
+
+          if [[ "$FILE_TYPE" == *"ASCII text"* ]] || [[ "$FILE_TYPE" == *"empty"* ]]; then
+            echo "::error::Decoded keystore is ASCII text or empty, not binary."
             exit 1
           fi
 
-          chmod 600 "$RUNNER_TEMP/nothingtweaks-release.jks"
-          echo "Release keystore decoded."
+          chmod 600 "$KEYSTORE_FILE"
+
+          # Smoke test keystore readability with keytool before launching Gradle
+          keytool -list -keystore "$KEYSTORE_FILE" -storepass "$KEYSTORE_PASSWORD" -alias "$KEY_ALIAS" > /dev/null
+          echo "Keystore verified successfully."
 
       - name: Build Signed Release APK
         env:
@@ -70,10 +80,12 @@ jobs:
           ANDROID_KEYSTORE_PASSWORD: ${{ secrets.ANDROID_KEYSTORE_PASSWORD }}
           ANDROID_KEY_ALIAS: ${{ secrets.ANDROID_KEY_ALIAS }}
           ANDROID_KEY_PASSWORD: ${{ secrets.ANDROID_KEY_PASSWORD }}
-        run: ./gradlew --no-daemon assembleRelease
+        run: ./gradlew --no-daemon --no-configuration-cache assembleRelease
 
-      - name: Locate Release APK
-        id: locate_apk
+      - name: Locate and Stage Release APK
+        id: stage
+        env:
+          VERSION_NAME: ${{ inputs.version_name }}
         shell: bash
         run: |
           set -euo pipefail
@@ -82,137 +94,109 @@ jobs:
           APKS=(app/build/outputs/apk/release/*.apk)
 
           if [ "${#APKS[@]}" -ne 1 ]; then
-            echo "::error::Expected exactly one release APK, found ${#APKS[@]}"
+            echo "::error::Expected exactly one release APK, found ${#APKS[@]}."
             exit 1
           fi
 
-          echo "apk_path=${APKS[0]}" >> "$GITHUB_OUTPUT"
-          echo "Found APK: ${APKS[0]}"
+          mkdir -p release-assets
+          STAGED_APK="release-assets/NothingTweaks-v${VERSION_NAME}-release.apk"
+          cp "${APKS[0]}" "$STAGED_APK"
+
+          echo "apk_path=$STAGED_APK" >> "$GITHUB_OUTPUT"
+          echo "Staged APK: $STAGED_APK"
 
       - name: Verify APK Signature
         env:
-          APK_PATH: ${{ steps.locate_apk.outputs.apk_path }}
+          APK_PATH: ${{ steps.stage.outputs.apk_path }}
         shell: bash
         run: |
           set -euo pipefail
 
           SDK_ROOT="${ANDROID_HOME:-${ANDROID_SDK_ROOT:-}}"
-
           if [ -z "$SDK_ROOT" ]; then
             echo "::error::Android SDK path not found"
             exit 1
           fi
 
-          APKSIGNER="$(find "$SDK_ROOT/build-tools" \
-            -type f -name apksigner | sort -V | tail -n 1)"
-
+          APKSIGNER="$(find "$SDK_ROOT/build-tools" -type f -name apksigner | sort -V | tail -n 1)"
           if [ -z "$APKSIGNER" ]; then
-            echo "::error::apksigner not found"
+            echo "::error::apksigner tool could not be found"
             exit 1
           fi
 
           "$APKSIGNER" verify --verbose "$APK_PATH"
-
           echo "APK signature verification passed."
           echo ""
           echo "Signing certificate details:"
           "$APKSIGNER" verify --print-certs "$APK_PATH"
 
-      - name: Prepare Release Asset
-        id: release_asset
-        env:
-          APK_PATH: ${{ steps.locate_apk.outputs.apk_path }}
-          VERSION_NAME: ${{ inputs.version_name }}
-        shell: bash
-        run: |
-          set -euo pipefail
-
-          mkdir -p release-assets
-          ASSET="release-assets/NothingTweaks-v${VERSION_NAME}-release.apk"
-
-          cp "$APK_PATH" "$ASSET"
-          echo "apk_path=$ASSET" >> "$GITHUB_OUTPUT"
-          echo "Prepared release asset: $ASSET"
-
       - name: Calculate APK SHA-256
-        id: apk_hash
+        id: checksum
         env:
-          APK_PATH: ${{ steps.release_asset.outputs.apk_path }}
+          APK_PATH: ${{ steps.stage.outputs.apk_path }}
         shell: bash
         run: |
           set -euo pipefail
 
-          SHA256=$(sha256sum "$APK_PATH" | awk '{print $1}')
-
-          printf '%s  %s\n' "$SHA256" "$(basename "$APK_PATH")" \
-            > "${APK_PATH}.sha256"
-
+          SHA256="$(sha256sum "$APK_PATH" | awk '{print $1}')"
           echo "sha256=$SHA256" >> "$GITHUB_OUTPUT"
 
-          echo ""
           echo "=========================================="
-          echo "        NOTHINGTWEAKS APK VERIFICATION"
+          echo "   SHA-256: $SHA256"
           echo "=========================================="
-          echo "APK: $APK_PATH"
-          echo "SHA-256:"
-          echo "$SHA256"
-          echo "=========================================="
-          echo ""
 
-      - name: Generate Build Metadata
+      - name: Generate Release Notes
         env:
           VERSION_NAME: ${{ inputs.version_name }}
-          COMMIT_SHA: ${{ github.sha }}
-          REPOSITORY: ${{ github.repository }}
-          RUN_ID: ${{ github.run_id }}
-          ACTOR: ${{ github.actor }}
-          APK_SHA256: ${{ steps.apk_hash.outputs.sha256 }}
+          SHA256: ${{ steps.checksum.outputs.sha256 }}
         shell: bash
         run: |
           set -euo pipefail
 
-          SHORT_SHA="${COMMIT_SHA:0:7}"
-          COMMIT_MESSAGE="$(git log -1 --format=%s "$COMMIT_SHA")"
-          COMMIT_AUTHOR="$(git log -1 --format=%an "$COMMIT_SHA")"
-          BUILD_DATE="$(date -u '+%Y-%m-%d %H:%M:%S UTC')"
+          # Find previous release tag (prefer HEAD^ to ignore current tag if already present)
+          PREV_TAG="$(git describe --tags --abbrev=0 HEAD^ 2>/dev/null || git describe --tags --abbrev=0 2>/dev/null || true)"
 
+          echo "## What's Changed in v${VERSION_NAME}" > release-notes.md
+          echo "" >> release-notes.md
+
+          # Extract commit logs since the last tag or list recent commits if first release
+          if [ -n "$PREV_TAG" ]; then
+            COMMITS=$(git log "${PREV_TAG}..HEAD" --pretty=format:"* %s (%h)" --no-merges)
+            COMPARE_URL="https://github.com/${GITHUB_REPOSITORY}/compare/${PREV_TAG}...v${VERSION_NAME}"
+          else
+            COMMITS=$(git log HEAD --pretty=format:"* %s (%h)" --no-merges -n 50)
+            COMPARE_URL="https://github.com/${GITHUB_REPOSITORY}/commits/v${VERSION_NAME}"
+          fi
+
+          if [ -n "$COMMITS" ]; then
+            echo "$COMMITS" >> release-notes.md
+          else
+            echo "* Initial release / no new commits found." >> release-notes.md
+          fi
+
+          # Append verification and provenance summary
           {
-            echo "# NothingTweaks v${VERSION_NAME}"
             echo ""
-            echo "## Build Information"
-            echo "- Built by: GitHub Actions"
-            echo "- Source repository: https://github.com/${REPOSITORY}"
-            echo "- Source commit: [\`${SHORT_SHA}\`](https://github.com/${REPOSITORY}/commit/${COMMIT_SHA})"
-            echo "- Commit message: ${COMMIT_MESSAGE}"
-            echo "- Commit author: ${COMMIT_AUTHOR}"
-            echo "- Build time: ${BUILD_DATE}"
-            echo "- Workflow triggered by: ${ACTOR}"
-            echo "- [View GitHub Actions build](https://github.com/${REPOSITORY}/actions/runs/${RUN_ID})"
+            echo "---"
             echo ""
-            echo "## Verification"
-            echo "- APK signature verification passed."
-            echo "- SHA-256 checksum file is attached."
-            echo "- GitHub Actions build provenance attestation is generated."
-            echo "- APK SHA-256: \`${APK_SHA256}\`"
+            echo "> [!NOTE]"
+            echo "> **Verified Build:** This release binary was compiled directly by GitHub Actions."
             echo ""
-            echo "## Installation and Updates"
-            echo "- Install the APK using Android's package installer."
-            echo "- Updates require the same compatible signing key and a higher versionCode."
-          } > release-notes.md
+            echo " [View Workflow Run & Verification Log](https://github.com/${GITHUB_REPOSITORY}/actions/runs/${GITHUB_RUN_ID})"
+            echo ""
+            echo "**Full Changelog**: ${COMPARE_URL}"
+          } >> release-notes.md
 
       - name: Attest APK Build Provenance
         uses: actions/attest-build-provenance@v2
         with:
-          subject-path: ${{ steps.release_asset.outputs.apk_path }}
+          subject-path: ${{ steps.stage.outputs.apk_path }}
 
-      - name: Upload Build Artifacts
+      - name: Upload APK Artifact
         uses: actions/upload-artifact@v4
         with:
           name: NothingTweaks-v${{ inputs.version_name }}-release
-          path: |
-            ${{ steps.release_asset.outputs.apk_path }}
-            ${{ steps.release_asset.outputs.apk_path }}.sha256
-            release-notes.md
+          path: ${{ steps.stage.outputs.apk_path }}
           if-no-files-found: error
           retention-days: 90
 
@@ -220,20 +204,17 @@ jobs:
         if: ${{ inputs.release }}
         uses: softprops/action-gh-release@v2
         with:
-          files: |
-            ${{ steps.release_asset.outputs.apk_path }}
-            ${{ steps.release_asset.outputs.apk_path }}.sha256
-          name: NothingTweaks v${{ inputs.version_name }}
+          name: Nothing Tweaks v${{ inputs.version_name }}
           tag_name: v${{ inputs.version_name }}
           target_commitish: ${{ github.sha }}
           body_path: release-notes.md
+          generate_release_notes: false
+          files: ${{ steps.stage.outputs.apk_path }}
           draft: false
           prerelease: false
-          generate_release_notes: false
         env:
-          GITHUB_TOKEN: ${{ secrets.GITHUB_TOKEN }}
+          GITHUB_TOKEN: ${{ github.token }}
 
-      - name: Remove Temporary Keystore
-        if: ${{ always() }}
-        shell: bash
-        run: rm -f "$RUNNER_TEMP/nothingtweaks-release.jks"
+      - name: Clean Up Keystore
+        if: always()
+        run: rm -f "${RUNNER_TEMP}/nothingtweaks-release.jks"
