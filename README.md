@@ -15,40 +15,16 @@ By leveraging the modern Xposed framework, this module injects deep system-level
 Nothing Tweaks comes packed with a variety of modifications to elevate your Nothing OS experience. _Click any section below to expand and view the available tweaks:_
 
 <details>
-<summary><b>🔒 Lockscreen</b></summary>
+<summary><b>📱 Status Bar</b></summary>
 <br>
 
 | Feature | Description |
 | :--- | :--- |
-| **Scramble PIN** | Randomizes the positions of the PIN keypad digits on every unlock attempt. |
-| **Hide Clock** | Hides the stock lockscreen clock and widgets (smartspace), ideal for third-party depth effect wallpapers. |
-| **Remove Glimpse Ads** | Disables the sponsored Glance / Glimpse magazine wallpaper on the lock screen. |
-| **Skip Power-Off Verification** | Allows powering off or restarting the device from the lock screen without entering your PIN/password. |
-| **Additional Charging Info** | Displays real-time wattage (W), current (mA), voltage (V), and battery temperature (°C) while charging. Positioned 10dp above the fingerprint/lock icon. |
-| **Double Tap to Sleep** | Double tap any empty area on the lockscreen to immediately turn off the screen. |
-| **Double Tap to Wake** | Double tap the screen while screen is off or in AOD to wake the device. |
-
-</details>
-
-<details>
-<summary><b>🔊 Volume</b></summary>
-<br>
-
-| Feature | Description |
-| :--- | :--- |
-| **Volume Panel Timeout** | Customize the duration (in milliseconds) before the volume slider automatically dismisses (default: 3000 ms). |
-
-</details>
-
-<details>
-<summary><b>📸 Screenshots &amp; Screen Recording</b></summary>
-<br>
-
-| Feature | Description |
-| :--- | :--- |
-| **Allow Screenshots &amp; Recording Everywhere** | Allows taking screenshots, screen recording, and casting in restricted apps and throughout the system, while blocking screenshot and recording detection. |
-| **Screenshot Serial Number** | Optionally watermarks your device serial number (`SN: <serial>`) onto captured screenshots. |
-| **Screen Recording Quality Clamp** | Force the built-in screen recorder to clamp at 720p or 1080p @ 60fps for smoother or lower-bandwidth recordings. |
+| **Status Bar Brightness Slider** | Slide horizontally across the status bar to smoothly adjust screen brightness. |
+| **Double Tap to Sleep** | Double tap the status bar to turn off the screen. |
+| **Status Bar Edge Padding** | Adjust left and right edge spacing of the status bar content to match your display corners. |
+| **Notification Icon Limit** | Set the maximum number of notification icons shown in the status bar and AOD. |
+| **Nothing Earphone Icon** | Replaces the generic Bluetooth status bar icon with the official Nothing earbud glyph whenever any Bluetooth audio device is connected. |
 
 </details>
 
@@ -65,52 +41,43 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 </details>
 
 <details>
-<summary><b>👆 In-Display Fingerprint</b></summary>
-<br>
-
-| Feature | Description |
-| :--- | :--- |
-| **Color Scanning Dots** | Re-colors the animated scanning ripple dots around your finger during biometric authentication. |
-| **Random Color Every Tap** | Automatically rolls a fresh, vibrant color every time you touch the fingerprint scanner. |
-| **Custom Color Picker** | Choose any custom static color via a built-in color picker (when random mode is off). |
-
-</details>
-
-<details>
-<summary><b>📱 Status Bar</b></summary>
-<br>
-
-| Feature | Description |
-| :--- | :--- |
-| **Status Bar Edge Padding** | Adjust left and right edge spacing of the status bar content to match your display corners. |
-| **Nothing Earphone Icon** | Replaces the generic Bluetooth status bar icon with the official Nothing earbud glyph whenever any Bluetooth audio device is connected. |
-| **Notification Icon Limit** | Set the maximum number of notification icons shown in the status bar and AOD. |
-| **Status Bar Brightness Slider** | Slide your finger horizontally across the status bar to smoothly adjust screen brightness. |
-
-</details>
-
-<details>
 <summary><b>⚙️ Device Features</b></summary>
 <br>
 
 | Feature | Description |
 | :--- | :--- |
-| **Stepless Volume** | Unlocks continuous, granular volume adjustment levels. |
-| **Super Volume Boost** | Enables a higher maximum audio volume ceiling. |
 | **Palm Touch Sleep** | Turn off the screen by covering the display with your palm on the lockscreen. |
 | **Flip to Record** | Flip the phone face-down to automatically start voice recording. |
+| **Super Volume Boost** | Enables a higher maximum audio volume ceiling. |
+| **Stepless Volume** | Unlocks continuous, granular volume adjustment levels. |
 
 </details>
 
 <details>
-<summary><b>🧭 Navigation &amp; Gestures</b></summary>
+<summary><b>🧭 Navigation</b></summary>
 <br>
 
 | Feature | Description |
 | :--- | :--- |
-| **Hide Nav Bar (with Circle to Search)** | Hides the navigation bar gesture pill completely while preserving all gesture navigation and Circle to Search functionality. |
-| **Hide Keyboard Space** | Removes the blank space beneath the keyboard and hides the navigation bar handle while typing. |
 | **Long Swipe Back to Kill App** | Hold the back swipe gesture and release to immediately kill and force-stop the foreground application. |
+| **Hide Keyboard Space** | Removes the blank space beneath the keyboard and hides the navigation bar handle while typing. |
+| **Hide Nav Bar (with Circle to Search)** | Hides the navigation bar gesture pill completely while preserving all gesture navigation and Circle to Search functionality. |
+
+</details>
+
+<details>
+<summary><b>🔒 Lockscreen</b></summary>
+<br>
+
+| Feature | Description |
+| :--- | :--- |
+| **Double Tap to Sleep** | Double tap any empty area on the lockscreen to immediately turn off the screen. |
+| **Double Tap to Wake** | Double tap the screen while screen is off or in AOD to wake the device. |
+| **Additional Charging Info** | Displays real-time wattage (W), current (mA), voltage (V), and battery temperature (°C) while charging. Positioned 10dp above the fingerprint/lock icon. |
+| **Scramble PIN** | Randomizes the positions of the PIN keypad digits on every unlock attempt. |
+| **Skip Power-Off Verification** | Allows powering off or restarting the device from the lock screen without entering your PIN/password. |
+| **Hide Clock** | Hides the stock lockscreen clock and widgets (smartspace), ideal for third-party depth effect wallpapers. |
+| **Remove Glimpse Ads** | Disables the sponsored Glance / Glimpse magazine wallpaper on the lock screen. |
 
 </details>
 
@@ -120,8 +87,35 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 
 | Feature | Description |
 | :--- | :--- |
+| **Both Volume Keys for Torch** | Press both volume buttons together when the screen is off to toggle the flashlight. |
+| **Disable Safe Volume Warning** | Permanently disables the high-volume warning dialog and volume limit when increasing headphone volume. |
 | **Gemini AI Clipboard Chip** | Redirects the Nothing OS clipboard AI action chip to Google Gemini instead of ChatGPT. |
+| **Volume Panel Timeout** | Customize the duration (in milliseconds) before the volume slider automatically dismisses (default: 3000 ms). |
 | **Disable Temperature Warnings** | Disables intrusive high-temperature system warning dialogs. |
+
+</details>
+
+<details>
+<summary><b>📸 Screenshots &amp; Screen Recording</b></summary>
+<br>
+
+| Feature | Description |
+| :--- | :--- |
+| **Allow Screenshots &amp; Recording Everywhere** | Allows taking screenshots, screen recording, and casting in restricted apps and throughout the system, while blocking screenshot and recording detection. |
+| **Screen Recording Quality Clamp** | Force the built-in screen recorder to clamp at 720p or 1080p @ 60fps for smoother or lower-bandwidth recordings. |
+| **Screenshot Serial Number** | Optionally watermarks your device serial number (`SN: <serial>`) onto captured screenshots. |
+
+</details>
+
+<details>
+<summary><b>👆 In-Display Fingerprint</b></summary>
+<br>
+
+| Feature | Description |
+| :--- | :--- |
+| **Color Scanning Dots** | Re-colors the animated scanning ripple dots around your finger during biometric authentication. |
+| **Custom Color Picker** | Choose any custom static color via a built-in color picker (when random mode is off). |
+| **Random Color Every Tap** | Automatically rolls a fresh, vibrant color every time you touch the fingerprint scanner. |
 
 </details>
 
@@ -131,8 +125,8 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 
 | Feature | Description |
 | :--- | :--- |
-| **Allow 180° Rotation** | Allows the screen to rotate completely upside-down (reverse portrait). |
 | **Advanced Power Menu** | Adds direct reboot options for Recovery and Bootloader / Fastboot to the power menu. |
+| **Allow 180° Rotation** | Allows the screen to rotate completely upside-down (reverse portrait). |
 
 </details>
 
