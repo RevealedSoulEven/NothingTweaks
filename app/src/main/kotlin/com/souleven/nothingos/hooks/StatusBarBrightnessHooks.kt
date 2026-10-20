@@ -1,6 +1,7 @@
 package com.souleven.nothingos.hooks
 
 import android.content.Context
+import android.content.res.Configuration
 import android.hardware.display.DisplayManager
 import android.os.Build
 import android.os.SystemClock
@@ -10,6 +11,7 @@ import android.view.GestureDetector
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewConfiguration
+import android.view.ViewGroup
 import android.view.WindowManager
 import com.souleven.nothingos.MainHook.Companion.TAG
 import de.robv.android.xposed.XC_MethodHook
@@ -33,130 +35,98 @@ class StatusBarBrightnessHooks : HookModule {
     private var minBrightness = 0.0f
     private var maxBrightness = 1.0f
     private var isSliding = false
-    private var longPressCancelled = false
+    private var isInStatusBar = false
+    private var isDispatchingCancel = false
     private var lastSlideEndTime = 0L
     private var displayId = 0
     private val hookedListenerClasses = Collections.synchronizedSet(mutableSetOf<Class<*>>())
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
+        // Lockscreen root window touch interception
+        val nswvClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.shade.NotificationShadeWindowView",
+            lpparam.classLoader
+        ) ?: XposedHelpers.findClassIfExists(
+            "com.android.systemui.statusbar.phone.NotificationShadeWindowView",
+            lpparam.classLoader
+        )
+        if (nswvClass != null) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    nswvClass,
+                    "dispatchTouchEvent",
+                    MotionEvent::class.java,
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            if (isDispatchingCancel) return
+                            if (!prefs.getBoolean(PREF_KEY, false)) return
+                            val ev = param.args[0] as? MotionEvent ?: return
+                            val view = param.thisObject as? View ?: return
+                            if (handleTouch(view, ev, checkBounds = true)) {
+                                param.result = true
+                            }
+                        }
+                    }
+                )
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG [StatusBarBrightness] FAILED to hook NotificationShadeWindowView: ${t.message}")
+            }
+        }
+
+        // Normal screen (unlocked status bar) touch interception
         val statusBarViewClass = XposedHelpers.findClassIfExists(
             "com.android.systemui.statusbar.phone.PhoneStatusBarView",
             lpparam.classLoader
-        ) ?: return
-
-        try {
-            XposedHelpers.findAndHookMethod(
-                statusBarViewClass,
-                "onInterceptTouchEvent",
-                MotionEvent::class.java,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (!prefs.getBoolean(PREF_KEY, false)) return
-                        val ev = param.args[0] as? MotionEvent ?: return
-                        val view = param.thisObject as? View ?: return
-
-                        val km = view.context.getSystemService(Context.KEYGUARD_SERVICE) as? android.app.KeyguardManager
-                        if (km?.isKeyguardLocked == true) return
-
-                        when (ev.actionMasked) {
-                            MotionEvent.ACTION_DOWN -> {
-                                initialX = ev.rawX
-                                initialY = ev.rawY
-                                isSliding = false
-                                longPressCancelled = false
-                                initBrightness(view)
+        )
+        if (statusBarViewClass != null) {
+            try {
+                XposedHelpers.findAndHookMethod(
+                    statusBarViewClass,
+                    "onInterceptTouchEvent",
+                    MotionEvent::class.java,
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            if (isDispatchingCancel) return
+                            if (isSliding) {
+                                param.result = true
+                                return
                             }
-                            MotionEvent.ACTION_MOVE -> {
-                                val dx = ev.rawX - initialX
-                                val dy = ev.rawY - initialY
-                                val slop = ViewConfiguration.get(view.context).scaledTouchSlop
-                                if (!isSliding && abs(dx) > slop && abs(dx) > abs(dy)) {
-                                    isSliding = true
-                                    view.parent?.requestDisallowInterceptTouchEvent(true)
-                                    if (!longPressCancelled) {
-                                        longPressCancelled = true
-                                        cancelStatusBarTouches(view, ev)
-                                    }
-                                }
-                                if (isSliding) {
-                                    param.result = true
-                                }
-                            }
-                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                if (isSliding) {
-                                    applyFinalBrightness(view, currentBrightness)
-                                    isSliding = false
-                                    lastSlideEndTime = SystemClock.uptimeMillis()
-                                    param.result = true
-                                }
+                            if (!prefs.getBoolean(PREF_KEY, false)) return
+                            val ev = param.args[0] as? MotionEvent ?: return
+                            val view = param.thisObject as? View ?: return
+                            if (handleTouch(view, ev, checkBounds = false)) {
+                                param.result = true
                             }
                         }
                     }
-                }
-            )
-        } catch (t: Throwable) {
-            XposedBridge.log("$TAG [StatusBarBrightness] FAILED to hook onInterceptTouchEvent: ${t.message}")
-        }
+                )
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG [StatusBarBrightness] FAILED to hook onInterceptTouchEvent: ${t.message}")
+            }
 
-        try {
-            XposedHelpers.findAndHookMethod(
-                statusBarViewClass,
-                "onTouchEvent",
-                MotionEvent::class.java,
-                object : XC_MethodHook() {
-                    override fun beforeHookedMethod(param: MethodHookParam) {
-                        if (!prefs.getBoolean(PREF_KEY, false)) return
-                        val ev = param.args[0] as? MotionEvent ?: return
-                        val view = param.thisObject as? View ?: return
-
-                        val km = view.context.getSystemService(Context.KEYGUARD_SERVICE) as? android.app.KeyguardManager
-                        if (km?.isKeyguardLocked == true) return
-
-                        when (ev.actionMasked) {
-                            MotionEvent.ACTION_DOWN -> {
-                                initialX = ev.rawX
-                                initialY = ev.rawY
-                                isSliding = false
-                                longPressCancelled = false
-                                initBrightness(view)
-                            }
-                            MotionEvent.ACTION_MOVE -> {
-                                val dx = ev.rawX - initialX
-                                val dy = ev.rawY - initialY
-                                val slop = ViewConfiguration.get(view.context).scaledTouchSlop
-                                if (!isSliding && abs(dx) > slop && abs(dx) > abs(dy)) {
-                                    isSliding = true
-                                    view.parent?.requestDisallowInterceptTouchEvent(true)
-                                    if (!longPressCancelled) {
-                                        longPressCancelled = true
-                                        cancelStatusBarTouches(view, ev)
-                                    }
-                                }
-                                if (isSliding) {
-                                    val width = view.resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
-                                    val delta = dx / width
-                                    val newBrightness = (initialBrightness + delta).coerceIn(minBrightness, maxBrightness)
-                                    currentBrightness = newBrightness
-                                    applyTemporaryBrightness(view, newBrightness)
-                                    param.result = true
-                                }
-                            }
-                            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
-                                if (isSliding) {
-                                    applyFinalBrightness(view, currentBrightness)
-                                    isSliding = false
-                                    lastSlideEndTime = SystemClock.uptimeMillis()
-                                    param.result = true
-                                }
+            try {
+                XposedHelpers.findAndHookMethod(
+                    statusBarViewClass,
+                    "onTouchEvent",
+                    MotionEvent::class.java,
+                    object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            if (isDispatchingCancel) return
+                            if (!prefs.getBoolean(PREF_KEY, false)) return
+                            val ev = param.args[0] as? MotionEvent ?: return
+                            val view = param.thisObject as? View ?: return
+                            if (handleTouch(view, ev, checkBounds = false)) {
+                                param.result = true
                             }
                         }
                     }
-                }
-            )
-        } catch (t: Throwable) {
-            XposedBridge.log("$TAG [StatusBarBrightness] FAILED to hook onTouchEvent: ${t.message}")
+                )
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG [StatusBarBrightness] FAILED to hook onTouchEvent: ${t.message}")
+            }
         }
 
+        // Suppress long press while or right after sliding
         val detectorClass = XposedHelpers.findClassIfExists(
             "com.android.systemui.shade.StatusBarLongPressGestureDetector",
             lpparam.classLoader
@@ -244,7 +214,92 @@ class StatusBarBrightnessHooks : HookModule {
         } catch (_: Throwable) {}
     }
 
-    private fun cancelStatusBarTouches(view: View, ev: MotionEvent) {
+    private fun isInteractive(context: Context): Boolean {
+        val pm = context.getSystemService(Context.POWER_SERVICE) as? android.os.PowerManager
+        return pm?.isInteractive != false
+    }
+
+    private fun handleTouch(view: View, ev: MotionEvent, checkBounds: Boolean): Boolean {
+        if (!isInteractive(view.context)) {
+            isInStatusBar = false
+            return false
+        }
+
+        when (ev.actionMasked) {
+            MotionEvent.ACTION_DOWN -> {
+                val inBounds = if (checkBounds) {
+                    val sbHeight = getStatusBarHeight(view.context)
+                    ev.rawY <= (sbHeight * 1.35f)
+                } else {
+                    true
+                }
+                if (inBounds) {
+                    val isSameDown = isInStatusBar && !isSliding && initialX == ev.rawX && initialY == ev.rawY
+                    isInStatusBar = true
+                    initialX = ev.rawX
+                    initialY = ev.rawY
+                    isSliding = false
+                    if (!isSameDown) {
+                        initBrightness(view)
+                    }
+                } else {
+                    isInStatusBar = false
+                }
+                return false
+            }
+            MotionEvent.ACTION_MOVE -> {
+                if (!isInStatusBar) return false
+                val dx = ev.rawX - initialX
+                val dy = ev.rawY - initialY
+                val slop = ViewConfiguration.get(view.context).scaledTouchSlop
+
+                if (!isSliding) {
+                    if (abs(dy) > slop && abs(dy) > abs(dx)) {
+                        isInStatusBar = false
+                        return false
+                    } else if (abs(dx) > slop && abs(dx) > abs(dy)) {
+                        isSliding = true
+                        view.parent?.requestDisallowInterceptTouchEvent(true)
+                        cancelTouches(view, ev)
+                    }
+                }
+
+                if (isSliding) {
+                    val width = view.resources.displayMetrics.widthPixels.toFloat().coerceAtLeast(1f)
+                    val delta = dx / width
+                    val newBrightness = (initialBrightness + delta).coerceIn(minBrightness, maxBrightness)
+                    currentBrightness = newBrightness
+                    applyTemporaryBrightness(view, newBrightness)
+                    return true
+                }
+            }
+            MotionEvent.ACTION_UP, MotionEvent.ACTION_CANCEL -> {
+                isInStatusBar = false
+                if (isSliding) {
+                    isSliding = false
+                    applyFinalBrightness(view, currentBrightness)
+                    lastSlideEndTime = SystemClock.uptimeMillis()
+                    return true
+                }
+            }
+        }
+        return false
+    }
+
+    private fun getStatusBarHeight(context: Context): Int {
+        val isLandscape = context.resources.configuration.orientation == Configuration.ORIENTATION_LANDSCAPE
+        val resName = if (isLandscape) "status_bar_height_landscape" else "status_bar_height"
+        var resId = context.resources.getIdentifier(resName, "dimen", "android")
+        if (resId == 0) {
+            resId = context.resources.getIdentifier("status_bar_height", "dimen", "android")
+        }
+        val height = if (resId > 0) {
+            try { context.resources.getDimensionPixelSize(resId) } catch (_: Throwable) { 0 }
+        } else 0
+        return if (height > 0) height else (32 * context.resources.displayMetrics.density).toInt()
+    }
+
+    private fun cancelTouches(view: View, ev: MotionEvent) {
         val cancelEvent = MotionEvent.obtain(
             ev.downTime,
             ev.eventTime,
@@ -253,21 +308,30 @@ class StatusBarBrightnessHooks : HookModule {
             ev.y,
             0
         )
+        isDispatchingCancel = true
         try {
-            val detector = XposedHelpers.getObjectField(view, "mStatusBarLongPressGestureDetector")
-            if (detector != null) {
-                XposedHelpers.callMethod(detector, "handleTouch", cancelEvent)
+            if (view is ViewGroup) {
+                for (i in 0 until view.childCount) {
+                    view.getChildAt(i)?.dispatchTouchEvent(cancelEvent)
+                }
             }
-        } catch (_: Throwable) {}
+            try {
+                val detector = XposedHelpers.getObjectField(view, "mStatusBarLongPressGestureDetector")
+                if (detector != null) {
+                    XposedHelpers.callMethod(detector, "handleTouch", cancelEvent)
+                }
+            } catch (_: Throwable) {}
 
-        try {
-            val handler = XposedHelpers.getObjectField(view, "mTouchEventHandler")
-            if (handler != null) {
-                XposedHelpers.callMethod(handler, "onTouchEvent", cancelEvent)
-            }
-        } catch (_: Throwable) {}
-
-        cancelEvent.recycle()
+            try {
+                val handler = XposedHelpers.getObjectField(view, "mTouchEventHandler")
+                if (handler != null) {
+                    XposedHelpers.callMethod(handler, "onTouchEvent", cancelEvent)
+                }
+            } catch (_: Throwable) {}
+        } finally {
+            isDispatchingCancel = false
+            cancelEvent.recycle()
+        }
     }
 
     @Suppress("DEPRECATION")
