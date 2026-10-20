@@ -21,6 +21,7 @@ import com.souleven.nothingos.hooks.SpacingHooks
 import android.app.Application
 import android.app.Instrumentation
 import com.souleven.nothingos.hooks.StatusBarGestureHooks
+import com.souleven.nothingos.hooks.TorchHooks
 import com.souleven.nothingos.hooks.FlagSecureHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
@@ -94,6 +95,7 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("NotificationIconHooks" to NotificationIconHooks())
             hooks.add("SpacingHooks" to SpacingHooks())
             hooks.add("StatusBarGestureHooks" to StatusBarGestureHooks())
+            hooks.add("TorchHooks" to TorchHooks())
         }
         if (lpparam.packageName == PKG_SYSTEMUI || lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("NavBarHooks" to NavBarHooks())

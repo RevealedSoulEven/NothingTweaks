@@ -91,6 +91,8 @@
     <string name="pref_volume_timeout_desc">Миллисекунды до скрытия панели громкости. Оставьте пустым для значения по умолчанию (3000 мс).</string>
     <string name="pref_disable_safe_volume_title">Отключить предупреждение о громкости</string>
     <string name="pref_disable_safe_volume_summary">Навсегда отключить диалоговое окно предупреждения о высокой громкости и ограничение звука.</string>
+    <string name="pref_volume_both_for_torch_title">Обе кнопки громкости для фонарика</string>
+    <string name="pref_volume_both_for_torch_summary">Нажмите обе кнопки громкости одновременно при выключенном экране для переключения фонарика.</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">Скриншоты и запись экрана</string>

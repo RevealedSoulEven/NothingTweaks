@@ -91,6 +91,8 @@
     <string name="pref_volume_timeout_desc">Milisegundos antes de que el panel de volumen se oculte. Déjalo en blanco para usar el de fábrica (3000 ms).</string>
     <string name="pref_disable_safe_volume_title">Desactivar advertencia de volumen seguro</string>
     <string name="pref_disable_safe_volume_summary">Desactiva permanentemente el aviso de volumen alto y el límite de volumen.</string>
+    <string name="pref_volume_both_for_torch_title">Ambos botones de volumen para linterna</string>
+    <string name="pref_volume_both_for_torch_summary">Presiona ambos botones de volumen juntos con la pantalla apagada para encender o apagar la linterna.</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">Capturas y Grabación de pantalla</string>

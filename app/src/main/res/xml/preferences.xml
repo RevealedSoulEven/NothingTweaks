@@ -75,6 +75,13 @@
             app:summary="@string/pref_disable_safe_volume_summary"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_volume_both_for_torch"
+            app:title="@string/pref_volume_both_for_torch_title"
+            app:summary="@string/pref_volume_both_for_torch_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

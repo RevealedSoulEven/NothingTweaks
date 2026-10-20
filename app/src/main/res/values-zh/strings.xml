@@ -91,6 +91,8 @@
     <string name="pref_volume_timeout_desc">音量面板隐藏前的等待时间（毫秒）。留空则使用默认值 (3000 ms)。</string>
     <string name="pref_disable_safe_volume_title">禁用安全音量警告</string>
     <string name="pref_disable_safe_volume_summary">永久禁用高音量警告弹窗和音量限制。</string>
+    <string name="pref_volume_both_for_torch_title">双音量键开关手电筒</string>
+    <string name="pref_volume_both_for_torch_summary">屏幕熄灭时同时按下两个音量键以开关手电筒。</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">截图与录屏</string>
