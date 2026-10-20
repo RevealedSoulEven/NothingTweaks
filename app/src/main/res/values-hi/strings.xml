@@ -89,6 +89,8 @@
 
     <string name="pref_volume_timeout">वॉल्यूम पैनल टाइमआउट</string>
     <string name="pref_volume_timeout_desc">वॉल्यूम पैनल छिपने से पहले के मिलीसेकंड। डिफ़ॉल्ट (3000 ms) के लिए खाली छोड़ दें।</string>
+    <string name="pref_disable_safe_volume_title">सुरक्षित वॉल्यूम चेतावनी अक्षम करें</string>
+    <string name="pref_disable_safe_volume_summary">उच्च वॉल्यूम चेतावनी संवाद और वॉल्यूम सीमा को स्थायी रूप से अक्षम करें।</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">स्क्रीनशॉट और स्क्रीन रिकॉर्डिंग</string>

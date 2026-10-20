@@ -89,6 +89,8 @@
 
     <string name="pref_volume_timeout">音量パネルのタイムアウト</string>
     <string name="pref_volume_timeout_desc">音量パネルが非表示になるまでのミリ秒数。空白の場合はデフォルト (3000ミリ秒) です。</string>
+    <string name="pref_disable_safe_volume_title">安全音量の警告を無効化</string>
+    <string name="pref_disable_safe_volume_summary">大音量時の警告ダイアログと音量制限を恒久的に無効化します。</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">スクリーンショットと画面録画</string>

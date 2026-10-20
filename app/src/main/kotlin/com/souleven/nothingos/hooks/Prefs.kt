@@ -186,16 +186,68 @@ class Prefs(private val isSystemServer: Boolean = false) {
                     }
                     initialized = true
                     lastReload = System.currentTimeMillis()
+                    return
+                }
+            }
+
+            reloadFromFile()
+        } catch (_: Throwable) {
+            reloadFromFile()
+        }
+    }
+
+    private fun reloadFromFile(): Boolean {
+        try {
+            val file = java.io.File("/data/user_de/0/com.souleven.nothingos/shared_prefs/settings.xml")
+            if (!file.exists() || !file.canRead()) return false
+
+            val parser = android.util.Xml.newPullParser()
+            file.inputStream().use { inputStream ->
+                parser.setInput(inputStream, "utf-8")
+                var event = parser.eventType
+                val newKeys = HashSet<String>()
+                while (event != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                    if (event == org.xmlpull.v1.XmlPullParser.START_TAG) {
+                        val tag = parser.name
+                        val name = parser.getAttributeValue(null, "name")
+                        if (name != null) {
+                            val parsed: Any? = when (tag) {
+                                "boolean" -> parser.getAttributeValue(null, "value")?.toBooleanStrictOrNull()
+                                "int" -> parser.getAttributeValue(null, "value")?.toIntOrNull()
+                                "long" -> parser.getAttributeValue(null, "value")?.toLongOrNull()
+                                "float" -> parser.getAttributeValue(null, "value")?.toFloatOrNull()
+                                "string" -> parser.nextText()
+                                else -> null
+                            }
+                            if (parsed != null) {
+                                cache[name] = parsed
+                                newKeys.add(name)
+                            }
+                        }
+                    }
+                    event = parser.next()
+                }
+                if (newKeys.isNotEmpty()) {
+                    val iter = cache.keys.iterator()
+                    while (iter.hasNext()) {
+                        if (iter.next() !in newKeys) {
+                            iter.remove()
+                        }
+                    }
+                    initialized = true
+                    lastReload = System.currentTimeMillis()
+                    return true
                 }
             }
         } catch (_: Throwable) {}
+        return false
     }
 
     private fun maybeReload() {
         if (!initialized) {
             val now = System.currentTimeMillis()
             if (now - lastReload >= 1_000L) {
-                triggerReload(waitIfFirstLoad = !isSystemServer)
+                triggerReload(waitIfFirstLoad = true)
             }
         }
     }
@@ -226,6 +278,11 @@ class Prefs(private val isSystemServer: Boolean = false) {
     }
 
     fun forceReload() {
-        maybeReload()
+        val ctx = resolveContext()
+        if (ctx != null) {
+            reloadSync(ctx)
+        } else {
+            reloadFromFile()
+        }
     }
 }

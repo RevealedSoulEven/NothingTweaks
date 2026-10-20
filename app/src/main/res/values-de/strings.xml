@@ -89,6 +89,8 @@
 
     <string name="pref_volume_timeout">Timeout des Lautstärkepanels</string>
     <string name="pref_volume_timeout_desc">Millisekunden, bis das Lautstärkepanel ausgeblendet wird. Leer lassen für Standard (3000 ms).</string>
+    <string name="pref_disable_safe_volume_title">Sicherheitslautstärke-Warnung deaktivieren</string>
+    <string name="pref_disable_safe_volume_summary">Die Warnung vor hoher Lautstärke und die Lautstärkebegrenzung dauerhaft deaktivieren.</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">Screenshots &amp; Bildschirmaufnahme</string>

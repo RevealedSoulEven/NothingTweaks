@@ -89,6 +89,8 @@
 
     <string name="pref_volume_timeout">Volume panel timeout</string>
     <string name="pref_volume_timeout_desc">Milliseconds before the volume panel hides. Leave blank for stock (3000 ms).</string>
+    <string name="pref_disable_safe_volume_title">Disable safe volume warning</string>
+    <string name="pref_disable_safe_volume_summary">Permanently disable the high volume warning dialog and volume limit.</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">Screenshots &amp; Screen recording</string>

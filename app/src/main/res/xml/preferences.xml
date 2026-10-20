@@ -68,6 +68,13 @@
             app:defaultValue=""
             app:useSimpleSummaryProvider="false"
             app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_disable_safe_volume"
+            app:title="@string/pref_disable_safe_volume_title"
+            app:summary="@string/pref_disable_safe_volume_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <PreferenceCategory

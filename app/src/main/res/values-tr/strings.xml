@@ -89,6 +89,8 @@
 
     <string name="pref_volume_timeout">Ses paneli zaman aşımı</string>
     <string name="pref_volume_timeout_desc">Ses panelinin gizlenmesine kalan milisaniye. Varsayılan (3000 ms) için boş bırakın.</string>
+    <string name="pref_disable_safe_volume_title">Güvenli ses uyarısını devre dışı bırak</string>
+    <string name="pref_disable_safe_volume_summary">Yüksek ses uyarı iletişim kutusunu ve ses sınırını kalıcı olarak devre dışı bırakın.</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">Ekran Görüntüleri &amp; Ekran Kaydı</string>

@@ -89,6 +89,8 @@
 
     <string name="pref_volume_timeout">Тайм-аут панели громкости</string>
     <string name="pref_volume_timeout_desc">Миллисекунды до скрытия панели громкости. Оставьте пустым для значения по умолчанию (3000 мс).</string>
+    <string name="pref_disable_safe_volume_title">Отключить предупреждение о громкости</string>
+    <string name="pref_disable_safe_volume_summary">Навсегда отключить диалоговое окно предупреждения о высокой громкости и ограничение звука.</string>
 
     <!-- Screenshots & recording -->
     <string name="cat_capture">Скриншоты и запись экрана</string>

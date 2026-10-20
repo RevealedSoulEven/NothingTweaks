@@ -82,15 +82,10 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
             try {
                 val prefsDir = if (baseDir.name == "shared_prefs") baseDir else File(baseDir, "shared_prefs")
                 if (prefsDir.exists()) {
-                    prefsDir.setReadable(false, false)
-                    prefsDir.setReadable(true, true)
-                    prefsDir.setExecutable(false, false)
-                    prefsDir.setExecutable(true, true)
+                    prefsDir.setReadable(true, false)
+                    prefsDir.setExecutable(true, false)
                     prefsDir.listFiles()?.forEach { file ->
-                        file.setReadable(false, false)
-                        file.setReadable(true, true)
-                        file.setWritable(false, false)
-                        file.setWritable(true, true)
+                        file.setReadable(true, false)
                     }
                 }
             } catch (_: Throwable) {}
