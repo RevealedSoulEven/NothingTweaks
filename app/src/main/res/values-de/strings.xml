@@ -69,6 +69,8 @@
 
     <string name="pref_status_bar_brightness_title">Helligkeitsregler in Statusleiste</string>
     <string name="pref_status_bar_brightness_summary">Horizontal über die Statusleiste wischen, um die Bildschirmhelligkeit anzupassen.</string>
+    <string name="pref_status_bar_double_tap_to_sleep_title">Doppeltippen zum Ausschalten</string>
+    <string name="pref_status_bar_double_tap_to_sleep_summary">Tippen Sie doppelt auf die Statusleiste, um den Bildschirm auszuschalten.</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Uhr in der Statusleiste</string>

@@ -69,6 +69,8 @@
 
     <string name="pref_status_bar_brightness_title">Status Bar Brightness Slider</string>
     <string name="pref_status_bar_brightness_summary">Slide horizontally across the status bar to adjust screen brightness.</string>
+    <string name="pref_status_bar_double_tap_to_sleep_title">Double tap to sleep</string>
+    <string name="pref_status_bar_double_tap_to_sleep_summary">Double tap the status bar to turn off the screen.</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Status bar clock</string>

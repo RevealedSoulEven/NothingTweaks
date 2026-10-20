@@ -69,6 +69,8 @@
 
     <string name="pref_status_bar_brightness_title">ステータスバーの明るさスライダー</string>
     <string name="pref_status_bar_brightness_summary">ステータスバーを左右にスワイプして画面の明るさを調整します。</string>
+    <string name="pref_status_bar_double_tap_to_sleep_title">ダブルタップでスリープ</string>
+    <string name="pref_status_bar_double_tap_to_sleep_summary">ステータスバーをダブルタップして画面をオフにします。</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">ステータスバーの時計</string>

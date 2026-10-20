@@ -69,6 +69,8 @@
 
     <string name="pref_status_bar_brightness_title">状态栏亮度滑动调节</string>
     <string name="pref_status_bar_brightness_summary">在状态栏上水平滑动以调节屏幕亮度。</string>
+    <string name="pref_status_bar_double_tap_to_sleep_title">双击锁屏</string>
+    <string name="pref_status_bar_double_tap_to_sleep_summary">双击状态栏关闭屏幕。</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">状态栏时钟</string>

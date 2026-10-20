@@ -69,6 +69,8 @@
 
     <string name="pref_status_bar_brightness_title">Durum Çubuğu Parlaklık Kaydırıcısı</string>
     <string name="pref_status_bar_brightness_summary">Ekran parlaklığını ayarlamak için durum çubuğu üzerinde yatay olarak kaydırın.</string>
+    <string name="pref_status_bar_double_tap_to_sleep_title">Uyutmak için çift dokun</string>
+    <string name="pref_status_bar_double_tap_to_sleep_summary">Ekranı kapatmak için durum çubuğuna iki kez dokunun.</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Durum Çubuğu saati</string>

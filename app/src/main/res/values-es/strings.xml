@@ -69,6 +69,8 @@
 
     <string name="pref_status_bar_brightness_title">Control de brillo en barra de estado</string>
     <string name="pref_status_bar_brightness_summary">Desliza horizontalmente por la barra de estado para ajustar el brillo de la pantalla.</string>
+    <string name="pref_status_bar_double_tap_to_sleep_title">Doble toque para suspender</string>
+    <string name="pref_status_bar_double_tap_to_sleep_summary">Toca dos veces la barra de estado para apagar la pantalla.</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">Reloj de barra de estado</string>

@@ -69,6 +69,8 @@
 
     <string name="pref_status_bar_brightness_title">स्टेटस बार ब्राइटनेस स्लाइडर</string>
     <string name="pref_status_bar_brightness_summary">स्क्रीन की चमक बदलने के लिए स्टेटस बार पर बाएं-दाएं स्लाइड करें।</string>
+    <string name="pref_status_bar_double_tap_to_sleep_title">स्क्रीन बंद करने के लिए दो बार टैप करें</string>
+    <string name="pref_status_bar_double_tap_to_sleep_summary">स्क्रीन बंद करने के लिए स्टेटस बार पर दो बार टैप करें।</string>
 
     <!-- Status bar clock -->
     <string name="cat_clock">स्टेटस बार घड़ी</string>
