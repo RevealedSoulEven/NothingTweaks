@@ -1,40 +1,108 @@
 package com.souleven.nothingos.hooks
 
+import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.ColorStateList
-import android.graphics.Color
 import android.os.BatteryManager
-import android.os.Handler
 import android.os.PowerManager
 import android.os.SystemClock
-import android.text.TextUtils
-import android.util.TypedValue
-import android.view.Gravity
 import android.view.MotionEvent
 import android.view.View
 import android.view.ViewGroup
 import android.view.ViewTreeObserver
-import android.widget.LinearLayout
 import android.widget.TextView
 import com.souleven.nothingos.MainHook.Companion.TAG
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
-import java.lang.ref.WeakReference
 import java.util.Locale
 
 class LockScreenHooks : HookModule {
 
     private val className = "com.nothing.keyguard.KeyguardSecurityContainerControllerEx"
-    private var keyguardRootViewRef: WeakReference<ViewGroup>? = null
-    private var chargingInfoView: TextView? = null
-    private var batteryUpdateRunnable: Runnable? = null
+    private var lastIndicationController: Any? = null
+    private var lastRotateController: Any? = null
+    private var isCharging = false
+    private var isUpdatingInPlace = false
     private var powerManager: PowerManager? = null
-    private var isBouncerVisible: Boolean = false
     private var lastDozeTapTime: Long = 0L
+    private var batteryReceiver: BroadcastReceiver? = null
+
+    private fun ensureBatteryReceiver(context: Context, prefs: Prefs, classLoader: ClassLoader) {
+        if (batteryReceiver != null) return
+        val appCtx = context.applicationContext ?: context
+        val sticky = try { appCtx.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED)) } catch (_: Throwable) { null }
+        val initStatus = sticky?.getIntExtra(BatteryManager.EXTRA_STATUS, -1) ?: -1
+        isCharging = initStatus == BatteryManager.BATTERY_STATUS_CHARGING
+                || initStatus == BatteryManager.BATTERY_STATUS_FULL
+
+        val receiver = object : BroadcastReceiver() {
+            override fun onReceive(ctx: Context, intent: Intent) {
+                val status = intent.getIntExtra(BatteryManager.EXTRA_STATUS, -1)
+                val nowCharging = status == BatteryManager.BATTERY_STATUS_CHARGING
+                        || status == BatteryManager.BATTERY_STATUS_FULL
+                if (nowCharging != isCharging) {
+                    onChargingStateChanged(nowCharging, classLoader, prefs)
+                }
+            }
+        }
+        try {
+            appCtx.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
+            batteryReceiver = receiver
+        } catch (_: Throwable) {}
+    }
+
+    private fun buildChargingIndication(classLoader: ClassLoader, message: String, ctrl: Any?): Any? {
+        val builderClass = XposedHelpers.findClassIfExists("com.android.systemui.keyguard.KeyguardIndication\$Builder", classLoader) ?: return null
+        val builder = XposedHelpers.newInstance(builderClass)
+        XposedHelpers.callMethod(builder, "setMessage", message)
+        val color = if (ctrl != null) try { XposedHelpers.callMethod(ctrl, "getInitialTextColorState") } catch (_: Throwable) { null } else null
+        if (color != null) XposedHelpers.callMethod(builder, "setTextColor", color)
+        return XposedHelpers.callMethod(builder, "build")
+    }
+
+    private fun ensureChargingIndication(classLoader: ClassLoader) {
+        val ctrl = lastIndicationController ?: return
+        val rotateCtrl = lastRotateController
+            ?: try { XposedHelpers.getObjectField(ctrl, "mRotateTextViewController") } catch (_: Throwable) { null }
+            ?: return
+        val context = try { XposedHelpers.getObjectField(ctrl, "mContext") as? Context } catch (_: Throwable) { null }
+            ?: (XposedHelpers.getObjectField(rotateCtrl, "mView") as? View)?.context
+            ?: return
+        val extra = getChargingExtraInfo(context, classLoader)
+        if (extra.isEmpty()) return
+
+        val indication = buildChargingIndication(classLoader, extra, ctrl) ?: return
+        try {
+            XposedHelpers.callMethod(rotateCtrl, "updateIndication", 0, indication, false)
+        } catch (_: Throwable) {}
+    }
+
+    private fun onChargingStateChanged(charging: Boolean, classLoader: ClassLoader, prefs: Prefs) {
+        isCharging = charging
+        val ctrl = lastIndicationController
+        if (charging) {
+            val isVisible = if (ctrl != null) try { XposedHelpers.getBooleanField(ctrl, "mVisible") } catch (_: Throwable) { false } else false
+            if (isVisible && prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                ensureChargingIndication(classLoader)
+                if (ctrl != null) {
+                    try {
+                        XposedHelpers.callMethod(ctrl, "updateLockScreenOwnerInfo")
+                        XposedHelpers.callMethod(ctrl, "updateLockScreenBatteryMsg", false)
+                    } catch (_: Throwable) {}
+                }
+            }
+        } else {
+            if (ctrl != null) {
+                try {
+                    XposedHelpers.callMethod(ctrl, "updateLockScreenOwnerInfo")
+                    XposedHelpers.callMethod(ctrl, "updateLockScreenBatteryMsg", false)
+                } catch (_: Throwable) {}
+            }
+        }
+    }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         val clazz = XposedHelpers.findClassIfExists(className, lpparam.classLoader)
@@ -97,10 +165,9 @@ class LockScreenHooks : HookModule {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         try {
                             val root = param.thisObject as? ViewGroup ?: return
-                            keyguardRootViewRef = WeakReference(root)
                             powerManager = root.context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+                            ensureBatteryReceiver(root.context, prefs, lpparam.classLoader)
                             setupHideClock(root, prefs)
-                            setupChargingInfoView(root)
                         } catch (t: Throwable) {
                             XposedBridge.log("$TAG   [LockScreen] Error in setup KeyguardRootView: ${t.message}")
                         }
@@ -111,98 +178,172 @@ class LockScreenHooks : HookModule {
             }
         }
 
-        val controllerClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.KeyguardIndicationController", lpparam.classLoader)
-        if (controllerClass != null) {
+        val rotateControllerClass = XposedHelpers.findClassIfExists("com.android.systemui.keyguard.KeyguardIndicationRotateTextViewController", lpparam.classLoader)
+        if (rotateControllerClass != null) {
             try {
-                XposedHelpers.findAndHookMethod(
-                    controllerClass,
-                    "setIndicationArea",
-                    ViewGroup::class.java,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
-                        }
-                    }
-                )
-            } catch (t: Throwable) {
-                XposedBridge.log("$TAG   [LockScreen] FAILED to hook setIndicationArea: ${t.message}")
-            }
-
-            try {
-                XposedHelpers.findAndHookMethod(
-                    controllerClass,
-                    "setIndicationTextColor",
-                    ColorStateList::class.java,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            val colors = param.args[0] as? ColorStateList ?: return
-                            chargingInfoView?.setTextColor(colors)
-                        }
-                    }
-                )
-            } catch (_: Throwable) {}
-
-            try {
-                XposedHelpers.findAndHookMethod(
-                    controllerClass,
-                    "setVisible",
-                    Boolean::class.javaPrimitiveType,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            val visible = param.args[0] as? Boolean ?: return
-                            if (visible) {
-                                updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
-                            } else {
-                                chargingInfoView?.visibility = View.GONE
+                XposedBridge.hookAllMethods(rotateControllerClass, "updateIndication", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        lastRotateController = param.thisObject
+                        val id = param.args.getOrNull(0) as? Int ?: return
+                        if (id == 0 && isCharging && prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                            val ctrl = lastIndicationController
+                            val context = (if (ctrl != null) try { XposedHelpers.getObjectField(ctrl, "mContext") as? Context } catch (_: Throwable) { null } else null)
+                                ?: (XposedHelpers.getObjectField(param.thisObject, "mView") as? View)?.context
+                                ?: return
+                            val extra = getChargingExtraInfo(context, lpparam.classLoader)
+                            if (extra.isNotEmpty()) {
+                                val indication = param.args.getOrNull(1)
+                                if (indication == null) {
+                                    val newInd = buildChargingIndication(lpparam.classLoader, extra, ctrl)
+                                    if (newInd != null) {
+                                        param.args[1] = newInd
+                                        param.args[2] = false
+                                    }
+                                } else {
+                                    try {
+                                        XposedHelpers.setObjectField(indication, "mMessage", extra)
+                                    } catch (_: Throwable) {}
+                                }
                             }
                         }
                     }
-                )
+                })
             } catch (_: Throwable) {}
 
             try {
-                XposedHelpers.findAndHookMethod(
-                    controllerClass,
-                    "updateLockScreenBatteryMsg",
-                    Boolean::class.javaPrimitiveType,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
-                        }
-                    }
-                )
-            } catch (t: Throwable) {
-                XposedBridge.log("$TAG   [LockScreen] FAILED to hook updateLockScreenBatteryMsg: ${t.message}")
-            }
+                XposedBridge.hookAllMethods(rotateControllerClass, "showIndication", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        lastRotateController = param.thisObject
+                        val newType = param.args.getOrNull(0) as? Int ?: -1
+                        val currType = try { XposedHelpers.getIntField(param.thisObject, "mCurrIndicationType") } catch (_: Throwable) { -1 }
+                        isUpdatingInPlace = (newType == currType && newType != -1)
 
-            try {
-                XposedHelpers.findAndHookMethod(
-                    controllerClass,
-                    "updateDeviceEntryIndication",
-                    Boolean::class.javaPrimitiveType,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            updateChargingInfo(param.thisObject, prefs, lpparam.classLoader)
+                        if (newType == 0 && isCharging && prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                            val ctrl = lastIndicationController
+                            val context = (if (ctrl != null) try { XposedHelpers.getObjectField(ctrl, "mContext") as? Context } catch (_: Throwable) { null } else null)
+                                ?: (XposedHelpers.getObjectField(param.thisObject, "mView") as? View)?.context
+                            if (context != null) {
+                                val extra = getChargingExtraInfo(context, lpparam.classLoader)
+                                if (extra.isNotEmpty()) {
+                                    val map = try { XposedHelpers.getObjectField(param.thisObject, "mIndicationMessages") as? Map<Int, Any> } catch (_: Throwable) { null }
+                                    val indication = map?.get(0)
+                                    if (indication != null) {
+                                        try {
+                                            XposedHelpers.setObjectField(indication, "mMessage", extra)
+                                        } catch (_: Throwable) {}
+                                    } else {
+                                        val newInd = buildChargingIndication(lpparam.classLoader, extra, ctrl)
+                                        if (newInd != null) {
+                                            (map as? MutableMap<Int, Any>)?.put(0, newInd)
+                                        }
+                                    }
+                                }
+                            }
                         }
                     }
-                )
+
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        isUpdatingInPlace = false
+                    }
+                })
             } catch (_: Throwable) {}
         }
 
-        val securityContainerClass = XposedHelpers.findClassIfExists("com.android.keyguard.KeyguardSecurityContainer", lpparam.classLoader)
-        if (securityContainerClass != null) {
+        val indicationTextViewClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.statusbar.phone.KeyguardIndicationTextView",
+            lpparam.classLoader
+        )
+        if (indicationTextViewClass != null) {
             try {
-                XposedHelpers.findAndHookMethod(
-                    securityContainerClass,
-                    "setVisibility",
-                    Int::class.javaPrimitiveType,
-                    object : XC_MethodHook() {
-                        override fun afterHookedMethod(param: MethodHookParam) {
-                            val vis = param.args[0] as? Int ?: return
-                            isBouncerVisible = (vis == View.VISIBLE)
+                XposedBridge.hookAllMethods(indicationTextViewClass, "switchIndication", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        if (param.args.size >= 3 && isCharging && prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                            if (isUpdatingInPlace) {
+                                param.args[2] = false
+                            }
                         }
                     }
-                )
+                })
+            } catch (_: Throwable) {}
+        }
+
+        val rotateListenerClass = XposedHelpers.findClassIfExists("com.android.systemui.keyguard.KeyguardIndicationRotateTextViewController\$1", lpparam.classLoader)
+        if (rotateListenerClass != null) {
+            try {
+                XposedBridge.hookAllMethods(rotateListenerClass, "onDozingChanged", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val isDozing = param.args.getOrNull(0) as? Boolean ?: return
+                        if (!isDozing && isCharging && prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                            val ctrl = lastIndicationController
+                            if (ctrl != null) {
+                                ensureChargingIndication(lpparam.classLoader)
+                                try {
+                                    XposedHelpers.callMethod(ctrl, "updateLockScreenOwnerInfo")
+                                    XposedHelpers.callMethod(ctrl, "updateLockScreenBatteryMsg", false)
+                                } catch (_: Throwable) {}
+                            }
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+        }
+
+        val controllerClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.KeyguardIndicationController", lpparam.classLoader)
+        if (controllerClass != null) {
+            try {
+                XposedBridge.hookAllConstructors(controllerClass, object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        lastIndicationController = param.thisObject
+                        val context = try { XposedHelpers.getObjectField(param.thisObject, "mContext") as? Context } catch (_: Throwable) { null }
+                        if (context != null) {
+                            ensureBatteryReceiver(context, prefs, lpparam.classLoader)
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+
+            try {
+                XposedBridge.hookAllMethods(controllerClass, "computePowerIndication", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        lastIndicationController = param.thisObject
+                    }
+                })
+            } catch (_: Throwable) {}
+
+            try {
+                XposedBridge.hookAllMethods(controllerClass, "setIndicationArea", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        lastIndicationController = param.thisObject
+                        val rotateCtrl = try { XposedHelpers.getObjectField(param.thisObject, "mRotateTextViewController") } catch (_: Throwable) { null }
+                        if (rotateCtrl != null) lastRotateController = rotateCtrl
+                        if (isCharging && prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                            val isVisible = try { XposedHelpers.getBooleanField(param.thisObject, "mVisible") } catch (_: Throwable) { false }
+                            if (isVisible) {
+                                ensureChargingIndication(lpparam.classLoader)
+                                try {
+                                    XposedHelpers.callMethod(param.thisObject, "updateLockScreenOwnerInfo")
+                                    XposedHelpers.callMethod(param.thisObject, "updateLockScreenBatteryMsg", false)
+                                } catch (_: Throwable) {}
+                            }
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+
+            try {
+                XposedBridge.hookAllMethods(controllerClass, "setVisible", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        lastIndicationController = param.thisObject
+                        val visible = param.args.getOrNull(0) as? Boolean ?: return
+                        if (visible && isCharging && prefs.getBoolean("pref_lockscreen_charging_info", false)) {
+                            ensureChargingIndication(lpparam.classLoader)
+                            try {
+                                XposedHelpers.callMethod(param.thisObject, "updateLockScreenOwnerInfo")
+                                XposedHelpers.callMethod(param.thisObject, "updateLockScreenBatteryMsg", false)
+                            } catch (_: Throwable) {}
+                        }
+                    }
+                })
             } catch (_: Throwable) {}
         }
 
@@ -315,7 +456,7 @@ class LockScreenHooks : HookModule {
                             } catch (_: Throwable) { -1 }
 
                             // Double tap to sleep on lockscreen
-                            if (!isDozing && state == 1 && !isBouncerVisible && prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
+                            if (!isDozing && state == 1 && !isBouncerShowing(lastIndicationController) && prefs.getBoolean("pref_lockscreen_double_tap_to_sleep", false)) {
                                 val falsingManager = XposedHelpers.getObjectField(param.thisObject, "falsingManager")
                                 val isFalseTap = try {
                                     XposedHelpers.callMethod(falsingManager, "isFalseDoubleTap") as? Boolean ?: false
@@ -496,264 +637,14 @@ class LockScreenHooks : HookModule {
         }
     }
 
-    private fun isPluggedIn(controller: Any, context: Context): Boolean {
-        try {
-            if (XposedHelpers.getBooleanField(controller, "mPowerPluggedIn")) return true
-        } catch (_: Throwable) {}
-        try {
-            if (XposedHelpers.getBooleanField(controller, "mIsReallyPluggedIn")) return true
-        } catch (_: Throwable) {}
-        try {
-            val bm = context.getSystemService(Context.BATTERY_SERVICE) as? BatteryManager
-            if (bm != null && bm.isCharging) return true
-        } catch (_: Throwable) {}
-        try {
-            val intent = context.registerReceiver(null, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
-            val plugged = intent?.getIntExtra(BatteryManager.EXTRA_PLUGGED, 0) ?: 0
-            if (plugged > 0) return true
-        } catch (_: Throwable) {}
+    private fun isBouncerShowing(controller: Any?): Boolean {
+        val vm = if (controller != null) try { XposedHelpers.getObjectField(controller, "mStatusBarKeyguardViewManager") } catch (_: Throwable) { null } else null
+        if (vm != null) {
+            try {
+                return XposedHelpers.callMethod(vm, "isBouncerShowing") as? Boolean ?: false
+            } catch (_: Throwable) {}
+        }
         return false
-    }
-
-    private fun getRootView(controller: Any?): ViewGroup? {
-        keyguardRootViewRef?.get()?.let { return it }
-        if (controller != null) {
-            val area = try { XposedHelpers.getObjectField(controller, "mIndicationArea") as? ViewGroup } catch (_: Throwable) { null }
-            var p = area?.parent
-            while (p != null) {
-                if (p.javaClass.name.endsWith("KeyguardRootView")) {
-                    val kr = p as ViewGroup
-                    keyguardRootViewRef = WeakReference(kr)
-                    return kr
-                }
-                p = p.parent
-            }
-            val root = area?.rootView as? ViewGroup
-            if (root != null) {
-                val resId = root.context.resources.getIdentifier("keyguard_root_view", "id", "com.android.systemui")
-                if (resId != 0) {
-                    val kr = root.findViewById<ViewGroup>(resId)
-                    if (kr != null) {
-                        keyguardRootViewRef = WeakReference(kr)
-                        return kr
-                    }
-                }
-                if (root.javaClass.name.endsWith("KeyguardRootView")) {
-                    keyguardRootViewRef = WeakReference(root)
-                    return root
-                }
-            }
-        }
-        return null
-    }
-
-    private fun setupChargingInfoView(root: ViewGroup) {
-        root.viewTreeObserver.addOnPreDrawListener(object : ViewTreeObserver.OnPreDrawListener {
-            override fun onPreDraw(): Boolean {
-                try {
-                    val tv = chargingInfoView
-                    if (tv != null && tv.visibility == View.VISIBLE && tv.height > 0) {
-                        updateChargingViewPosition(root, tv)
-                    }
-                } catch (_: Throwable) {}
-                return true
-            }
-        })
-    }
-
-    private fun updateChargingViewPosition(root: ViewGroup, tv: TextView) {
-        if (tv.visibility != View.VISIBLE || tv.height == 0) return
-
-        val paddingPx = TypedValue.applyDimension(
-            TypedValue.COMPLEX_UNIT_DIP,
-            10f,
-            root.resources.displayMetrics
-        )
-
-        // if fingerprint icon (or device entry lock icon) is visible on screen, position 10dp above it
-        val resIdFp = root.context.resources.getIdentifier("device_entry_icon_view", "id", "com.android.systemui")
-        val fpView = if (resIdFp != 0) root.findViewById<View>(resIdFp) else null
-
-        val targetY: Float = if (fpView != null && fpView.visibility == View.VISIBLE && fpView.top > 0) {
-            fpView.y - tv.height - paddingPx
-        } else {
-            // position 10dp above the indication area so it never collides with the gesture bar
-            val resIdIndication = root.context.resources.getIdentifier("keyguard_indication_area", "id", "com.android.systemui")
-            val indicationArea = if (resIdIndication != 0) root.findViewById<View>(resIdIndication) else null
-            if (indicationArea != null && indicationArea.visibility == View.VISIBLE && indicationArea.top > 0) {
-                indicationArea.y - tv.height - paddingPx
-            } else {
-                // fallback: safe distance above the bottom of the screen (well above gesture bar)
-                val baseBottomOffset = TypedValue.applyDimension(
-                    TypedValue.COMPLEX_UNIT_DIP,
-                    72f,
-                    root.resources.displayMetrics
-                )
-                root.height - tv.height - baseBottomOffset
-            }
-        }
-
-        if (kotlin.math.abs(tv.y - targetY) > 1f) {
-            tv.y = targetY
-        }
-    }
-
-    private fun updateChargingInfo(controller: Any, prefs: Prefs, classLoader: ClassLoader) {
-        try {
-            if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
-                chargingInfoView?.let { v ->
-                    v.visibility = View.GONE
-                    try { (v.parent as? ViewGroup)?.removeView(v) } catch (_: Throwable) {}
-                }
-                chargingInfoView = null
-                return
-            }
-
-            val context = XposedHelpers.getObjectField(controller, "mContext") as? Context ?: return
-            val visible = try { XposedHelpers.getBooleanField(controller, "mVisible") } catch (_: Throwable) { true }
-            val dozing = try { XposedHelpers.getBooleanField(controller, "mDozing") } catch (_: Throwable) { false }
-            val plugged = isPluggedIn(controller, context)
-
-            val root = getRootView(controller)
-            if (plugged && visible && !dozing && !isBouncerVisible && root != null) {
-                val view = ensureChargingView(root, prefs)
-                if (view != null) {
-                    val lockView = try { XposedHelpers.getObjectField(controller, "mLockScreenIndicationView") as? TextView } catch (_: Throwable) { null }
-                    if (lockView != null) {
-                        view.setTextColor(lockView.textColors)
-                        view.typeface = lockView.typeface
-                    } else {
-                        val colors = try { XposedHelpers.getObjectField(controller, "mInitialTextColorState") as? ColorStateList } catch (_: Throwable) { null }
-                        if (colors != null) view.setTextColor(colors)
-                        else view.setTextColor(Color.WHITE)
-                    }
-                    val extra = getChargingExtraInfo(context, classLoader)
-                    if (extra.isNotEmpty()) {
-                        view.text = extra
-                        view.visibility = View.VISIBLE
-                        updateChargingViewPosition(root, view)
-                    } else {
-                        view.visibility = View.GONE
-                    }
-                }
-                val handler = XposedHelpers.getObjectField(controller, "mHandler") as? Handler
-                if (handler != null) scheduleBatteryMsgUpdate(controller, handler, prefs, classLoader)
-            } else {
-                chargingInfoView?.visibility = View.GONE
-            }
-        } catch (t: Throwable) {
-            XposedBridge.log("$TAG   [LockScreen] Error in updateChargingInfo: ${t.message}")
-        }
-    }
-
-    private fun ensureChargingView(root: ViewGroup, prefs: Prefs): TextView? {
-        if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
-            chargingInfoView?.let { v ->
-                v.visibility = View.GONE
-                try { (v.parent as? ViewGroup)?.removeView(v) } catch (_: Throwable) {}
-            }
-            chargingInfoView = null
-            return null
-        }
-        val existing = root.findViewWithTag<TextView>("nt_lockscreen_charging_info_view")
-        if (existing != null) {
-            if (existing.id == View.NO_ID) {
-                existing.id = View.generateViewId()
-            }
-            chargingInfoView = existing
-            return existing
-        }
-
-        val context = root.context
-        val tv = TextView(context).apply {
-            id = View.generateViewId()
-            tag = "nt_lockscreen_charging_info_view"
-            gravity = Gravity.CENTER
-            setSingleLine(true)
-            ellipsize = TextUtils.TruncateAt.END
-            includeFontPadding = false
-            setPadding(0, 0, 0, 0)
-            setTextSize(TypedValue.COMPLEX_UNIT_SP, 11.5f)
-            alpha = 0.9f
-            visibility = View.GONE
-            setTextColor(Color.WHITE)
-            isClickable = false
-            isFocusable = false
-            isLongClickable = false
-
-            addOnLayoutChangeListener { _, _, _, _, _, _, _, _, _ ->
-                updateChargingViewPosition(root, this)
-            }
-        }
-
-        val lp = try {
-            val lpClass = root.javaClass.classLoader?.loadClass("androidx.constraintlayout.widget.ConstraintLayout\$LayoutParams")
-            val ctor = lpClass?.getConstructor(Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
-            val p = ctor?.newInstance(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-            if (p != null) {
-                try {
-                    XposedHelpers.setIntField(p, "startToStart", 0)
-                    XposedHelpers.setIntField(p, "endToEnd", 0)
-                } catch (_: Throwable) {}
-            }
-            p as? ViewGroup.LayoutParams ?: ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        } catch (_: Throwable) {
-            ViewGroup.MarginLayoutParams(ViewGroup.LayoutParams.MATCH_PARENT, ViewGroup.LayoutParams.WRAP_CONTENT)
-        }
-
-        try {
-            root.addView(tv, lp)
-            chargingInfoView = tv
-        } catch (_: Throwable) {
-            return null
-        }
-        return tv
-    }
-
-    private fun scheduleBatteryMsgUpdate(controller: Any, handler: Handler, prefs: Prefs, classLoader: ClassLoader) {
-        if (batteryUpdateRunnable != null) return
-        batteryUpdateRunnable = object : Runnable {
-            override fun run() {
-                try {
-                    if (!prefs.getBoolean("pref_lockscreen_charging_info", false)) {
-                        chargingInfoView?.visibility = View.GONE
-                        batteryUpdateRunnable = null
-                        return
-                    }
-                    val context = XposedHelpers.getObjectField(controller, "mContext") as? Context
-                    val visible = try { XposedHelpers.getBooleanField(controller, "mVisible") } catch (_: Throwable) { true }
-                    val dozing = try { XposedHelpers.getBooleanField(controller, "mDozing") } catch (_: Throwable) { false }
-                    val plugged = if (context != null) isPluggedIn(controller, context) else XposedHelpers.getBooleanField(controller, "mPowerPluggedIn")
-
-                    val root = getRootView(controller)
-                    if (plugged && visible && !dozing && !isBouncerVisible && root != null) {
-                        val view = ensureChargingView(root, prefs)
-                        if (view != null && context != null) {
-                            val lockView = try { XposedHelpers.getObjectField(controller, "mLockScreenIndicationView") as? TextView } catch (_: Throwable) { null }
-                            if (lockView != null) {
-                                view.setTextColor(lockView.textColors)
-                                view.typeface = lockView.typeface
-                            }
-                            val extra = getChargingExtraInfo(context, classLoader)
-                            if (extra.isNotEmpty()) {
-                                view.text = extra
-                                view.visibility = View.VISIBLE
-                                updateChargingViewPosition(root, view)
-                            } else {
-                                view.visibility = View.GONE
-                            }
-                        }
-                        handler.postDelayed(this, 2000L)
-                    } else {
-                        chargingInfoView?.visibility = View.GONE
-                        batteryUpdateRunnable = null
-                    }
-                } catch (_: Throwable) {
-                    batteryUpdateRunnable = null
-                }
-            }
-        }
-        handler.postDelayed(batteryUpdateRunnable!!, 2000L)
     }
 
     private fun getChargingExtraInfo(context: Context, classLoader: ClassLoader): String {
