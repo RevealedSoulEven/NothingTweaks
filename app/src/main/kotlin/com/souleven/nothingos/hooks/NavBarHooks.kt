@@ -74,7 +74,6 @@ class NavBarHooks : HookModule {
             try {
                 XposedHelpers.findAndHookMethod(navBarViewClass, "updateNavButtonIcons", object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        prefs.forceReload()
                         (param.thisObject as? android.view.ViewGroup)?.let { hideHomeHandle(it) }
                     }
                 })
@@ -83,7 +82,6 @@ class NavBarHooks : HookModule {
             try {
                 XposedHelpers.findAndHookMethod(navBarViewClass, "updateStates", object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        prefs.forceReload()
                         (param.thisObject as? android.view.ViewGroup)?.let { hideHomeHandle(it) }
                     }
                 })
@@ -92,7 +90,6 @@ class NavBarHooks : HookModule {
             try {
                 XposedHelpers.findAndHookMethod(navBarViewClass, "onLayout", Boolean::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, Int::class.javaPrimitiveType, object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        prefs.forceReload()
                         (param.thisObject as? android.view.ViewGroup)?.let { hideHomeHandle(it) }
                     }
                 })

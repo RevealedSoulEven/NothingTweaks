@@ -6,17 +6,12 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
-import de.robv.android.xposed.XposedHelpers
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
 import java.util.concurrent.atomic.AtomicBoolean
 
 class Prefs(private val isSystemServer: Boolean = false) {
-
-    private companion object {
-        const val RELOAD_INTERVAL_MS = 5_000L
-    }
 
     private val cache = ConcurrentHashMap<String, Any>()
 
@@ -56,22 +51,12 @@ class Prefs(private val isSystemServer: Boolean = false) {
 
     private fun resolveContext(): Context? {
         appContext?.let { return it }
-        try {
-            val app = AndroidAppHelper.currentApplication()
-            if (app != null) {
-                appContext = app
-                return app
-            }
-        } catch (_: Throwable) {}
-
-        if (isSystemServer) {
+        if (!isSystemServer) {
             try {
-                val atClass = XposedHelpers.findClassIfExists("android.app.ActivityThread", null)
-                val currentAt = atClass?.let { XposedHelpers.callStaticMethod(it, "currentActivityThread") }
-                val sysCtx = currentAt?.let { XposedHelpers.callMethod(it, "getSystemContext") as? Context }
-                if (sysCtx != null) {
-                    appContext = sysCtx
-                    return sysCtx
+                val app = AndroidAppHelper.currentApplication()
+                if (app != null) {
+                    appContext = app
+                    return app
                 }
             } catch (_: Throwable) {}
         }
@@ -85,7 +70,11 @@ class Prefs(private val isSystemServer: Boolean = false) {
             try {
                 val observer = object : ContentObserver(observerHandler) {
                     override fun onChange(selfChange: Boolean, uri: Uri?) {
-                        reloadSync(ctx)
+                        // Always query asynchronously in the background so no system threads or locks stall
+                        executor.submit {
+                            val currentCtx = resolveContext() ?: ctx
+                            reloadFromProvider(currentCtx)
+                        }
                     }
                 }
                 ctx.contentResolver.registerContentObserver(
@@ -107,7 +96,7 @@ class Prefs(private val isSystemServer: Boolean = false) {
 
         val future = executor.submit {
             try {
-                reloadSync(ctx)
+                reloadFromProvider(ctx)
             } finally {
                 reloading.set(false)
             }
@@ -121,7 +110,7 @@ class Prefs(private val isSystemServer: Boolean = false) {
     }
 
     @Suppress("DEPRECATION")
-    private fun reloadSync(ctx: Context) {
+    private fun reloadFromProvider(ctx: Context): Boolean {
         try {
             val resolver = ctx.contentResolver
             val bundle = try {
@@ -152,7 +141,7 @@ class Prefs(private val isSystemServer: Boolean = false) {
                 }
                 initialized = true
                 lastReload = System.currentTimeMillis()
-                return
+                return true
             }
 
             resolver.query(RemotePreferenceProvider.CONTENT_URI, null, null, null, null)?.use { cursor ->
@@ -186,56 +175,6 @@ class Prefs(private val isSystemServer: Boolean = false) {
                     }
                     initialized = true
                     lastReload = System.currentTimeMillis()
-                    return
-                }
-            }
-
-            reloadFromFile()
-        } catch (_: Throwable) {
-            reloadFromFile()
-        }
-    }
-
-    private fun reloadFromFile(): Boolean {
-        try {
-            val file = java.io.File("/data/user_de/0/com.souleven.nothingos/shared_prefs/settings.xml")
-            if (!file.exists() || !file.canRead()) return false
-
-            val parser = android.util.Xml.newPullParser()
-            file.inputStream().use { inputStream ->
-                parser.setInput(inputStream, "utf-8")
-                var event = parser.eventType
-                val newKeys = HashSet<String>()
-                while (event != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
-                    if (event == org.xmlpull.v1.XmlPullParser.START_TAG) {
-                        val tag = parser.name
-                        val name = parser.getAttributeValue(null, "name")
-                        if (name != null) {
-                            val parsed: Any? = when (tag) {
-                                "boolean" -> parser.getAttributeValue(null, "value")?.toBooleanStrictOrNull()
-                                "int" -> parser.getAttributeValue(null, "value")?.toIntOrNull()
-                                "long" -> parser.getAttributeValue(null, "value")?.toLongOrNull()
-                                "float" -> parser.getAttributeValue(null, "value")?.toFloatOrNull()
-                                "string" -> parser.nextText()
-                                else -> null
-                            }
-                            if (parsed != null) {
-                                cache[name] = parsed
-                                newKeys.add(name)
-                            }
-                        }
-                    }
-                    event = parser.next()
-                }
-                if (newKeys.isNotEmpty()) {
-                    val iter = cache.keys.iterator()
-                    while (iter.hasNext()) {
-                        if (iter.next() !in newKeys) {
-                            iter.remove()
-                        }
-                    }
-                    initialized = true
-                    lastReload = System.currentTimeMillis()
                     return true
                 }
             }
@@ -244,6 +183,13 @@ class Prefs(private val isSystemServer: Boolean = false) {
     }
 
     private fun maybeReload() {
+        if (isSystemServer) {
+            // In system_server, preference syncing is strictly event-driven (systemReady,
+            // USER_UNLOCKED/BOOT_COMPLETED, and ContentObserver).
+            // Never trigger ad-hoc reloads from getter hot paths.
+            return
+        }
+
         if (!initialized) {
             val now = System.currentTimeMillis()
             if (now - lastReload >= 1_000L) {
@@ -278,11 +224,16 @@ class Prefs(private val isSystemServer: Boolean = false) {
     }
 
     fun forceReload() {
+        if (isSystemServer) {
+            executor.submit {
+                val ctx = resolveContext() ?: return@submit
+                reloadFromProvider(ctx)
+            }
+            return
+        }
         val ctx = resolveContext()
         if (ctx != null) {
-            reloadSync(ctx)
-        } else {
-            reloadFromFile()
+            reloadFromProvider(ctx)
         }
     }
 }

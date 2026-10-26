@@ -34,7 +34,7 @@ class SystemFrameworkHooks : HookModule {
                             
                             if (context != null) {
                                 prefs.init(context)
-                                registerSystemReceiver(context)
+                                registerSystemReceiver(context, prefs)
                             } else {
                                 XposedBridge.log("$TAG SystemFrameworkHooks: mContext is null in AMS")
                             }
@@ -85,11 +85,13 @@ class SystemFrameworkHooks : HookModule {
         }
     }
 
-    private fun registerSystemReceiver(context: Context) {
+    private fun registerSystemReceiver(context: Context, prefs: Prefs) {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 val action = intent.action
-                if (action == "com.souleven.nothingos.REBOOT_RECOVERY" || action == "com.souleven.nothingos.REBOOT_BOOTLOADER") {
+                if (action == Intent.ACTION_USER_UNLOCKED || action == Intent.ACTION_BOOT_COMPLETED) {
+                    prefs.forceReload()
+                } else if (action == "com.souleven.nothingos.REBOOT_RECOVERY" || action == "com.souleven.nothingos.REBOOT_BOOTLOADER") {
                     try {
                         val sysPropClass = Class.forName("android.os.SystemProperties")
                         val setMethod = sysPropClass.getMethod("set", String::class.java, String::class.java)
@@ -173,6 +175,8 @@ class SystemFrameworkHooks : HookModule {
         }
 
         val filter = IntentFilter().apply {
+            addAction(Intent.ACTION_USER_UNLOCKED)
+            addAction(Intent.ACTION_BOOT_COMPLETED)
             addAction("com.souleven.nothingos.REBOOT_RECOVERY")
             addAction("com.souleven.nothingos.REBOOT_BOOTLOADER")
             addAction("com.souleven.nothingos.FORCE_STOP_APP")

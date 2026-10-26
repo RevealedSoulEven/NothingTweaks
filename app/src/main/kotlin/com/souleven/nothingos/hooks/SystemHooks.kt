@@ -28,7 +28,6 @@ object SystemHooks {
             try {
                 XposedBridge.hookAllMethods(displayRotationClass, "getAllowAllRotations", object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
-                        prefs.forceReload()
                         if (prefs.getBoolean(KEY_ALLOW_180_ROTATION, false)) {
                             param.result = 1 // ALLOW_ALL_ROTATIONS_ENABLED
                         }
@@ -53,7 +52,6 @@ object SystemHooks {
                         return
                     }
 
-                    prefs.forceReload()
                     if (!prefs.getBoolean(KEY_VOLUME_BOTH_FOR_TORCH, false)) {
                         return
                     }
@@ -147,7 +145,6 @@ object SystemHooks {
         try {
             XposedBridge.hookAllMethods(soundDoseHelperClass, "safeDevicesContains", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    prefs.forceReload()
                     if (prefs.getBoolean(KEY_DISABLE_SAFE_VOLUME, false)) {
                         param.result = false
                     }
@@ -158,7 +155,6 @@ object SystemHooks {
         try {
             XposedBridge.hookAllMethods(soundDoseHelperClass, "checkSafeMediaVolume", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    prefs.forceReload()
                     if (prefs.getBoolean(KEY_DISABLE_SAFE_VOLUME, false)) {
                         param.result = false
                     }
@@ -169,7 +165,6 @@ object SystemHooks {
         try {
             XposedBridge.hookAllMethods(soundDoseHelperClass, "raiseVolumeDisplaySafeMediaVolume", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    prefs.forceReload()
                     if (prefs.getBoolean(KEY_DISABLE_SAFE_VOLUME, false)) {
                         param.result = false
                     }
@@ -180,7 +175,6 @@ object SystemHooks {
         try {
             XposedBridge.hookAllMethods(soundDoseHelperClass, "enforceSafeMediaVolumeIfActive", object : XC_MethodHook() {
                 override fun beforeHookedMethod(param: MethodHookParam) {
-                    prefs.forceReload()
                     if (prefs.getBoolean(KEY_DISABLE_SAFE_VOLUME, false)) {
                         param.result = null
                     }
