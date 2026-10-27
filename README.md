@@ -41,6 +41,20 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 </details>
 
 <details>
+<summary><b>📶 Network Speed Indicator</b></summary>
+<br>
+
+| Feature | Description |
+| :--- | :--- |
+| **Network Speed Indicator** | Display real-time upload and download speeds directly in the status bar. |
+| **Indicator Position** | Choose placement next to the Clock (Left) or next to Battery &amp; System Icons (Right). |
+| **Display Mode** | Switch between combined total speed (e.g. `1.2 MB/s`) or separate upload and download rates (e.g. `▲ 20K ▼ 1.2M`). |
+| **Auto-hide When Inactive** | Automatically hides the indicator when network is idle (&lt; 1 KB/s) to keep the status bar uncluttered. |
+| **Show Activity Arrows** | Display sleek `▲` and `▼` directional arrows instead of text labels (Separate mode only). |
+
+</details>
+
+<details>
 <summary><b>⚙️ Device Features</b></summary>
 <br>
 
@@ -127,6 +141,19 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 | :--- | :--- |
 | **Advanced Power Menu** | Adds direct reboot options for Recovery and Bootloader / Fastboot to the power menu. |
 | **Allow 180° Rotation** | Allows the screen to rotate completely upside-down (reverse portrait). |
+
+</details>
+
+<details>
+<summary><b>🔋 Battery &amp; Charging</b></summary>
+<br>
+
+| Feature | Description |
+| :--- | :--- |
+| **Charging Limit** | Automatically pauses charging when the battery reaches your chosen percentage to prevent cell degradation and prolong overall battery lifespan. |
+| **Stop Charging At (Limit Slider)** | Adjustable threshold slider from 50% to 95% (in 5% steps) with smart hysteresis charging resumption when battery drops by 2%. |
+| **Charging Paused Notification** | Displays a status notification whenever charging is paused at the set limit. |
+| **Why Cap at 80% Guide** | Built-in expandable guide detailing why limiting high voltage (&gt;80% / 4.2V+) relieves electrochemical stress on the cathode and doubles cycle life. |
 
 </details>
 
