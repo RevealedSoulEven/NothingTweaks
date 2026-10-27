@@ -99,6 +99,17 @@
     <string name="pref_network_traffic_show_arrows_title">Show activity arrows</string>
     <string name="pref_network_traffic_show_arrows_summary">Display ▲ and ▼ arrows instead of U/D labels (Separate mode only)</string>
 
+    <!-- Battery & Charging -->
+    <string name="cat_battery">Battery &amp; Charging</string>
+    <string name="pref_battery_cap_title">Charging limit</string>
+    <string name="pref_battery_cap_summary">Stop charging when battery reaches a set level to prolong battery lifespan</string>
+    <string name="pref_battery_cap_level_title">Stop charging at</string>
+    <string name="pref_battery_cap_level_summary">Pauses charging at the selected percentage (default: 80%)</string>
+    <string name="pref_battery_cap_notify_title">Charging paused notification</string>
+    <string name="pref_battery_cap_notify_summary">Show a notification when charging is stopped at the limit</string>
+    <string name="pref_battery_cap_note_title">Why cap charging at 80%?</string>
+    <string name="pref_battery_cap_note_summary">Battery research shows lithium-ion degradation accelerates significantly when cells sit at high voltage (&gt;80% / 4.2V+) and elevated temperatures. Capping the charge level relieves electrochemical stress on the cathode and slows SEI layer growth, which can more than double your battery\'s overall cycle lifespan.</string>
+
     <string name="pref_volume_timeout">Volume panel timeout</string>
     <string name="pref_volume_timeout_desc">Milliseconds before the volume panel hides. Leave blank for stock (3000 ms).</string>
     <string name="pref_disable_safe_volume_title">Disable safe volume warning</string>

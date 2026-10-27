@@ -6,6 +6,7 @@ import android.database.ContentObserver
 import android.net.Uri
 import android.os.Handler
 import android.os.HandlerThread
+import java.io.File
 import java.util.concurrent.ConcurrentHashMap
 import java.util.concurrent.Executors
 import java.util.concurrent.TimeUnit
@@ -197,14 +198,79 @@ class Prefs(private val isSystemServer: Boolean = false) {
                     return true
                 }
             }
+            if (isSystemServer) {
+                val file = File("/data/user_de/0/com.souleven.nothingos/shared_prefs/settings.xml")
+                if (file.exists() && file.canRead()) {
+                    val map = parseXmlPrefs(file)
+                    if (map.isNotEmpty()) {
+                        val newKeys = HashSet<String>()
+                        for ((k, v) in map) {
+                            cache[k] = v
+                            newKeys.add(k)
+                        }
+                        val iter = cache.keys.iterator()
+                        while (iter.hasNext()) {
+                            if (iter.next() !in newKeys) {
+                                iter.remove()
+                            }
+                        }
+                        initialized = true
+                        lastReload = System.currentTimeMillis()
+                        notifyListeners()
+                        return true
+                    }
+                }
+            }
         } catch (_: Throwable) {}
         return false
+    }
+
+    private fun parseXmlPrefs(file: File): Map<String, Any> {
+        val result = HashMap<String, Any>()
+        try {
+            val parser = android.util.Xml.newPullParser()
+            file.inputStream().use { stream ->
+                parser.setInput(stream, "utf-8")
+                var event = parser.eventType
+                while (event != org.xmlpull.v1.XmlPullParser.END_DOCUMENT) {
+                    if (event == org.xmlpull.v1.XmlPullParser.START_TAG) {
+                        val tag = parser.name
+                        val name = parser.getAttributeValue(null, "name")
+                        if (name != null) {
+                            when (tag) {
+                                "boolean" -> {
+                                    val v = parser.getAttributeValue(null, "value")
+                                    result[name] = v == "true" || v == "1"
+                                }
+                                "int" -> {
+                                    val v = parser.getAttributeValue(null, "value")?.toIntOrNull()
+                                    if (v != null) result[name] = v
+                                }
+                                "long" -> {
+                                    val v = parser.getAttributeValue(null, "value")?.toLongOrNull()
+                                    if (v != null) result[name] = v
+                                }
+                                "float" -> {
+                                    val v = parser.getAttributeValue(null, "value")?.toFloatOrNull()
+                                    if (v != null) result[name] = v
+                                }
+                                "string" -> {
+                                    result[name] = parser.nextText()
+                                }
+                            }
+                        }
+                    }
+                    event = parser.next()
+                }
+            }
+        } catch (_: Throwable) {}
+        return result
     }
 
     private fun maybeReload() {
         if (isSystemServer) {
             // In system_server, preference syncing is strictly event-driven (systemReady,
-            // USER_UNLOCKED/BOOT_COMPLETED, and ContentObserver).
+            // USER_UNLOCKED/BOOT_COMPLETED, and ContentObserver/Broadcast).
             // Never trigger ad-hoc reloads from getter hot paths.
             return
         }

@@ -89,7 +89,7 @@ class SystemFrameworkHooks : HookModule {
         val receiver = object : BroadcastReceiver() {
             override fun onReceive(ctx: Context, intent: Intent) {
                 val action = intent.action
-                if (action == Intent.ACTION_USER_UNLOCKED || action == Intent.ACTION_BOOT_COMPLETED) {
+                if (action == Intent.ACTION_USER_UNLOCKED || action == Intent.ACTION_BOOT_COMPLETED || action == "com.souleven.nothingos.PREFERENCES_CHANGED" || action == "com.souleven.nothingos.BATTERY_CAP_CHANGED") {
                     prefs.forceReload()
                 } else if (action == "com.souleven.nothingos.REBOOT_RECOVERY" || action == "com.souleven.nothingos.REBOOT_BOOTLOADER") {
                     try {
@@ -180,6 +180,8 @@ class SystemFrameworkHooks : HookModule {
             addAction("com.souleven.nothingos.REBOOT_RECOVERY")
             addAction("com.souleven.nothingos.REBOOT_BOOTLOADER")
             addAction("com.souleven.nothingos.FORCE_STOP_APP")
+            addAction("com.souleven.nothingos.PREFERENCES_CHANGED")
+            addAction("com.souleven.nothingos.BATTERY_CAP_CHANGED")
         }
 
         try {

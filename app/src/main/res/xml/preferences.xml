@@ -362,4 +362,46 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
+    <!-- 10. Battery & Charging -->
+    <PreferenceCategory
+        app:title="@string/cat_battery"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_battery_cap_enabled"
+            app:title="@string/pref_battery_cap_title"
+            app:summary="@string/pref_battery_cap_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <com.souleven.nothingos.hooks.BatteryCapSeekBarPreference
+            app:key="pref_battery_cap_level"
+            app:title="@string/pref_battery_cap_level_title"
+            app:summary="@string/pref_battery_cap_level_summary"
+            app:defaultValue="80"
+            app:min="50"
+            android:max="95"
+            app:seekBarIncrement="5"
+            app:showSeekBarValue="true"
+            app:updatesContinuously="true"
+            app:dependency="pref_battery_cap_enabled"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_battery_cap_notify"
+            app:title="@string/pref_battery_cap_notify_title"
+            app:summary="@string/pref_battery_cap_notify_summary"
+            app:defaultValue="true"
+            app:dependency="pref_battery_cap_enabled"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_battery_cap_note"
+            app:layout="@layout/preference_info_note"
+            app:title="@string/pref_battery_cap_note_title"
+            app:summary="@string/pref_battery_cap_note_summary"
+            app:selectable="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
 </PreferenceScreen>

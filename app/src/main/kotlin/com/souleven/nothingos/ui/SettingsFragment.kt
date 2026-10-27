@@ -1,6 +1,7 @@
 package com.souleven.nothingos.ui
 
 import android.content.Context
+import android.content.Intent
 import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
@@ -11,6 +12,7 @@ import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
 import com.souleven.nothingos.MainHook
 import com.souleven.nothingos.R
+import com.souleven.nothingos.hooks.BatteryCapSeekBarPreference
 import com.souleven.nothingos.hooks.RemotePreferenceProvider
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -25,6 +27,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         wireFingerprintDependencies()
         wireNetworkTrafficDependencies()
+        wireBatteryCapDependencies()
 
         requireRebootOnEnable("allow_180_rotation")
         requireRebootOnEnable("pref_advanced_power_menu")
@@ -36,6 +39,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         super.onResume()
         preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
         wireNetworkTrafficDependencies()
+        wireBatteryCapDependencies()
     }
 
     override fun onPause() {
@@ -52,6 +56,23 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
                 RemotePreferenceProvider.CONTENT_URI
             }
             ctx.contentResolver.notifyChange(uri, null)
+        } catch (_: Throwable) {}
+
+        try {
+            val intent = Intent("com.souleven.nothingos.PREFERENCES_CHANGED").apply {
+                setPackage("android")
+                putExtra("key", key)
+                if (key == "pref_battery_cap_level" || key == "pref_battery_cap_enabled" || key == "pref_battery_cap_notify") {
+                    action = "com.souleven.nothingos.BATTERY_CAP_CHANGED"
+                    val p = sharedPreferences
+                    if (p != null) {
+                        putExtra("pref_battery_cap_enabled", p.getBoolean("pref_battery_cap_enabled", false))
+                        putExtra("pref_battery_cap_level", p.getInt("pref_battery_cap_level", 80))
+                        putExtra("pref_battery_cap_notify", p.getBoolean("pref_battery_cap_notify", true))
+                    }
+                }
+            }
+            ctx.sendBroadcast(intent)
         } catch (_: Throwable) {}
     }
 
@@ -125,5 +146,36 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         }
 
         apply(master.isChecked, mode.value ?: "combined")
+    }
+
+    private fun wireBatteryCapDependencies() {
+        val master = findPreference<SwitchPreferenceCompat>("pref_battery_cap_enabled") ?: return
+        val slider = findPreference<BatteryCapSeekBarPreference>("pref_battery_cap_level")
+
+        fun resetCapToDefault() {
+            slider?.value = 80
+            preferenceManager.sharedPreferences?.edit()?.putInt("pref_battery_cap_level", 80)?.apply()
+        }
+
+        if (!master.isChecked) {
+            resetCapToDefault()
+        }
+
+        master.setOnPreferenceChangeListener { _, newValue ->
+            val enabled = newValue as? Boolean ?: return@setOnPreferenceChangeListener false
+            if (enabled) {
+                val ctx = context
+                if (ctx != null) {
+                    android.widget.Toast.makeText(
+                        ctx,
+                        "Please reboot your phone to enable this feature.",
+                        android.widget.Toast.LENGTH_LONG
+                    ).show()
+                }
+            } else {
+                resetCapToDefault()
+            }
+            true
+        }
     }
 }
