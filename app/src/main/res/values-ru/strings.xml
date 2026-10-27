@@ -85,6 +85,32 @@
     <string name="pref_clock_text_desc">Текст, добавляемый после времени. Оставьте пустым, чтобы ничего не добавлять. Максимум 24 символа.</string>
 
 
+        <!-- Network Traffic -->
+    <string name="cat_network_traffic">Индикатор скорости сети</string>
+    <string name="pref_network_traffic_title">Индикатор скорости сети</string>
+    <string name="pref_network_traffic_summary">Отображать скорость отдачи и загрузки в реальном времени в строке состояния</string>
+    <string name="pref_network_traffic_position_title">Положение</string>
+    <string name="network_traffic_position_left">Рядом с часами (слева)</string>
+    <string name="network_traffic_position_right">Рядом с батареей и значками (справа)</string>
+    <string name="pref_network_traffic_mode_title">Режим отображения</string>
+    <string name="network_traffic_mode_combined">Общая скорость (напр. 1.2 МБ/с)</string>
+    <string name="network_traffic_mode_separate">Раздельные отдача и загрузка (напр. ▲ 20K ▼ 1.2M)</string>
+    <string name="pref_network_traffic_autohide_title">Автоматически скрывать при неактивности</string>
+    <string name="pref_network_traffic_autohide_summary">Скрывать индикатор при отсутствии сетевой активности (&lt; 1 КБ/с)</string>
+    <string name="pref_network_traffic_show_arrows_title">Показывать стрелки активности</string>
+    <string name="pref_network_traffic_show_arrows_summary">Отображать стрелки ▲ и ▼ вместо букв U/D (только в раздельном режиме)</string>
+
+    <!-- Battery & Charging -->
+    <string name="cat_battery">Батарея и зарядка</string>
+    <string name="pref_battery_cap_title">Лимит зарядки</string>
+    <string name="pref_battery_cap_summary">Останавливать зарядку при достижении заданного уровня для продления срока службы аккумулятора</string>
+    <string name="pref_battery_cap_level_title">Останавливать зарядку на</string>
+    <string name="pref_battery_cap_level_summary">Приостанавливает зарядку на выбранном проценте</string>
+    <string name="pref_battery_cap_notify_title">Уведомление о приостановке зарядки</string>
+    <string name="pref_battery_cap_notify_summary">Показывать уведомление при остановке зарядки на установленном лимите</string>
+    <string name="pref_battery_cap_note_title">Зачем ограничивать зарядку на 80%?</string>
+    <string name="pref_battery_cap_note_summary">Исследования аккумуляторов показывают, что деградация литий-ионных элементов заметно ускоряется при высоком напряжении (&gt;80% / 4.2В+) и повышенной температуре. Ограничение уровня заряда снижает электрохимическую нагрузку на катод и замедляет рост слоя SEI, что может более чем вдвое продлить общий срок службы аккумулятора.</string>
+
     <string name="pref_volume_timeout">Тайм-аут панели громкости</string>
     <string name="pref_volume_timeout_desc">Миллисекунды до скрытия панели громкости. Оставьте пустым для значения по умолчанию (3000 мс).</string>
     <string name="pref_disable_safe_volume_title">Отключить предупреждение о громкости</string>

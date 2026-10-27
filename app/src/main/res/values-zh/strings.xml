@@ -85,6 +85,32 @@
     <string name="pref_clock_text_desc">在时间后附加的自定义文本。留空则不显示。最多 24 个字符。</string>
 
 
+        <!-- Network Traffic -->
+    <string name="cat_network_traffic">网速指示器</string>
+    <string name="pref_network_traffic_title">网速指示器</string>
+    <string name="pref_network_traffic_summary">在状态栏显示实时上传和下载网速</string>
+    <string name="pref_network_traffic_position_title">位置</string>
+    <string name="network_traffic_position_left">时钟旁边（左侧）</string>
+    <string name="network_traffic_position_right">电池与图标旁边（右侧）</string>
+    <string name="pref_network_traffic_mode_title">显示模式</string>
+    <string name="network_traffic_mode_combined">合并速度（例如 1.2 MB/s）</string>
+    <string name="network_traffic_mode_separate">分离上传与下载（例如 ▲ 20K ▼ 1.2M）</string>
+    <string name="pref_network_traffic_autohide_title">无活动时自动隐藏</string>
+    <string name="pref_network_traffic_autohide_summary">网络闲置时隐藏指示器（&lt; 1 KB/s）</string>
+    <string name="pref_network_traffic_show_arrows_title">显示活动箭头</string>
+    <string name="pref_network_traffic_show_arrows_summary">显示 ▲ 和 ▼ 箭头而不是 U/D 标识（仅限分离模式）</string>
+
+    <!-- Battery & Charging -->
+    <string name="cat_battery">电池与充电</string>
+    <string name="pref_battery_cap_title">充电上限</string>
+    <string name="pref_battery_cap_summary">达到设定电量时停止充电以延长电池寿命</string>
+    <string name="pref_battery_cap_level_title">停止充电于</string>
+    <string name="pref_battery_cap_level_summary">在选定的百分比暂停充电</string>
+    <string name="pref_battery_cap_notify_title">充电暂停通知</string>
+    <string name="pref_battery_cap_notify_summary">达到限制停止充电时显示通知</string>
+    <string name="pref_battery_cap_note_title">为什么将充电限制在 80%？</string>
+    <string name="pref_battery_cap_note_summary">电池研究表明，当电芯处于高电压（&gt;80% / 4.2V+）和高温状态下时，锂离子电池的老化会显著加速。限制充电上限可减轻正极的电化学应力并延缓 SEI 膜的增厚，从而使电池的整体循环寿命延长一倍以上。</string>
+
     <string name="pref_volume_timeout">音量面板显示时长</string>
     <string name="pref_volume_timeout_desc">音量面板隐藏前的等待时间（毫秒）。留空则使用默认值 (3000 ms)。</string>
     <string name="pref_disable_safe_volume_title">禁用安全音量警告</string>

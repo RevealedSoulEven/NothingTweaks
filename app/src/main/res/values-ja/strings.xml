@@ -85,6 +85,32 @@
     <string name="pref_clock_text_desc">時間の後に追加するカスタムテキスト。空白の場合は追加されません。最大24文字。</string>
 
 
+        <!-- Network Traffic -->
+    <string name="cat_network_traffic">ネットワーク速度インジケーター</string>
+    <string name="pref_network_traffic_title">ネットワーク速度インジケーター</string>
+    <string name="pref_network_traffic_summary">ステータスバーにリアルタイムのアップロード・ダウンロード速度を表示します</string>
+    <string name="pref_network_traffic_position_title">位置</string>
+    <string name="network_traffic_position_left">時計の横（左側）</string>
+    <string name="network_traffic_position_right">バッテリー・アイコンの横（右側）</string>
+    <string name="pref_network_traffic_mode_title">表示モード</string>
+    <string name="network_traffic_mode_combined">合算速度（例: 1.2 MB/s）</string>
+    <string name="network_traffic_mode_separate">アップロードとダウンロードを分離（例: ▲ 20K ▼ 1.2M）</string>
+    <string name="pref_network_traffic_autohide_title">非アクティブ時に自動非表示</string>
+    <string name="pref_network_traffic_autohide_summary">ネットワークアイドル時にインジケーターを非表示にします（&lt; 1 KB/s）</string>
+    <string name="pref_network_traffic_show_arrows_title">アクティビティ矢印を表示</string>
+    <string name="pref_network_traffic_show_arrows_summary">U/Dラベルの代わりに▲・▼矢印を表示します（分離モードのみ）</string>
+
+    <!-- Battery & Charging -->
+    <string name="cat_battery">バッテリーと充電</string>
+    <string name="pref_battery_cap_title">充電制限</string>
+    <string name="pref_battery_cap_summary">バッテリー寿命を延ばすため、設定した残量に達したら充電を停止します</string>
+    <string name="pref_battery_cap_level_title">充電停止レベル</string>
+    <string name="pref_battery_cap_level_summary">選択した割合で充電を一時停止します</string>
+    <string name="pref_battery_cap_notify_title">充電停止通知</string>
+    <string name="pref_battery_cap_notify_summary">制限値で充電が停止したときに通知を表示します</string>
+    <string name="pref_battery_cap_note_title">なぜ充電を80%に制限するのか？</string>
+    <string name="pref_battery_cap_note_summary">バッテリー研究によると、リチウムイオン電池は高電圧（&gt;80% / 4.2V+）および高温状態に置かれると劣化が著しく加速することが分かっています。充電レベルを制限することで正極への電気化学的ストレスを軽減し、SEI層の成長を遅らせることで、バッテリーの総サイクル寿命を2倍以上に延ばすことができます。</string>
+
     <string name="pref_volume_timeout">音量パネルのタイムアウト</string>
     <string name="pref_volume_timeout_desc">音量パネルが非表示になるまでのミリ秒数。空白の場合はデフォルト (3000ミリ秒) です。</string>
     <string name="pref_disable_safe_volume_title">安全音量の警告を無効化</string>

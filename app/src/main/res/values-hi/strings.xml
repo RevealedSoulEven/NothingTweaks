@@ -85,6 +85,32 @@
     <string name="pref_clock_text_desc">समय के बाद जोड़ा गया कस्टम टेक्स्ट। खाली छोड़ने पर कुछ नहीं जुड़ेगा। अधिकतम 24 अक्षर।</string>
 
 
+        <!-- Network Traffic -->
+    <string name="cat_network_traffic">नेटवर्क स्पीड इंडिकेटर</string>
+    <string name="pref_network_traffic_title">नेटवर्क स्पीड इंडिकेटर</string>
+    <string name="pref_network_traffic_summary">स्टेटस बार में रीयल-टाइम अपलोड और डाउनलोड स्पीड दिखाएं</string>
+    <string name="pref_network_traffic_position_title">स्थिति</string>
+    <string name="network_traffic_position_left">घड़ी के पास (बाईं ओर)</string>
+    <string name="network_traffic_position_right">बैटरी और आइकन्स के पास (दाईं ओर)</string>
+    <string name="pref_network_traffic_mode_title">डिस्प्ले मोड</string>
+    <string name="network_traffic_mode_combined">संयुक्त स्पीड (उदा. 1.2 MB/s)</string>
+    <string name="network_traffic_mode_separate">अलग-अलग अपलोड और डाउनलोड (उदा. ▲ 20K ▼ 1.2M)</string>
+    <string name="pref_network_traffic_autohide_title">निष्क्रिय होने पर स्वतः छिपाएं</string>
+    <string name="pref_network_traffic_autohide_summary">नेटवर्क निष्क्रिय होने पर इंडिकेटर छिपाएं (&lt; 1 KB/s)</string>
+    <string name="pref_network_traffic_show_arrows_title">गतिविधि तीर दिखाएं</string>
+    <string name="pref_network_traffic_show_arrows_summary">U/D लेबल के बजाय ▲ और ▼ तीर दिखाएं (केवल अलग मोड में)</string>
+
+    <!-- Battery & Charging -->
+    <string name="cat_battery">बैटरी और चार्जिंग</string>
+    <string name="pref_battery_cap_title">चार्जिंग सीमा</string>
+    <string name="pref_battery_cap_summary">बैटरी की उम्र बढ़ाने के लिए निर्धारित स्तर पर पहुंचने पर चार्जिंग रोकें</string>
+    <string name="pref_battery_cap_level_title">चार्जिंग रोकें इस स्तर पर</string>
+    <string name="pref_battery_cap_level_summary">चुने गए प्रतिशत पर चार्जिंग रोक देता है</string>
+    <string name="pref_battery_cap_notify_title">चार्जिंग रुकने की सूचना</string>
+    <string name="pref_battery_cap_notify_summary">सीमा पर चार्जिंग रुकने पर एक सूचना दिखाएं</string>
+    <string name="pref_battery_cap_note_title">चार्जिंग को 80% पर सीमित क्यों करें?</string>
+    <string name="pref_battery_cap_note_summary">बैटरी शोध से पता चलता है कि जब सेल उच्च वोल्टेज (&gt;80% / 4.2V+) और उच्च तापमान पर रहते हैं, तो लिथियम-आयन की गिरावट काफी तेज हो जाती है। चार्ज स्तर को सीमित करने से कैथोड पर इलेक्ट्रोकेमिकल तनाव कम होता है और SEI परत का बढ़ना धीमा होता है, जिससे आपकी बैटरी का कुल चक्र जीवन दोगुने से भी अधिक हो सकता है।</string>
+
     <string name="pref_volume_timeout">वॉल्यूम पैनल टाइमआउट</string>
     <string name="pref_volume_timeout_desc">वॉल्यूम पैनल छिपने से पहले के मिलीसेकंड। डिफ़ॉल्ट (3000 ms) के लिए खाली छोड़ दें।</string>
     <string name="pref_disable_safe_volume_title">सुरक्षित वॉल्यूम चेतावनी अक्षम करें</string>

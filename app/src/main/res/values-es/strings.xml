@@ -85,6 +85,32 @@
     <string name="pref_clock_text_desc">Texto personalizado después de la hora. Déjalo en blanco para ninguno. Máx 24 caracteres.</string>
 
 
+        <!-- Network Traffic -->
+    <string name="cat_network_traffic">Indicador de velocidad de red</string>
+    <string name="pref_network_traffic_title">Indicador de velocidad de red</string>
+    <string name="pref_network_traffic_summary">Muestra las velocidades de subida y descarga en tiempo real en la barra de estado</string>
+    <string name="pref_network_traffic_position_title">Posición</string>
+    <string name="network_traffic_position_left">Junto al reloj (Izquierda)</string>
+    <string name="network_traffic_position_right">Junto a la batería e iconos (Derecha)</string>
+    <string name="pref_network_traffic_mode_title">Modo de visualización</string>
+    <string name="network_traffic_mode_combined">Velocidad combinada (ej. 1.2 MB/s)</string>
+    <string name="network_traffic_mode_separate">Subida y descarga separadas (ej. ▲ 20K ▼ 1.2M)</string>
+    <string name="pref_network_traffic_autohide_title">Ocultar automáticamente si está inactivo</string>
+    <string name="pref_network_traffic_autohide_summary">Oculta el indicador cuando la red está inactiva (&lt; 1 KB/s)</string>
+    <string name="pref_network_traffic_show_arrows_title">Mostrar flechas de actividad</string>
+    <string name="pref_network_traffic_show_arrows_summary">Muestra flechas ▲ y ▼ en lugar de etiquetas S/B (solo en modo separado)</string>
+
+    <!-- Battery & Charging -->
+    <string name="cat_battery">Batería y carga</string>
+    <string name="pref_battery_cap_title">Límite de carga</string>
+    <string name="pref_battery_cap_summary">Detener la carga cuando la batería alcance el nivel seleccionado para prolongar su vida útil</string>
+    <string name="pref_battery_cap_level_title">Detener carga en</string>
+    <string name="pref_battery_cap_level_summary">Pausa la carga en el porcentaje seleccionado</string>
+    <string name="pref_battery_cap_notify_title">Notificación de carga pausada</string>
+    <string name="pref_battery_cap_notify_summary">Muestra una notificación cuando la carga se detiene en el límite</string>
+    <string name="pref_battery_cap_note_title">¿Por qué limitar la carga al 80%?</string>
+    <string name="pref_battery_cap_note_summary">Las investigaciones sobre baterías demuestran que la degradación de los iones de litio se acelera notablemente cuando las celdas permanecen a alto voltaje (&gt;80% / 4.2V+) y temperaturas elevadas. Limitar el nivel de carga reduce el estrés electroquímico en el cátodo y ralentiza el crecimiento de la capa SEI, lo que puede más que duplicar la vida útil total de la batería.</string>
+
     <string name="pref_volume_timeout">Tiempo de espera del panel de volumen</string>
     <string name="pref_volume_timeout_desc">Milisegundos antes de que el panel de volumen se oculte. Déjalo en blanco para usar el de fábrica (3000 ms).</string>
     <string name="pref_disable_safe_volume_title">Desactivar advertencia de volumen seguro</string>

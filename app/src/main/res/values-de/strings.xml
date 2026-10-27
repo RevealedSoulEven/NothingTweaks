@@ -85,6 +85,32 @@
     <string name="pref_clock_text_desc">Eigener Text nach der Uhrzeit. Leer lassen für keinen Text. Max. 24 Zeichen.</string>
 
 
+        <!-- Network Traffic -->
+    <string name="cat_network_traffic">Netzwerkgeschwindigkeitsanzeige</string>
+    <string name="pref_network_traffic_title">Netzwerkgeschwindigkeitsanzeige</string>
+    <string name="pref_network_traffic_summary">Echtzeit-Upload- und Download-Geschwindigkeiten in der Statusleiste anzeigen</string>
+    <string name="pref_network_traffic_position_title">Position</string>
+    <string name="network_traffic_position_left">Neben der Uhr (Links)</string>
+    <string name="network_traffic_position_right">Neben Akku &amp; Symbolen (Rechts)</string>
+    <string name="pref_network_traffic_mode_title">Anzeigemodus</string>
+    <string name="network_traffic_mode_combined">Kombinierte Geschwindigkeit (z. B. 1,2 MB/s)</string>
+    <string name="network_traffic_mode_separate">Getrennter Upload &amp; Download (z. B. ▲ 20K ▼ 1,2M)</string>
+    <string name="pref_network_traffic_autohide_title">Bei Inaktivität automatisch ausblenden</string>
+    <string name="pref_network_traffic_autohide_summary">Anzeige ausblenden, wenn das Netzwerk inaktiv ist (&lt; 1 KB/s)</string>
+    <string name="pref_network_traffic_show_arrows_title">Aktivitätspfeile anzeigen</string>
+    <string name="pref_network_traffic_show_arrows_summary">▲- und ▼-Pfeile anstelle von U/D-Beschriftungen anzeigen (nur getrennter Modus)</string>
+
+    <!-- Battery & Charging -->
+    <string name="cat_battery">Akku &amp; Laden</string>
+    <string name="pref_battery_cap_title">Ladelimit</string>
+    <string name="pref_battery_cap_summary">Ladevorgang bei Erreichen eines festgelegten Niveaus beenden, um die Lebensdauer des Akkus zu verlängern</string>
+    <string name="pref_battery_cap_level_title">Laden stoppen bei</string>
+    <string name="pref_battery_cap_level_summary">Pausiert den Ladevorgang beim ausgewählten Prozentsatz</string>
+    <string name="pref_battery_cap_notify_title">Benachrichtigung bei Ladepause</string>
+    <string name="pref_battery_cap_notify_summary">Benachrichtigung anzeigen, wenn der Ladevorgang am Limit gestoppt wird</string>
+    <string name="pref_battery_cap_note_title">Warum das Laden auf 80 % begrenzen?</string>
+    <string name="pref_battery_cap_note_summary">Akkuforschungen zeigen, dass die Alterung von Lithium-Ionen-Zellen bei hoher Spannung (&gt;80 % / 4,2 V+) und erhöhter Temperatur deutlich beschleunigt wird. Eine Begrenzung des Ladelimits entlastet die Kathode elektrochemisch und verlangsamt das Wachstum der SEI-Schicht, was die Zyklenlebensdauer Ihres Akkus mehr als verdoppeln kann.</string>
+
     <string name="pref_volume_timeout">Timeout des Lautstärkepanels</string>
     <string name="pref_volume_timeout_desc">Millisekunden, bis das Lautstärkepanel ausgeblendet wird. Leer lassen für Standard (3000 ms).</string>
     <string name="pref_disable_safe_volume_title">Sicherheitslautstärke-Warnung deaktivieren</string>

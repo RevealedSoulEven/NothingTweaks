@@ -85,6 +85,32 @@
     <string name="pref_clock_text_desc">Saatten sonra eklenecek özel metin. Boş bırakırsanız eklenmez. En fazla 24 karakter.</string>
 
 
+        <!-- Network Traffic -->
+    <string name="cat_network_traffic">Ağ Hızı Göstergesi</string>
+    <string name="pref_network_traffic_title">Ağ hızı göstergesi</string>
+    <string name="pref_network_traffic_summary">Durum çubuğunda gerçek zamanlı yükleme ve indirme hızlarını göster</string>
+    <string name="pref_network_traffic_position_title">Konum</string>
+    <string name="network_traffic_position_left">Saatin yanında (Sol)</string>
+    <string name="network_traffic_position_right">Pil ve simgelerin yanında (Sağ)</string>
+    <string name="pref_network_traffic_mode_title">Görüntüleme modu</string>
+    <string name="network_traffic_mode_combined">Birleşik hız (örn. 1.2 MB/s)</string>
+    <string name="network_traffic_mode_separate">Ayrı yükleme ve indirme (örn. ▲ 20K ▼ 1.2M)</string>
+    <string name="pref_network_traffic_autohide_title">Boştayken otomatik gizle</string>
+    <string name="pref_network_traffic_autohide_summary">Ağ boştayken göstergeyi gizle (&lt; 1 KB/s)</string>
+    <string name="pref_network_traffic_show_arrows_title">Etkinlik oklarını göster</string>
+    <string name="pref_network_traffic_show_arrows_summary">U/D etiketleri yerine ▲ ve ▼ oklarını göster (yalnızca Ayrı modda)</string>
+
+    <!-- Battery & Charging -->
+    <string name="cat_battery">Pil ve Şarj</string>
+    <string name="pref_battery_cap_title">Şarj sınırı</string>
+    <string name="pref_battery_cap_summary">Pil ömrünü uzatmak için pil belirlenen seviyeye ulaştığında şarjı durdur</string>
+    <string name="pref_battery_cap_level_title">Şarjı şu seviyede durdur</string>
+    <string name="pref_battery_cap_level_summary">Seçilen yüzdede şarjı duraklatır</string>
+    <string name="pref_battery_cap_notify_title">Şarj duraklatıldı bildirimi</string>
+    <string name="pref_battery_cap_notify_summary">Şarj sınırda durdurulduğunda bir bildirim göster</string>
+    <string name="pref_battery_cap_note_title">Şarjı neden %80 ile sınırlandırmalı?</string>
+    <string name="pref_battery_cap_note_summary">Pil araştırmaları, lityum iyon hücrelerin yüksek voltajda (&gt;%80 / 4.2V+) ve yüksek sıcaklıklarda kalması durumunda bozulmanın önemli ölçüde hızlandığını göstermektedir. Şarj seviyesini sınırlandırmak, katot üzerindeki elektrokimyasal stresi hafifletir ve SEI tabakasının büyümesini yavaşlatır, bu da pilinizin genel döngü ömrünü iki kattan fazla artırabilir.</string>
+
     <string name="pref_volume_timeout">Ses paneli zaman aşımı</string>
     <string name="pref_volume_timeout_desc">Ses panelinin gizlenmesine kalan milisaniye. Varsayılan (3000 ms) için boş bırakın.</string>
     <string name="pref_disable_safe_volume_title">Güvenli ses uyarısını devre dışı bırak</string>
