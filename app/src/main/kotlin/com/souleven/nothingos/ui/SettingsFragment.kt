@@ -6,7 +6,15 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import android.text.InputType
+import android.widget.ArrayAdapter
+import android.widget.TextView
+import androidx.core.content.ContextCompat
+import androidx.preference.EditTextPreference
 import androidx.preference.ListPreference
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.textfield.TextInputEditText
+import com.google.android.material.textfield.TextInputLayout
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
@@ -177,5 +185,90 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             }
             true
         }
+    }
+
+    override fun onDisplayPreferenceDialog(preference: Preference) {
+        when (preference) {
+            is EditTextPreference -> showCustomEditTextDialog(preference)
+            is ListPreference -> showCustomListDialog(preference)
+            else -> super.onDisplayPreferenceDialog(preference)
+        }
+    }
+
+    private fun showCustomEditTextDialog(preference: EditTextPreference) {
+        val ctx = context ?: return
+        val dialogView = layoutInflater.inflate(R.layout.dialog_preference_edittext, null)
+        val textInputLayout = dialogView.findViewById<TextInputLayout>(R.id.text_input_layout)
+        val editText = dialogView.findViewById<TextInputEditText>(R.id.edit_text)
+        val messageView = dialogView.findViewById<TextView>(R.id.dialog_message)
+
+        val message = preference.dialogMessage
+        if (!message.isNullOrBlank()) {
+            messageView.text = message
+            messageView.visibility = View.VISIBLE
+        }
+
+        textInputLayout.hint = preference.dialogTitle ?: preference.title
+        editText.setText(preference.text)
+        if (editText.text != null) {
+            editText.setSelection(editText.text!!.length)
+        }
+
+        if (preference.key == "pref_max_notif_icons" || preference.key == "volume_panel_timeout") {
+            editText.inputType = InputType.TYPE_CLASS_NUMBER
+        } else {
+            editText.inputType = InputType.TYPE_CLASS_TEXT
+        }
+
+        val dialog = MaterialAlertDialogBuilder(ctx)
+            .setTitle(preference.dialogTitle ?: preference.title)
+            .setBackground(ContextCompat.getDrawable(ctx, R.drawable.dialog_background))
+            .setView(dialogView)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                val newValue = editText.text?.toString().orEmpty()
+                if (preference.callChangeListener(newValue)) {
+                    preference.text = newValue
+                }
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+
+        dialog.window?.setSoftInputMode(android.view.WindowManager.LayoutParams.SOFT_INPUT_STATE_ALWAYS_VISIBLE)
+        dialog.show()
+
+        editText.requestFocus()
+        editText.post {
+            val imm = ctx.getSystemService(Context.INPUT_METHOD_SERVICE) as? android.view.inputmethod.InputMethodManager
+            imm?.showSoftInput(editText, android.view.inputmethod.InputMethodManager.SHOW_IMPLICIT)
+        }
+    }
+
+    private fun showCustomListDialog(preference: ListPreference) {
+        val ctx = context ?: return
+        val entries = preference.entries ?: return
+        val entryValues = preference.entryValues ?: return
+        val currentIndex = preference.findIndexOfValue(preference.value)
+
+        val adapter = ArrayAdapter(
+            ctx,
+            R.layout.dialog_list_item_singlechoice,
+            android.R.id.text1,
+            entries
+        )
+
+        MaterialAlertDialogBuilder(ctx)
+            .setTitle(preference.dialogTitle ?: preference.title)
+            .setBackground(ContextCompat.getDrawable(ctx, R.drawable.dialog_background))
+            .setSingleChoiceItems(adapter, currentIndex) { dialog, which ->
+                if (which in entryValues.indices) {
+                    val newValue = entryValues[which].toString()
+                    if (preference.callChangeListener(newValue)) {
+                        preference.value = newValue
+                    }
+                }
+                dialog.dismiss()
+            }
+            .setNegativeButton(android.R.string.cancel, null)
+            .show()
     }
 }

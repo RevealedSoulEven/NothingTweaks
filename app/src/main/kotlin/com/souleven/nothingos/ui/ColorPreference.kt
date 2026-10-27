@@ -1,6 +1,8 @@
 package com.souleven.nothingos.ui
 
-import android.app.AlertDialog
+import androidx.core.content.ContextCompat
+import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.souleven.nothingos.R
 import android.content.Context
 import android.content.res.TypedArray
 import android.graphics.Color
@@ -94,6 +96,19 @@ class ColorPreference @JvmOverloads constructor(
             hint = "#AARRGGBB"
             setSingleLine()
             if (this@ColorPreference.value != VALUE_OFF) setText(this@ColorPreference.value)
+            setPadding(dp(14), dp(10), dp(14), dp(10))
+            val tv = TypedValue()
+            context.theme.resolveAttribute(com.google.android.material.R.attr.colorOnSurface, tv, true)
+            setTextColor(tv.data)
+            context.theme.resolveAttribute(com.google.android.material.R.attr.colorOutline, tv, true)
+            setHintTextColor(tv.data)
+            context.theme.resolveAttribute(com.google.android.material.R.attr.colorOutlineVariant, tv, true)
+            val strokeCol = tv.data
+            background = GradientDrawable().apply {
+                shape = GradientDrawable.RECTANGLE
+                cornerRadius = dp(12).toFloat()
+                setStroke(dp(1), strokeCol)
+            }
         }
 
         val preview = TextView(context).apply {
@@ -158,7 +173,8 @@ class ColorPreference @JvmOverloads constructor(
         root.addView(hexField)
         root.addView(preview)
 
-        AlertDialog.Builder(context)
+        MaterialAlertDialogBuilder(context)
+            .setBackground(ContextCompat.getDrawable(context, R.drawable.dialog_background))
             .setTitle(title)
             .setView(ScrollView(context).apply { addView(root) })
             .setPositiveButton("Apply") { _, _ ->

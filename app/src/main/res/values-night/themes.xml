@@ -35,6 +35,8 @@
         <item name="colorOnError">@color/md_on_error</item>
 
         <item name="preferenceTheme">@style/PreferenceThemeOverlay</item>
+        <item name="alertDialogTheme">@style/ThemeOverlay.Nothing.MaterialAlertDialog</item>
+        <item name="materialAlertDialogTheme">@style/ThemeOverlay.Nothing.MaterialAlertDialog</item>
 
         <item name="android:statusBarColor">@android:color/transparent</item>
         <item name="android:navigationBarColor">@android:color/transparent</item>
@@ -42,6 +44,23 @@
         <item name="android:windowLightNavigationBar">false</item>
         <item name="android:enforceNavigationBarContrast" tools:targetApi="29">false</item>
         <item name="android:enforceStatusBarContrast" tools:targetApi="29">false</item>
+    </style>
+
+    <style name="ThemeOverlay.Nothing.MaterialAlertDialog" parent="ThemeOverlay.Material3.MaterialAlertDialog">
+        <item name="colorSurface">?attr/colorSurfaceContainer</item>
+        <item name="colorSurfaceContainerHigh">?attr/colorSurfaceContainer</item>
+        <item name="shapeAppearanceCornerExtraLarge">@style/ShapeAppearance.Nothing.Dialog</item>
+        <item name="buttonBarPositiveButtonStyle">@style/Widget.Nothing.Button.Dialog</item>
+        <item name="buttonBarNegativeButtonStyle">@style/Widget.Nothing.Button.Dialog</item>
+        <item name="buttonBarNeutralButtonStyle">@style/Widget.Nothing.Button.Dialog</item>
+    </style>
+
+    <style name="ShapeAppearance.Nothing.Dialog" parent="ShapeAppearance.Material3.Corner.ExtraLarge">
+        <item name="cornerSize">24dp</item>
+    </style>
+
+    <style name="Widget.Nothing.Button.Dialog" parent="Widget.Material3.Button.TextButton.Dialog">
+        <item name="android:textColor">?attr/colorPrimary</item>
     </style>
 
 </resources>

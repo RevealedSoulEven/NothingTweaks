@@ -104,7 +104,7 @@
     <string name="pref_battery_cap_title">Charging limit</string>
     <string name="pref_battery_cap_summary">Stop charging when battery reaches a set level to prolong battery lifespan</string>
     <string name="pref_battery_cap_level_title">Stop charging at</string>
-    <string name="pref_battery_cap_level_summary">Pauses charging at the selected percentage (default: 80%)</string>
+    <string name="pref_battery_cap_level_summary">Pauses charging at the selected percentage</string>
     <string name="pref_battery_cap_notify_title">Charging paused notification</string>
     <string name="pref_battery_cap_notify_summary">Show a notification when charging is stopped at the limit</string>
     <string name="pref_battery_cap_note_title">Why cap charging at 80%?</string>
