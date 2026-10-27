@@ -91,6 +91,8 @@
                 android:id="@+id/settings_container"
                 android:layout_width="match_parent"
                 android:layout_height="wrap_content" />
+
+            <include layout="@layout/footer_about" />
         </LinearLayout>
     </androidx.core.widget.NestedScrollView>
 

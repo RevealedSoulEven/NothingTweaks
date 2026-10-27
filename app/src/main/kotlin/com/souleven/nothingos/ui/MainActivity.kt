@@ -67,6 +67,7 @@ class MainActivity : AppCompatActivity() {
 
         applyInsets()
         bindStatusBanner()
+        bindFooter()
 
         if (savedInstanceState == null) {
             supportFragmentManager.beginTransaction()
@@ -134,5 +135,38 @@ class MainActivity : AppCompatActivity() {
         } finally {
             typed.recycle()
         }
+    }
+
+    private fun bindFooter() {
+        val githubUrl = "https://github.com/RevealedSoulEven/NothingTweaks"
+        val issuesUrl = "https://github.com/RevealedSoulEven/NothingTweaks/issues"
+
+        fun openUrl(url: String) {
+            try {
+                val intent = android.content.Intent(android.content.Intent.ACTION_VIEW, android.net.Uri.parse(url)).apply {
+                    addFlags(android.content.Intent.FLAG_ACTIVITY_NEW_TASK)
+                }
+                startActivity(intent)
+            } catch (e: Exception) {
+                Toast.makeText(this, "Unable to open browser", Toast.LENGTH_SHORT).show()
+            }
+        }
+
+        findViewById<View>(R.id.btn_github_project)?.setOnClickListener {
+            openUrl(githubUrl)
+        }
+
+        findViewById<View>(R.id.btn_report_bug)?.setOnClickListener {
+            openUrl(issuesUrl + "/new?labels=bug&title=%28bug%29+")
+        }
+
+        findViewById<View>(R.id.btn_request_feature)?.setOnClickListener {
+            openUrl(issuesUrl + "/new?labels=enhancement&title=%28feat%29+")
+        }
+
+        try {
+            val versionName = packageManager.getPackageInfo(packageName, 0).versionName
+            findViewById<TextView>(R.id.footer_version)?.text = "NothingTweaks v$versionName"
+        } catch (_: Throwable) {}
     }
 }

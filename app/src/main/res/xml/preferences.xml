@@ -395,12 +395,10 @@
             app:dependency="pref_battery_cap_enabled"
             app:iconSpaceReserved="false" />
 
-        <Preference
+        <com.souleven.nothingos.hooks.ExpandableInfoNotePreference
             app:key="pref_battery_cap_note"
-            app:layout="@layout/preference_info_note"
             app:title="@string/pref_battery_cap_note_title"
             app:summary="@string/pref_battery_cap_note_summary"
-            app:selectable="false"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
