@@ -77,6 +77,56 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
+    <!-- Network Speed Indicator -->
+    <PreferenceCategory
+        app:title="@string/cat_network_traffic"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_network_traffic_enabled"
+            app:title="@string/pref_network_traffic_title"
+            app:summary="@string/pref_network_traffic_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_network_traffic_position"
+            app:title="@string/pref_network_traffic_position_title"
+            app:summary="%s"
+            app:entries="@array/network_traffic_position_entries"
+            app:entryValues="@array/network_traffic_position_values"
+            app:defaultValue="left"
+            app:dependency="pref_network_traffic_enabled"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_network_traffic_mode"
+            app:title="@string/pref_network_traffic_mode_title"
+            app:summary="%s"
+            app:entries="@array/network_traffic_mode_entries"
+            app:entryValues="@array/network_traffic_mode_values"
+            app:defaultValue="combined"
+            app:dependency="pref_network_traffic_enabled"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_network_traffic_autohide"
+            app:title="@string/pref_network_traffic_autohide_title"
+            app:summary="@string/pref_network_traffic_autohide_summary"
+            app:defaultValue="true"
+            app:dependency="pref_network_traffic_enabled"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_network_traffic_show_arrows"
+            app:title="@string/pref_network_traffic_show_arrows_title"
+            app:summary="@string/pref_network_traffic_show_arrows_summary"
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
     <!-- 3. Device Features -->
     <PreferenceCategory
         app:title="@string/cat_features"

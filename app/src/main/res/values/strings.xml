@@ -84,6 +84,20 @@
     <string name="pref_clock_text">Custom text</string>
     <string name="pref_clock_text_desc">Appended custom text after the time. Leave blank for none. Max 24 chars.</string>
 
+    <!-- Network Traffic -->
+    <string name="cat_network_traffic">Network Speed Indicator</string>
+    <string name="pref_network_traffic_title">Network speed indicator</string>
+    <string name="pref_network_traffic_summary">Display real-time upload and download speeds in the status bar</string>
+    <string name="pref_network_traffic_position_title">Position</string>
+    <string name="network_traffic_position_left">Next to Clock (Left)</string>
+    <string name="network_traffic_position_right">Next to Battery &amp; Icons (Right)</string>
+    <string name="pref_network_traffic_mode_title">Display mode</string>
+    <string name="network_traffic_mode_combined">Combined speed (e.g. 1.2 MB/s)</string>
+    <string name="network_traffic_mode_separate">Separate upload &amp; download (e.g. ▲ 20K ▼ 1.2M)</string>
+    <string name="pref_network_traffic_autohide_title">Auto-hide when inactive</string>
+    <string name="pref_network_traffic_autohide_summary">Hide the indicator when network is idle (&lt; 1 KB/s)</string>
+    <string name="pref_network_traffic_show_arrows_title">Show activity arrows</string>
+    <string name="pref_network_traffic_show_arrows_summary">Display ▲ and ▼ arrows instead of U/D labels (Separate mode only)</string>
 
     <string name="pref_volume_timeout">Volume panel timeout</string>
     <string name="pref_volume_timeout_desc">Milliseconds before the volume panel hides. Leave blank for stock (3000 ms).</string>

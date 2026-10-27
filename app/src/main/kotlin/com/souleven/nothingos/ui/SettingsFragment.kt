@@ -5,6 +5,7 @@ import android.content.SharedPreferences
 import android.net.Uri
 import android.os.Bundle
 import android.view.View
+import androidx.preference.ListPreference
 import androidx.preference.Preference
 import androidx.preference.PreferenceFragmentCompat
 import androidx.preference.SwitchPreferenceCompat
@@ -23,6 +24,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         setPreferencesFromResource(R.xml.preferences, rootKey)
 
         wireFingerprintDependencies()
+        wireNetworkTrafficDependencies()
 
         requireRebootOnEnable("allow_180_rotation")
         requireRebootOnEnable("pref_advanced_power_menu")
@@ -33,6 +35,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
     override fun onResume() {
         super.onResume()
         preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
+        wireNetworkTrafficDependencies()
     }
 
     override fun onPause() {
@@ -97,5 +100,30 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         }
 
         apply(master.isChecked, random.isChecked)
+    }
+
+    private fun wireNetworkTrafficDependencies() {
+        val master = findPreference<SwitchPreferenceCompat>("pref_network_traffic_enabled") ?: return
+        val mode = findPreference<ListPreference>("pref_network_traffic_mode") ?: return
+        val arrows = findPreference<SwitchPreferenceCompat>("pref_network_traffic_show_arrows") ?: return
+
+        fun apply(masterOn: Boolean, currentMode: String) {
+            val isSeparate = currentMode == "separate"
+            arrows.isEnabled = masterOn && isSeparate
+        }
+
+        master.setOnPreferenceChangeListener { _: Preference, newValue: Any ->
+            val on = newValue as? Boolean ?: return@setOnPreferenceChangeListener false
+            apply(on, mode.value ?: "combined")
+            true
+        }
+
+        mode.setOnPreferenceChangeListener { _: Preference, newValue: Any ->
+            val selectedMode = newValue as? String ?: "combined"
+            apply(master.isChecked, selectedMode)
+            true
+        }
+
+        apply(master.isChecked, mode.value ?: "combined")
     }
 }

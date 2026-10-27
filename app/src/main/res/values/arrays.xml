@@ -18,4 +18,24 @@
         <item>720p</item>
         <item>1080p60fps</item>
     </string-array>
+
+    <string-array name="network_traffic_position_entries">
+        <item>@string/network_traffic_position_left</item>
+        <item>@string/network_traffic_position_right</item>
+    </string-array>
+
+    <string-array name="network_traffic_position_values" translatable="false">
+        <item>left</item>
+        <item>right</item>
+    </string-array>
+
+    <string-array name="network_traffic_mode_entries">
+        <item>@string/network_traffic_mode_combined</item>
+        <item>@string/network_traffic_mode_separate</item>
+    </string-array>
+
+    <string-array name="network_traffic_mode_values" translatable="false">
+        <item>combined</item>
+        <item>separate</item>
+    </string-array>
 </resources>

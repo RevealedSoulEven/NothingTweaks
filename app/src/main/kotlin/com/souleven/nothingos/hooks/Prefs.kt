@@ -14,6 +14,23 @@ import java.util.concurrent.atomic.AtomicBoolean
 class Prefs(private val isSystemServer: Boolean = false) {
 
     private val cache = ConcurrentHashMap<String, Any>()
+    private val listeners = java.util.concurrent.CopyOnWriteArrayList<() -> Unit>()
+
+    fun addListener(listener: () -> Unit) {
+        listeners.add(listener)
+    }
+
+    fun removeListener(listener: () -> Unit) {
+        listeners.remove(listener)
+    }
+
+    private fun notifyListeners() {
+        for (l in listeners) {
+            try {
+                l.invoke()
+            } catch (_: Throwable) {}
+        }
+    }
 
     @Volatile
     private var appContext: Context? = null
@@ -141,6 +158,7 @@ class Prefs(private val isSystemServer: Boolean = false) {
                 }
                 initialized = true
                 lastReload = System.currentTimeMillis()
+                notifyListeners()
                 return true
             }
 
@@ -175,6 +193,7 @@ class Prefs(private val isSystemServer: Boolean = false) {
                     }
                     initialized = true
                     lastReload = System.currentTimeMillis()
+                    notifyListeners()
                     return true
                 }
             }

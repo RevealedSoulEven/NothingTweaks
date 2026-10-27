@@ -23,6 +23,7 @@ import android.app.Instrumentation
 import com.souleven.nothingos.hooks.StatusBarGestureHooks
 import com.souleven.nothingos.hooks.TorchHooks
 import com.souleven.nothingos.hooks.FlagSecureHooks
+import com.souleven.nothingos.hooks.NetworkTrafficHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
@@ -96,6 +97,7 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("SpacingHooks" to SpacingHooks())
             hooks.add("StatusBarGestureHooks" to StatusBarGestureHooks())
             hooks.add("TorchHooks" to TorchHooks())
+            hooks.add("NetworkTrafficHooks" to NetworkTrafficHooks())
         }
         if (lpparam.packageName == PKG_SYSTEMUI || lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("NavBarHooks" to NavBarHooks())
