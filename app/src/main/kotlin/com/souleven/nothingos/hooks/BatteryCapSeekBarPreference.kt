@@ -21,7 +21,7 @@ class BatteryCapSeekBarPreference @JvmOverloads constructor(
         max = 95
         seekBarIncrement = 5
         showSeekBarValue = true
-        updatesContinuously = true
+        updatesContinuously = false
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {

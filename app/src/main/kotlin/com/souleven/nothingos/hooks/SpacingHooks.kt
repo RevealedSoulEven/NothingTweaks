@@ -28,7 +28,7 @@ class StatusBarPaddingSeekBarPreference @JvmOverloads constructor(
         max = 20
         seekBarIncrement = 1
         showSeekBarValue = true
-        updatesContinuously = true
+        updatesContinuously = false
     }
 
     override fun onBindViewHolder(holder: PreferenceViewHolder) {

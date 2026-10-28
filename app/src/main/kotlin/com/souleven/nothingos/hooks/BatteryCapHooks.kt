@@ -53,6 +53,18 @@ class BatteryCapHooks : HookModule {
     @Volatile
     private var lastCapLevel = -1
 
+    @Volatile
+    private var lastHardwareEnabled: Boolean? = null
+
+    @Volatile
+    private var lastPlugged: Boolean? = null
+
+    @Volatile
+    private var isNotificationShown = false
+
+    @Volatile
+    private var lastNotifiedLevel = -1
+
     private var receiverRegistered = false
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
@@ -208,14 +220,18 @@ class BatteryCapHooks : HookModule {
         }
 
         val isPlugged = plugType != 0
+        val plugChanged = (lastPlugged != null && lastPlugged != isPlugged)
+        lastPlugged = isPlugged
+
         val enabled = overrideEnabled ?: prefsRef.getBoolean(KEY_ENABLED, false)
         val capLevel = overrideLevel ?: prefsRef.getInt(KEY_LEVEL, DEFAULT_LEVEL)
         val notify = overrideNotify ?: prefsRef.getBoolean(KEY_NOTIFY, true)
 
         if (!enabled || !isPlugged) {
             // unplugged or feature disabled: unconditionally restore hardware charging
+            val wasCapped = isCapped
             isCapped = false
-            setHardwareChargingEnabled(true, classLoader)
+            setHardwareChargingEnabled(true, classLoader, force = (plugChanged || wasCapped))
             updateNotification(false, capLevel, notify)
             lastCapLevel = capLevel
             return
@@ -227,7 +243,7 @@ class BatteryCapHooks : HookModule {
             if (batteryLevel < capLevel) {
                 // user increased cap above current battery level: force resume charging immediately
                 isCapped = false
-                setHardwareChargingEnabled(true, classLoader)
+                setHardwareChargingEnabled(true, classLoader, force = true)
                 updateNotification(false, capLevel, notify)
             }
         }
@@ -262,7 +278,7 @@ class BatteryCapHooks : HookModule {
             } catch (_: Throwable) {}
         } else {
             // below cap and not capped: actively ensure hardware charging is ENABLED!
-            setHardwareChargingEnabled(true, classLoader)
+            setHardwareChargingEnabled(true, classLoader, force = plugChanged)
         }
     }
 
@@ -306,7 +322,12 @@ class BatteryCapHooks : HookModule {
         return iChargeInstance
     }
 
-    private fun setHardwareChargingEnabled(enabled: Boolean, classLoader: ClassLoader) {
+    private fun setHardwareChargingEnabled(enabled: Boolean, classLoader: ClassLoader, force: Boolean = false) {
+        if (!force && lastHardwareEnabled == enabled) {
+            return
+        }
+        lastHardwareEnabled = enabled
+
         // 1. Hardware PMIC control via Nothing ICharge AIDL HAL
         // We solely use setUsb_charger_en(1 / 0) which is Nothing's direct hardware switch.
         // We intentionally do NOT touch setChargeFccInt because setting FCC to 0 mA clamps
@@ -345,9 +366,17 @@ class BatteryCapHooks : HookModule {
         val nm = ctx.getSystemService(Context.NOTIFICATION_SERVICE) as? NotificationManager ?: return
 
         if (!show || !allowNotify) {
-            try {
-                nm.cancel(NOTIFICATION_ID)
-            } catch (_: Throwable) {}
+            if (isNotificationShown) {
+                try {
+                    nm.cancel(NOTIFICATION_ID)
+                } catch (_: Throwable) {}
+                isNotificationShown = false
+                lastNotifiedLevel = -1
+            }
+            return
+        }
+
+        if (isNotificationShown && lastNotifiedLevel == capLevel) {
             return
         }
 
@@ -374,6 +403,8 @@ class BatteryCapHooks : HookModule {
                 .build()
 
             nm.notify(NOTIFICATION_ID, notification)
+            isNotificationShown = true
+            lastNotifiedLevel = capLevel
         } catch (t: Throwable) {
             XposedBridge.log("$TAG [BatteryCap] Failed to post notification: ${t.message}")
         }
