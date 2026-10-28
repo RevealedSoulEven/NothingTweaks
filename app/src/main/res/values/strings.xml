@@ -14,6 +14,13 @@
     
     <string name="pref_advanced_power_menu_title">Advanced Power Menu</string>
     <string name="pref_advanced_power_menu_summary">Show options to reboot into Recovery and Bootloader in the power menu.</string>
+    <string name="pref_power_double_tap_title">Remap power button double tap</string>
+    <string name="pref_power_double_tap_summary">Open a custom app instead of the default camera</string>
+    <string name="pref_power_double_tap_app_title">Double tap application</string>
+    <string name="pref_power_double_tap_app_summary">Tap to select an application</string>
+    <string name="dialog_select_app">Select Application</string>
+    <string name="search_apps">Search apps…</string>
+    <string name="no_apps_found">No apps found</string>
 
     <!-- Lockscreen -->
     <string name="cat_lockscreen">Lockscreen</string>

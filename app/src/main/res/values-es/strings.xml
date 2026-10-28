@@ -14,6 +14,13 @@
     
     <string name="pref_advanced_power_menu_title">Menú de apagado avanzado</string>
     <string name="pref_advanced_power_menu_summary">Muestra opciones para reiniciar en Recovery y Bootloader en el menú de apagado.</string>
+    <string name="pref_power_double_tap_title">Reasignar doble toque del botón de encendido</string>
+    <string name="pref_power_double_tap_summary">Abrir una aplicación personalizada en lugar de la cámara predeterminada</string>
+    <string name="pref_power_double_tap_app_title">Aplicación de doble toque</string>
+    <string name="pref_power_double_tap_app_summary">Toca para seleccionar una aplicación</string>
+    <string name="dialog_select_app">Seleccionar aplicación</string>
+    <string name="search_apps">Buscar aplicaciones…</string>
+    <string name="no_apps_found">No se encontraron aplicaciones</string>
 
     <!-- Lockscreen -->
     <string name="cat_lockscreen">Pantalla de bloqueo</string>

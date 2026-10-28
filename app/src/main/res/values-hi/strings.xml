@@ -14,6 +14,13 @@
     
     <string name="pref_advanced_power_menu_title">उन्नत पावर मेनू</string>
     <string name="pref_advanced_power_menu_summary">पावर मेनू में Recovery और Bootloader में रीबूट करने के विकल्प दिखाएं।</string>
+    <string name="pref_power_double_tap_title">पावर बटन डबल टैप को रीमैप करें</string>
+    <string name="pref_power_double_tap_summary">डिफ़ॉल्ट कैमरे के बजाय कोई कस्टम ऐप खोलें</string>
+    <string name="pref_power_double_tap_app_title">डबल टैप एप्लिकेशन</string>
+    <string name="pref_power_double_tap_app_summary">एप्लिकेशन चुनने के लिए टैप करें</string>
+    <string name="dialog_select_app">एप्लिकेशन चुनें</string>
+    <string name="search_apps">ऐप्स खोजें…</string>
+    <string name="no_apps_found">कोई ऐप नहीं मिला</string>
 
     <!-- Lockscreen -->
     <string name="cat_lockscreen">लॉकस्क्रीन</string>

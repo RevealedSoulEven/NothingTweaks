@@ -14,6 +14,13 @@
     
     <string name="pref_advanced_power_menu_title">高级电源菜单</string>
     <string name="pref_advanced_power_menu_summary">在电源菜单中显示重启至 Recovery 和 Bootloader 的选项。</string>
+    <string name="pref_power_double_tap_title">重映射双击电源键</string>
+    <string name="pref_power_double_tap_summary">双击打开自定义应用而非默认相机</string>
+    <string name="pref_power_double_tap_app_title">双击打开的应用</string>
+    <string name="pref_power_double_tap_app_summary">点击选择应用</string>
+    <string name="dialog_select_app">选择应用</string>
+    <string name="search_apps">搜索应用…</string>
+    <string name="no_apps_found">未找到应用</string>
 
     <!-- Lockscreen -->
     <string name="cat_lockscreen">锁屏</string>

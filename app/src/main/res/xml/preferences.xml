@@ -360,6 +360,19 @@
             app:summary="@string/summary_allow_180_rotation"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_power_double_tap_custom_app"
+            app:title="@string/pref_power_double_tap_title"
+            app:summary="@string/pref_power_double_tap_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_power_double_tap_app"
+            app:title="@string/pref_power_double_tap_app_title"
+            app:summary="@string/pref_power_double_tap_app_summary"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <!-- 10. Battery & Charging -->

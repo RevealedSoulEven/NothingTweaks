@@ -14,6 +14,13 @@
     
     <string name="pref_advanced_power_menu_title">Расширенное меню питания</string>
     <string name="pref_advanced_power_menu_summary">Добавить параметры перезагрузки в Recovery и Bootloader в меню питания.</string>
+    <string name="pref_power_double_tap_title">Переназначить двойное нажатие кнопки питания</string>
+    <string name="pref_power_double_tap_summary">Открывать выбранное приложение вместо стандартной камеры</string>
+    <string name="pref_power_double_tap_app_title">Приложение при двойном нажатии</string>
+    <string name="pref_power_double_tap_app_summary">Нажмите, чтобы выбрать приложение</string>
+    <string name="dialog_select_app">Выберите приложение</string>
+    <string name="search_apps">Поиск приложений…</string>
+    <string name="no_apps_found">Приложения не найдены</string>
 
     <!-- Lockscreen -->
     <string name="cat_lockscreen">Экран блокировки</string>

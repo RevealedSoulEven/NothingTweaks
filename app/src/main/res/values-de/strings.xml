@@ -14,6 +14,13 @@
     
     <string name="pref_advanced_power_menu_title">Erweitertes Power-Menü</string>
     <string name="pref_advanced_power_menu_summary">Zeige Optionen zum Neustart in Recovery und Bootloader im Power-Menü.</string>
+    <string name="pref_power_double_tap_title">Ein/Aus-Taste Doppeltipp neu belegen</string>
+    <string name="pref_power_double_tap_summary">Benutzerdefinierte App anstelle der Standardkamera öffnen</string>
+    <string name="pref_power_double_tap_app_title">Anwendung für Doppeltipp</string>
+    <string name="pref_power_double_tap_app_summary">Tippen, um eine Anwendung auszuwählen</string>
+    <string name="dialog_select_app">Anwendung auswählen</string>
+    <string name="search_apps">Apps durchsuchen…</string>
+    <string name="no_apps_found">Keine Apps gefunden</string>
 
     <!-- Lockscreen -->
     <string name="cat_lockscreen">Sperrbildschirm</string>
