@@ -4,7 +4,6 @@ import android.content.BroadcastReceiver
 import android.content.Context
 import android.content.Intent
 import android.content.IntentFilter
-import android.content.res.ColorStateList
 import android.net.TrafficStats
 import android.os.Build
 import android.os.Handler
@@ -162,40 +161,6 @@ class NetworkTrafficHooks : HookModule {
         try {
             XposedHelpers.findAndHookMethod(
                 clockClass,
-                "setTextColor",
-                Int::class.javaPrimitiveType,
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val color = param.args[0] as? Int ?: return
-                        mainHandler.post {
-                            trafficView?.setTextColor(color)
-                        }
-                    }
-                }
-            )
-        } catch (t: Throwable) {
-            XposedBridge.log("$TAG [NetworkTraffic] FAILED to hook Clock#setTextColor(int): ${t.message}")
-        }
-
-        try {
-            XposedHelpers.findAndHookMethod(
-                clockClass,
-                "setTextColor",
-                ColorStateList::class.java,
-                object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val csl = param.args[0] as? ColorStateList ?: return
-                        mainHandler.post {
-                            trafficView?.setTextColor(csl)
-                        }
-                    }
-                }
-            )
-        } catch (_: Throwable) {}
-
-        try {
-            XposedHelpers.findAndHookMethod(
-                clockClass,
                 "onDarkChanged",
                 ArrayList::class.java,
                 Float::class.javaPrimitiveType,
@@ -212,6 +177,25 @@ class NetworkTrafficHooks : HookModule {
             )
         } catch (t: Throwable) {
             XposedBridge.log("$TAG [NetworkTraffic] FAILED to hook Clock#onDarkChanged: ${t.message}")
+        }
+
+        try {
+            XposedHelpers.findAndHookMethod(
+                clockClass,
+                "onColorsChanged",
+                Boolean::class.javaPrimitiveType,
+                object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val clock = param.thisObject as? TextView ?: return
+                        val color = clock.currentTextColor
+                        mainHandler.post {
+                            trafficView?.setTextColor(color)
+                        }
+                    }
+                }
+            )
+        } catch (t: Throwable) {
+            XposedBridge.log("$TAG [NetworkTraffic] FAILED to hook Clock#onColorsChanged: ${t.message}")
         }
     }
 
