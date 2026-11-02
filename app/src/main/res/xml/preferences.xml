@@ -304,6 +304,7 @@
             app:defaultValue=""
             app:useSimpleSummaryProvider="false"
             app:iconSpaceReserved="false" />
+
     </PreferenceCategory>
 
     <!-- 6. AI & Misc -->

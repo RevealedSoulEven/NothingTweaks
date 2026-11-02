@@ -1,6 +1,9 @@
 package com.souleven.nothingos.hooks
 
 import android.content.ContentResolver
+import android.content.Context
+import android.content.pm.PackageManager
+import android.os.UserHandle
 import android.provider.Settings
 import com.souleven.nothingos.MainHook.Companion.TAG
 import de.robv.android.xposed.XC_MethodHook
@@ -27,9 +30,11 @@ import kotlin.math.roundToInt
  *
  * Config channel: AudioService is created before the module's content provider is
  * reachable, and SELinux forbids system_server from opening the module's own
- * settings.xml. So system_server keeps its own copy of the three settings in
- * /data/system (CACHE_FILE). It is refreshed whenever Prefs (provider based) loads
- * or changes, and read at the next boot. Changing a value therefore needs one reboot.
+ * settings.xml. The settings therefore travel through Settings.Global (written by the
+ * module app, which the hook grants WRITE_SECURE_SETTINGS at boot, and by system_server
+ * itself whenever Prefs loads or changes), with a copy in /data/system (CACHE_FILE) as a
+ * fallback. Both are read at the next boot, so a change needs one reboot. Only the very
+ * first boot after installing the module has nothing to read yet.
  *
  * Saved volume levels: Settings.System stores levels in step units (index / 10), so a
  * different step count would change the loudness of every saved level. Before the first
@@ -42,6 +47,8 @@ class VolumeStepsHooks : HookModule {
         const val AUDIO_SERVICE = "com.android.server.audio.AudioService"
         const val VSS = "com.android.server.audio.AudioService\$VolumeStreamState"
         const val CACHE_FILE = "/data/system/nothingtweaks_volume_steps.conf"
+        const val MODULE_PACKAGE = "com.souleven.nothingos"
+        const val SECURE_SETTINGS_PERMISSION = "android.permission.WRITE_SECURE_SETTINGS"
         const val STATE_FILE = "/data/system/nothingtweaks_volume_steps.state"
 
         const val STREAM_SYSTEM = 1
@@ -51,12 +58,12 @@ class VolumeStepsHooks : HookModule {
         const val STREAM_SYSTEM_ENFORCED = 7
         const val STREAM_DTMF = 8
 
-        const val KEY_MEDIA = "vs_media"
-        const val KEY_MEDIA_CUSTOM = "vs_media_custom"
-        const val KEY_RING = "vs_ring"
-        const val KEY_RING_CUSTOM = "vs_ring_custom"
-        const val KEY_ALARM = "vs_alarm"
-        const val KEY_ALARM_CUSTOM = "vs_alarm_custom"
+        const val KEY_MEDIA = VolumeStepsBridge.KEY_MEDIA
+        const val KEY_MEDIA_CUSTOM = VolumeStepsBridge.KEY_MEDIA_CUSTOM
+        const val KEY_RING = VolumeStepsBridge.KEY_RING
+        const val KEY_RING_CUSTOM = VolumeStepsBridge.KEY_RING_CUSTOM
+        const val KEY_ALARM = VolumeStepsBridge.KEY_ALARM
+        const val KEY_ALARM_CUSTOM = VolumeStepsBridge.KEY_ALARM_CUSTOM
 
         const val MODE_DEFAULT = "default"
         const val MODE_CUSTOM = "custom"
@@ -69,15 +76,15 @@ class VolumeStepsHooks : HookModule {
 
         const val DEVICE_OUT_DEFAULT = 0x40000000
 
-        val CACHE_KEYS = arrayOf(
-            KEY_MEDIA, KEY_MEDIA_CUSTOM, KEY_RING, KEY_RING_CUSTOM, KEY_ALARM, KEY_ALARM_CUSTOM
-        )
     }
 
     private val originals = ConcurrentHashMap<Int, Int>()
     private val loggedConfig = AtomicBoolean(false)
     private val syncing = AtomicBoolean(false)
     private val rescaled = AtomicBoolean(false)
+    @Volatile private var resolver: ContentResolver? = null
+    @Volatile private var systemContext: Context? = null
+    private val grantTried = AtomicBoolean(false)
 
     /** Streams whose step count we may change, with the base name of their saved-level rows. */
     private val managedSettings = mapOf(
@@ -128,18 +135,28 @@ class VolumeStepsHooks : HookModule {
     private fun syncCache(prefs: Prefs) {
         if (!syncing.compareAndSet(false, true)) return
         try {
-            val text = CACHE_KEYS.joinToString(separator = "\n", postfix = "\n") {
-                "$it=${prefs.getString(it, "").trim()}"
-            }
+            grantSecureSettingsToModule()
+
+            val read = { key: String -> prefs.getString(key, "") }
+            val fileText = VolumeStepsBridge.encode("\n", read) + "\n"
+            val settingsText = VolumeStepsBridge.encode(";", read)
+
             val file = File(CACHE_FILE)
-            if (file.exists() && file.readText() == text) return
-            val tmp = File("$CACHE_FILE.tmp")
-            tmp.writeText(text)
-            if (!tmp.renameTo(file)) {
-                file.writeText(text)
-                tmp.delete()
+            if (!file.exists() || file.readText() != fileText) {
+                val tmp = File("$CACHE_FILE.tmp")
+                tmp.writeText(fileText)
+                if (!tmp.renameTo(file)) {
+                    file.writeText(fileText)
+                    tmp.delete()
+                }
+                XposedBridge.log("$TAG   [VolumeSteps] boot config updated (applies after reboot): $settingsText")
             }
-            XposedBridge.log("$TAG   [VolumeSteps] boot config updated (applies after reboot): ${text.trim().replace('\n', ' ')}")
+
+            resolver?.let {
+                if (Settings.Global.getString(it, VolumeStepsBridge.GLOBAL_KEY) != settingsText) {
+                    Settings.Global.putString(it, VolumeStepsBridge.GLOBAL_KEY, settingsText)
+                }
+            }
         } catch (t: Throwable) {
             XposedBridge.log("$TAG   [VolumeSteps] could not write boot config: ${t.message}")
         } finally {
@@ -147,9 +164,33 @@ class VolumeStepsHooks : HookModule {
         }
     }
 
+    /**
+     * Lets the module app write Settings.Global itself, so the settings reach the next boot
+     * without any manual `pm grant`. system_server is allowed to grant this permission.
+     */
+    private fun grantSecureSettingsToModule() {
+        val context = systemContext ?: return
+        if (!grantTried.compareAndSet(false, true)) return
+        try {
+            val packageManager = context.packageManager
+            if (packageManager.checkPermission(SECURE_SETTINGS_PERMISSION, MODULE_PACKAGE) ==
+                PackageManager.PERMISSION_GRANTED
+            ) return
+            val user = XposedHelpers.getStaticObjectField(UserHandle::class.java, "SYSTEM")
+            XposedHelpers.callMethod(
+                packageManager, "grantRuntimePermission", MODULE_PACKAGE, SECURE_SETTINGS_PERMISSION, user
+            )
+            XposedBridge.log("$TAG   [VolumeSteps] granted WRITE_SECURE_SETTINGS to the module app")
+        } catch (t: Throwable) {
+            XposedBridge.log("$TAG   [VolumeSteps] could not grant WRITE_SECURE_SETTINGS: ${t.message}")
+        }
+    }
+
     private fun applyAll(audioService: Any, audioServiceClass: Class<*>) {
         val arr = XposedHelpers.getStaticObjectField(audioServiceClass, "MAX_STREAM_VOLUME") as? IntArray
             ?: return
+        resolver = XposedHelpers.getObjectField(audioService, "mContentResolver") as? ContentResolver
+        systemContext = XposedHelpers.getObjectField(audioService, "mContext") as? Context
         val values = readConfig()
 
         // Remember the stock value of every managed stream before anything is changed.
@@ -178,7 +219,7 @@ class VolumeStepsHooks : HookModule {
 
     private fun rescaleSavedLevels(audioService: Any, arr: IntArray) {
         try {
-            val resolver = XposedHelpers.getObjectField(audioService, "mContentResolver") as? ContentResolver
+            val resolver = this.resolver
             if (resolver == null) {
                 XposedBridge.log("$TAG   [VolumeSteps] no content resolver — saved levels left as they are")
                 return
@@ -306,20 +347,26 @@ class VolumeStepsHooks : HookModule {
     private fun readConfig(): Map<String, String> {
         val first = loggedConfig.compareAndSet(false, true)
         return try {
-            val file = File(CACHE_FILE)
-            if (!file.exists()) {
-                if (first) XposedBridge.log("$TAG   [VolumeSteps] no boot config yet (first boot after install) — stock kept")
-                return emptyMap()
+            var source = "settings"
+            var map: Map<String, String> = emptyMap()
+
+            val fromSettings = resolver?.let { Settings.Global.getString(it, VolumeStepsBridge.GLOBAL_KEY) }
+            if (!fromSettings.isNullOrBlank()) {
+                map = VolumeStepsBridge.decode(fromSettings)
+            } else {
+                source = "file"
+                val file = File(CACHE_FILE)
+                if (file.exists()) map = VolumeStepsBridge.decode(file.readText())
             }
-            val map = HashMap<String, String>()
-            for (line in file.readLines()) {
-                val i = line.indexOf('=')
-                if (i > 0) map[line.substring(0, i)] = line.substring(i + 1).trim()
-            }
+
             if (first) {
-                XposedBridge.log(
-                    "$TAG   [VolumeSteps] boot config: media=${map[KEY_MEDIA]} ring=${map[KEY_RING]} alarm=${map[KEY_ALARM]}"
-                )
+                if (map.isEmpty()) {
+                    XposedBridge.log("$TAG   [VolumeSteps] no boot config yet (first boot after install) — stock kept")
+                } else {
+                    XposedBridge.log(
+                        "$TAG   [VolumeSteps] boot config ($source): media=${map[KEY_MEDIA]} ring=${map[KEY_RING]} alarm=${map[KEY_ALARM]}"
+                    )
+                }
             }
             map
         } catch (t: Throwable) {

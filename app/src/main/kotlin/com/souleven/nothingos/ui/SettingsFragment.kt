@@ -28,6 +28,7 @@ import com.souleven.nothingos.R
 import com.souleven.nothingos.hooks.BatteryCapSeekBarPreference
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.RemotePreferenceProvider
+import com.souleven.nothingos.hooks.VolumeStepsBridge
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -54,6 +55,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
     override fun onResume() {
         super.onResume()
         preferenceManager.sharedPreferences?.registerOnSharedPreferenceChangeListener(this)
+        preferenceManager.sharedPreferences?.let { VolumeStepsBridge.syncToSettings(requireContext(), it) }
         wireNetworkTrafficDependencies()
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
@@ -66,6 +68,9 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
     override fun onSharedPreferenceChanged(sharedPreferences: SharedPreferences?, key: String?) {
         val ctx = context ?: return
+        if (VolumeStepsBridge.isVolumeStepsKey(key) && sharedPreferences != null) {
+            VolumeStepsBridge.syncToSettings(ctx, sharedPreferences)
+        }
         try {
             val uri = if (key != null) {
                 Uri.withAppendedPath(RemotePreferenceProvider.CONTENT_URI, key)

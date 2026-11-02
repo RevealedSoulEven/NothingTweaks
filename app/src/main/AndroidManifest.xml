@@ -5,6 +5,11 @@
     <uses-permission android:name="android.permission.QUERY_ALL_PACKAGES"
         tools:ignore="QueryAllPackagesPermission" />
 
+    <!-- Granted automatically at boot by the module itself (see VolumeStepsHooks): lets the app hand the
+         Volume Steps settings to the system early enough for a single reboot. -->
+    <uses-permission android:name="android.permission.WRITE_SECURE_SETTINGS"
+        tools:ignore="ProtectedPermissions" />
+
     <queries>
         <intent>
             <action android:name="android.intent.action.MAIN" />
