@@ -354,7 +354,8 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             editText.setSelection(editText.text!!.length)
         }
 
-        if (preference.key == "pref_max_notif_icons" || preference.key == "volume_panel_timeout") {
+        if (preference.key == "pref_max_notif_icons" || preference.key == "volume_panel_timeout" ||
+            preference.key == "vs_media_custom" || preference.key == "vs_ring_custom" || preference.key == "vs_alarm_custom") {
             editText.inputType = InputType.TYPE_CLASS_NUMBER
         } else {
             editText.inputType = InputType.TYPE_CLASS_TEXT

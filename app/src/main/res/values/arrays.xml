@@ -38,4 +38,20 @@
         <item>combined</item>
         <item>separate</item>
     </string-array>
+
+    <string-array name="volume_steps_entries">
+        <item>@string/vs_opt_default</item>
+        <item>@string/vs_opt_16</item>
+        <item>@string/vs_opt_32</item>
+        <item>@string/vs_opt_64</item>
+        <item>@string/vs_opt_custom</item>
+    </string-array>
+
+    <string-array name="volume_steps_values" translatable="false">
+        <item>default</item>
+        <item>16</item>
+        <item>32</item>
+        <item>64</item>
+        <item>custom</item>
+    </string-array>
 </resources>

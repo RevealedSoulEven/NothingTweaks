@@ -9,6 +9,7 @@ import com.souleven.nothingos.hooks.HookModule
 import com.souleven.nothingos.hooks.LockScreenHooks
 import com.souleven.nothingos.hooks.Prefs
 import com.souleven.nothingos.hooks.VolumeHooks
+import com.souleven.nothingos.hooks.VolumeStepsHooks
 import com.souleven.nothingos.hooks.NavBarHooks
 import com.souleven.nothingos.hooks.ImeNavBarHooks
 import com.souleven.nothingos.hooks.AIClipboardHooks
@@ -111,6 +112,7 @@ class MainHook : IXposedHookLoadPackage {
 
         if (lpparam.packageName == "android") {
             hooks.add("SystemFrameworkHooks" to SystemFrameworkHooks())
+            hooks.add("VolumeStepsHooks" to VolumeStepsHooks())
             hooks.add("BatteryCapHooks" to BatteryCapHooks())
             hooks.add("PowerButtonHooks" to PowerButtonHooks())
         }

@@ -177,5 +177,17 @@
     <string name="pref_temp_warning_bypass_desc">Disables the high-temperature warning popups from the system.</string>
     
     <string name="restart_txt">Restart</string>
-
+    <string name="cat_volume_steps">Volume Steps</string>
+    <string name="pref_vs_media">Media volume steps</string>
+    <string name="pref_vs_ring">Ring volume steps</string>
+    <string name="pref_vs_alarm">Alarm volume steps</string>
+    <string name="pref_vs_media_custom">Media custom step count</string>
+    <string name="pref_vs_ring_custom">Ring custom step count</string>
+    <string name="pref_vs_alarm_custom">Alarm custom step count</string>
+    <string name="pref_vs_custom_desc">Used when "Custom" is selected (4–100). Changes real system steps and need a reboot.</string>
+    <string name="vs_opt_default">System default</string>
+    <string name="vs_opt_16">16 steps</string>
+    <string name="vs_opt_32">32 steps</string>
+    <string name="vs_opt_64">64 steps</string>
+    <string name="vs_opt_custom">Custom</string>
 </resources>

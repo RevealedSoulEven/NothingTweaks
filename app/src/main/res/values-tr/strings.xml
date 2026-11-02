@@ -178,4 +178,17 @@
     <string name="pref_temp_warning_bypass_desc">Sistemin yüksek sıcaklık uyarı açılır pencerelerini devre dışı bırakır.</string>
     
     <string name="restart_txt">Yeniden Başlat</string>
+    <string name="cat_volume_steps">Ses Kademeleri</string>
+    <string name="pref_vs_media">Medya sesi kademesi</string>
+    <string name="pref_vs_ring">Zil sesi kademesi</string>
+    <string name="pref_vs_alarm">Alarm sesi kademesi</string>
+    <string name="pref_vs_media_custom">Medya özel kademe sayısı</string>
+    <string name="pref_vs_ring_custom">Zil özel kademe sayısı</string>
+    <string name="pref_vs_alarm_custom">Alarm özel kademe sayısı</string>
+    <string name="pref_vs_custom_desc">"Özel" seçiliyken kullanılır (4–100). Gerçek sistem kademesini değiştirir, yeniden başlatma gerekir.</string>
+    <string name="vs_opt_default">Sistem varsayılanı</string>
+    <string name="vs_opt_16">16 kademe</string>
+    <string name="vs_opt_32">32 kademe</string>
+    <string name="vs_opt_64">64 kademe</string>
+    <string name="vs_opt_custom">Özel</string>
 </resources>

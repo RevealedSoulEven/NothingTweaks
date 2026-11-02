@@ -243,6 +243,69 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
+    <!-- Volume Steps -->
+    <PreferenceCategory
+        app:title="@string/cat_volume_steps"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:key="vs_media"
+            app:title="@string/pref_vs_media"
+            app:summary="%s"
+            app:entries="@array/volume_steps_entries"
+            app:entryValues="@array/volume_steps_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            app:key="vs_media_custom"
+            app:title="@string/pref_vs_media_custom"
+            app:summary="@string/pref_vs_custom_desc"
+            app:dialogTitle="@string/pref_vs_media_custom"
+            app:defaultValue=""
+            app:useSimpleSummaryProvider="false"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="vs_ring"
+            app:title="@string/pref_vs_ring"
+            app:summary="%s"
+            app:entries="@array/volume_steps_entries"
+            app:entryValues="@array/volume_steps_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            app:key="vs_ring_custom"
+            app:title="@string/pref_vs_ring_custom"
+            app:summary="@string/pref_vs_custom_desc"
+            app:dialogTitle="@string/pref_vs_ring_custom"
+            app:defaultValue=""
+            app:useSimpleSummaryProvider="false"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="vs_alarm"
+            app:title="@string/pref_vs_alarm"
+            app:summary="%s"
+            app:entries="@array/volume_steps_entries"
+            app:entryValues="@array/volume_steps_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <EditTextPreference
+            app:key="vs_alarm_custom"
+            app:title="@string/pref_vs_alarm_custom"
+            app:summary="@string/pref_vs_custom_desc"
+            app:dialogTitle="@string/pref_vs_alarm_custom"
+            app:defaultValue=""
+            app:useSimpleSummaryProvider="false"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
     <!-- 6. AI & Misc -->
     <PreferenceCategory
         app:title="@string/cat_ai_misc"
