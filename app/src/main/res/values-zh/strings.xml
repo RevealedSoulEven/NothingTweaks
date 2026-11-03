@@ -178,4 +178,14 @@
     <string name="pref_temp_warning_bypass_desc">禁用系统的高温警告弹窗。</string>
     
     <string name="restart_txt">重启系统</string>
+    <string name="reset_txt">重置</string>
+
+    <string name="pref_volume_steps">自定义音量步进</string>
+    <string name="pref_volume_steps_desc">自定义媒体、铃声和闹钟的音量按键步进。</string>
+    <string name="pref_volume_steps_enable">启用自定义音量步进</string>
+    <string name="pref_volume_steps_media">媒体</string>
+    <string name="pref_volume_steps_ring">铃声</string>
+    <string name="pref_volume_steps_alarm">闹钟</string>
+    <string name="volume_steps_count">%1$d 步</string>
+    <string name="volume_steps_default">默认</string>
 </resources>

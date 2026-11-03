@@ -178,4 +178,14 @@
     <string name="pref_temp_warning_bypass_desc">Deaktiviert die System-Popups bei hohen Temperaturen.</string>
     
     <string name="restart_txt">Neustart</string>
+    <string name="reset_txt">Zurücksetzen</string>
+
+    <string name="pref_volume_steps">Lautstärkestufen anpassen</string>
+    <string name="pref_volume_steps_desc">Lautstärketasten-Stufen für Medien, Klingelton und Wecker anpassen.</string>
+    <string name="pref_volume_steps_enable">Benutzerdefinierte Lautstärkestufen aktivieren</string>
+    <string name="pref_volume_steps_media">Medien</string>
+    <string name="pref_volume_steps_ring">Klingelton</string>
+    <string name="pref_volume_steps_alarm">Wecker</string>
+    <string name="volume_steps_count">%1$d Stufen</string>
+    <string name="volume_steps_default">Standard</string>
 </resources>

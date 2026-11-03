@@ -178,4 +178,14 @@
     <string name="pref_temp_warning_bypass_desc">Desactiva las ventanas emergentes del sistema sobre temperatura alta.</string>
     
     <string name="restart_txt">Reiniciar</string>
+    <string name="reset_txt">Restablecer</string>
+
+    <string name="pref_volume_steps">Personalizar pasos de volumen</string>
+    <string name="pref_volume_steps_desc">Personaliza los pasos de volumen para multimedia, tono y alarma.</string>
+    <string name="pref_volume_steps_enable">Habilitar pasos de volumen personalizados</string>
+    <string name="pref_volume_steps_media">Multimedia</string>
+    <string name="pref_volume_steps_ring">Tono</string>
+    <string name="pref_volume_steps_alarm">Alarma</string>
+    <string name="volume_steps_count">%1$d pasos</string>
+    <string name="volume_steps_default">Predeterminado</string>
 </resources>

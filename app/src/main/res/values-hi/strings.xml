@@ -178,4 +178,14 @@
     <string name="pref_temp_warning_bypass_desc">सिस्टम से उच्च-तापमान चेतावनी पॉपअप अक्षम करता है।</string>
     
     <string name="restart_txt">पुनरारंभ करें</string>
+    <string name="reset_txt">रीसेट करें</string>
+
+    <string name="pref_volume_steps">वॉल्यूम स्टेप्स कस्टमाइज़ करें</string>
+    <string name="pref_volume_steps_desc">मीडिया, रिंग और अलार्म के लिए वॉल्यूम बटन स्टेप्स कस्टमाइज़ करें।</string>
+    <string name="pref_volume_steps_enable">कस्टम वॉल्यूम स्टेप्स सक्षम करें</string>
+    <string name="pref_volume_steps_media">मीडिया</string>
+    <string name="pref_volume_steps_ring">रिंग</string>
+    <string name="pref_volume_steps_alarm">अलार्म</string>
+    <string name="volume_steps_count">%1$d स्टेप्स</string>
+    <string name="volume_steps_default">डिफ़ॉल्ट</string>
 </resources>

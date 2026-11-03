@@ -178,4 +178,14 @@
     <string name="pref_temp_warning_bypass_desc">Sistemin yüksek sıcaklık uyarı açılır pencerelerini devre dışı bırakır.</string>
     
     <string name="restart_txt">Yeniden Başlat</string>
+    <string name="reset_txt">Sıfırla</string>
+
+    <string name="pref_volume_steps">Ses Kademelerini Özelleştir</string>
+    <string name="pref_volume_steps_desc">Medya, zil sesi ve alarm için ses tuşu kademelerini özelleştirin.</string>
+    <string name="pref_volume_steps_enable">Özel ses kademelerini etkinleştir</string>
+    <string name="pref_volume_steps_media">Medya</string>
+    <string name="pref_volume_steps_ring">Zil sesi</string>
+    <string name="pref_volume_steps_alarm">Alarm</string>
+    <string name="volume_steps_count">%1$d kademe</string>
+    <string name="volume_steps_default">Varsayılan</string>
 </resources>

@@ -177,5 +177,15 @@
     <string name="pref_temp_warning_bypass_desc">Disables the high-temperature warning popups from the system.</string>
     
     <string name="restart_txt">Restart</string>
+    <string name="reset_txt">Reset</string>
+
+    <string name="pref_volume_steps">Customise Volume Steps</string>
+    <string name="pref_volume_steps_desc">Customize volume button steps for media, ring, and alarm.</string>
+    <string name="pref_volume_steps_enable">Enable custom volume steps</string>
+    <string name="pref_volume_steps_media">Media</string>
+    <string name="pref_volume_steps_ring">Ring</string>
+    <string name="pref_volume_steps_alarm">Alarm</string>
+    <string name="volume_steps_count">%1$d steps</string>
+    <string name="volume_steps_default">Default</string>
 
 </resources>

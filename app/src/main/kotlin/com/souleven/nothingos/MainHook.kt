@@ -26,6 +26,7 @@ import com.souleven.nothingos.hooks.FlagSecureHooks
 import com.souleven.nothingos.hooks.NetworkTrafficHooks
 import com.souleven.nothingos.hooks.BatteryCapHooks
 import com.souleven.nothingos.hooks.PowerButtonHooks
+import com.souleven.nothingos.hooks.VolumeStepsHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
@@ -113,6 +114,7 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("SystemFrameworkHooks" to SystemFrameworkHooks())
             hooks.add("BatteryCapHooks" to BatteryCapHooks())
             hooks.add("PowerButtonHooks" to PowerButtonHooks())
+            hooks.add("VolumeStepsHooks" to VolumeStepsHooks())
         }
 
         if (lpparam.packageName == "android" || lpparam.packageName == PKG_SYSTEMUI) {

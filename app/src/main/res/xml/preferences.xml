@@ -159,6 +159,12 @@
             app:summary="@string/pref_stepless_volume_desc"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_volume_steps"
+            app:title="@string/pref_volume_steps"
+            app:summary="@string/pref_volume_steps_desc"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <!-- 4. Navigation -->

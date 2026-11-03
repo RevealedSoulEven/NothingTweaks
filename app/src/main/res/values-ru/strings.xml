@@ -178,4 +178,14 @@
     <string name="pref_temp_warning_bypass_desc">Отключает системные всплывающие уведомления о высокой температуре.</string>
     
     <string name="restart_txt">Перезагрузить</string>
+    <string name="reset_txt">Сброс</string>
+
+    <string name="pref_volume_steps">Настроить шаги громкости</string>
+    <string name="pref_volume_steps_desc">Настройка шагов громкости для медиа, звонка и будильника.</string>
+    <string name="pref_volume_steps_enable">Включить пользовательские шаги громкости</string>
+    <string name="pref_volume_steps_media">Медиа</string>
+    <string name="pref_volume_steps_ring">Звонок</string>
+    <string name="pref_volume_steps_alarm">Будильник</string>
+    <string name="volume_steps_count">%1$d шагов</string>
+    <string name="volume_steps_default">По умолчанию</string>
 </resources>

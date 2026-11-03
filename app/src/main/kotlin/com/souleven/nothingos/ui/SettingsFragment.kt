@@ -11,6 +11,8 @@ import android.view.View
 import android.text.InputType
 import android.widget.ArrayAdapter
 import android.widget.TextView
+import android.view.ViewGroup
+import android.widget.SeekBar
 import androidx.core.content.ContextCompat
 import androidx.core.widget.addTextChangedListener
 import androidx.preference.EditTextPreference
@@ -28,6 +30,7 @@ import com.souleven.nothingos.R
 import com.souleven.nothingos.hooks.BatteryCapSeekBarPreference
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.RemotePreferenceProvider
+import com.souleven.nothingos.hooks.VolumeStepsHooks
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -57,6 +60,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         wireNetworkTrafficDependencies()
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
+        updateVolumeStepsSummary()
     }
 
     override fun onPause() {
@@ -74,6 +78,11 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             }
             ctx.contentResolver.notifyChange(uri, null)
         } catch (_: Throwable) {}
+
+        if (key == VolumeStepsHooks.KEY_ENABLED || key == VolumeStepsHooks.KEY_MEDIA ||
+            key == VolumeStepsHooks.KEY_RING || key == VolumeStepsHooks.KEY_ALARM) {
+            updateVolumeStepsSummary()
+        }
 
         try {
             val intent = Intent("com.souleven.nothingos.PREFERENCES_CHANGED").apply {
@@ -410,5 +419,134 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             }
             .setNegativeButton(android.R.string.cancel, null)
             .show()
+    }
+
+    override fun onPreferenceTreeClick(preference: Preference): Boolean {
+        if (preference.key == "pref_volume_steps") {
+            showVolumeStepsDialog()
+            return true
+        }
+        return super.onPreferenceTreeClick(preference)
+    }
+
+    private fun updateVolumeStepsSummary() {
+        val pref = findPreference<Preference>("pref_volume_steps") ?: return
+        val prefs = preferenceManager.sharedPreferences ?: return
+        val enabled = prefs.getBoolean(VolumeStepsHooks.KEY_ENABLED, false)
+        if (!enabled) {
+            pref.summary = getString(R.string.pref_volume_steps_desc)
+        } else {
+            val media = prefs.getInt(VolumeStepsHooks.KEY_MEDIA, VolumeStepsHooks.DEFAULT_MEDIA_STEPS)
+            val ring = prefs.getInt(VolumeStepsHooks.KEY_RING, VolumeStepsHooks.DEFAULT_RING_STEPS)
+            val alarm = prefs.getInt(VolumeStepsHooks.KEY_ALARM, VolumeStepsHooks.DEFAULT_ALARM_STEPS)
+            pref.summary = "${getString(R.string.pref_volume_steps_media)}: $media · ${getString(R.string.pref_volume_steps_ring)}: $ring · ${getString(R.string.pref_volume_steps_alarm)}: $alarm"
+        }
+    }
+
+    private fun showVolumeStepsDialog() {
+        val ctx = context ?: return
+        val prefs = preferenceManager.sharedPreferences ?: return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_volume_steps, null)
+        val switchEnabled = dialogView.findViewById<com.google.android.material.materialswitch.MaterialSwitch>(R.id.switch_enabled)
+        val slidersContainer = dialogView.findViewById<ViewGroup>(R.id.sliders_container)
+
+        val seekbarMedia = dialogView.findViewById<SeekBar>(R.id.seekbar_media)
+        val textMediaValue = dialogView.findViewById<TextView>(R.id.text_media_value)
+
+        val seekbarRing = dialogView.findViewById<SeekBar>(R.id.seekbar_ring)
+        val textRingValue = dialogView.findViewById<TextView>(R.id.text_ring_value)
+
+        val seekbarAlarm = dialogView.findViewById<SeekBar>(R.id.seekbar_alarm)
+        val textAlarmValue = dialogView.findViewById<TextView>(R.id.text_alarm_value)
+
+        val initialEnabled = prefs.getBoolean(VolumeStepsHooks.KEY_ENABLED, false)
+        val initialMedia = prefs.getInt(VolumeStepsHooks.KEY_MEDIA, VolumeStepsHooks.DEFAULT_MEDIA_STEPS)
+        val initialRing = prefs.getInt(VolumeStepsHooks.KEY_RING, VolumeStepsHooks.DEFAULT_RING_STEPS)
+        val initialAlarm = prefs.getInt(VolumeStepsHooks.KEY_ALARM, VolumeStepsHooks.DEFAULT_ALARM_STEPS)
+
+        switchEnabled.isChecked = initialEnabled
+
+        fun updateValueText(textView: TextView, value: Int, defaultVal: Int) {
+            textView.text = if (value == defaultVal) {
+                "$value (${getString(R.string.volume_steps_default)})"
+            } else {
+                getString(R.string.volume_steps_count, value)
+            }
+        }
+
+        fun setContainerState(enabled: Boolean) {
+            slidersContainer.alpha = if (enabled) 1.0f else 0.4f
+            seekbarMedia.isEnabled = enabled
+            seekbarRing.isEnabled = enabled
+            seekbarAlarm.isEnabled = enabled
+        }
+
+        seekbarMedia.progress = initialMedia
+        seekbarRing.progress = initialRing
+        seekbarAlarm.progress = initialAlarm
+
+        updateValueText(textMediaValue, initialMedia, VolumeStepsHooks.DEFAULT_MEDIA_STEPS)
+        updateValueText(textRingValue, initialRing, VolumeStepsHooks.DEFAULT_RING_STEPS)
+        updateValueText(textAlarmValue, initialAlarm, VolumeStepsHooks.DEFAULT_ALARM_STEPS)
+        setContainerState(initialEnabled)
+
+        switchEnabled.setOnCheckedChangeListener { _, isChecked ->
+            setContainerState(isChecked)
+        }
+
+        seekbarMedia.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                updateValueText(textMediaValue, progress, VolumeStepsHooks.DEFAULT_MEDIA_STEPS)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        seekbarRing.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                updateValueText(textRingValue, progress, VolumeStepsHooks.DEFAULT_RING_STEPS)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        seekbarAlarm.setOnSeekBarChangeListener(object : SeekBar.OnSeekBarChangeListener {
+            override fun onProgressChanged(seekBar: SeekBar?, progress: Int, fromUser: Boolean) {
+                updateValueText(textAlarmValue, progress, VolumeStepsHooks.DEFAULT_ALARM_STEPS)
+            }
+            override fun onStartTrackingTouch(seekBar: SeekBar?) {}
+            override fun onStopTrackingTouch(seekBar: SeekBar?) {}
+        })
+
+        val dialog = MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.pref_volume_steps)
+            .setBackground(ContextCompat.getDrawable(ctx, R.drawable.dialog_background))
+            .setView(dialogView)
+            .setPositiveButton(android.R.string.ok) { _, _ ->
+                prefs.edit()
+                    .putBoolean(VolumeStepsHooks.KEY_ENABLED, switchEnabled.isChecked)
+                    .putInt(VolumeStepsHooks.KEY_MEDIA, seekbarMedia.progress)
+                    .putInt(VolumeStepsHooks.KEY_RING, seekbarRing.progress)
+                    .putInt(VolumeStepsHooks.KEY_ALARM, seekbarAlarm.progress)
+                    .apply()
+                updateVolumeStepsSummary()
+            }
+            .setNeutralButton(R.string.reset_txt, null)
+            .setNegativeButton(android.R.string.cancel, null)
+            .create()
+
+        dialog.show()
+
+        dialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL)?.setOnClickListener {
+            switchEnabled.isChecked = false
+            seekbarMedia.progress = VolumeStepsHooks.DEFAULT_MEDIA_STEPS
+            seekbarRing.progress = VolumeStepsHooks.DEFAULT_RING_STEPS
+            seekbarAlarm.progress = VolumeStepsHooks.DEFAULT_ALARM_STEPS
+            updateValueText(textMediaValue, VolumeStepsHooks.DEFAULT_MEDIA_STEPS, VolumeStepsHooks.DEFAULT_MEDIA_STEPS)
+            updateValueText(textRingValue, VolumeStepsHooks.DEFAULT_RING_STEPS, VolumeStepsHooks.DEFAULT_RING_STEPS)
+            updateValueText(textAlarmValue, VolumeStepsHooks.DEFAULT_ALARM_STEPS, VolumeStepsHooks.DEFAULT_ALARM_STEPS)
+            setContainerState(false)
+        }
     }
 }

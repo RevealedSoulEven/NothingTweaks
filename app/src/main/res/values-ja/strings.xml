@@ -178,4 +178,14 @@
     <string name="pref_temp_warning_bypass_desc">システムの高温警告ポップアップを無効にします。</string>
     
     <string name="restart_txt">再起動</string>
+    <string name="reset_txt">リセット</string>
+
+    <string name="pref_volume_steps">音量ステップをカスタマイズ</string>
+    <string name="pref_volume_steps_desc">メディア、着信音、アラームの音量ボタンステップをカスタマイズします。</string>
+    <string name="pref_volume_steps_enable">カスタム音量ステップを有効にする</string>
+    <string name="pref_volume_steps_media">メディア</string>
+    <string name="pref_volume_steps_ring">着信音</string>
+    <string name="pref_volume_steps_alarm">アラーム</string>
+    <string name="volume_steps_count">%1$d ステップ</string>
+    <string name="volume_steps_default">デフォルト</string>
 </resources>
