@@ -64,6 +64,7 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 | **Flip to Record** | Flip the phone face-down to automatically start voice recording. |
 | **Super Volume Boost** | Enables a higher maximum audio volume ceiling. |
 | **Stepless Volume** | Unlocks continuous, granular volume adjustment levels. |
+| **Customize Volume Steps** | Customize the number of physical volume button steps for Media, Ring, and Alarm. |
 
 </details>
 
@@ -139,6 +140,7 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 
 | Feature | Description |
 | :--- | :--- |
+| **Remap Power Button Double Tap** | Remap the double-tap power button gesture to open any app of your choice instead of opening the default camera. |
 | **Advanced Power Menu** | Adds direct reboot options for Recovery and Bootloader / Fastboot to the power menu. |
 | **Allow 180° Rotation** | Allows the screen to rotate completely upside-down (reverse portrait). |
 
