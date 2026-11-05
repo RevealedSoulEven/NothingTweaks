@@ -188,4 +188,6 @@
     <string name="pref_volume_steps_alarm">Wecker</string>
     <string name="volume_steps_count">%1$d Stufen</string>
     <string name="volume_steps_default">Standard</string>
+    <string name="pref_skip_hidden_apps_auth_title">Versteckte Apps direkt entsperren</string>
+    <string name="pref_skip_hidden_apps_auth_summary">Versteckte Apps öffnen ohne Fingerabdruck- oder Passcode-Abfrage</string>
 </resources>

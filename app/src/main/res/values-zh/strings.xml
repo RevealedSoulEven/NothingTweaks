@@ -188,4 +188,6 @@
     <string name="pref_volume_steps_alarm">闹钟</string>
     <string name="volume_steps_count">%1$d 步</string>
     <string name="volume_steps_default">默认</string>
+    <string name="pref_skip_hidden_apps_auth_title">直接解锁隐藏应用</string>
+    <string name="pref_skip_hidden_apps_auth_summary">无需指纹或密码即可打开隐藏应用抽屉</string>
 </resources>

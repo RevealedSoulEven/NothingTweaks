@@ -15,7 +15,7 @@
     <string name="pref_advanced_power_menu_title">Advanced Power Menu</string>
     <string name="pref_advanced_power_menu_summary">Show options to reboot into Recovery and Bootloader in the power menu.</string>
     <string name="pref_power_double_tap_title">Remap power button double tap</string>
-    <string name="pref_power_double_tap_summary">Open a custom app instead of the default camera</string>
+    <string name="pref_power_double_tap_summary">Open a custom app instead of the default camera.</string>
     <string name="pref_power_double_tap_app_title">Double tap application</string>
     <string name="pref_power_double_tap_app_summary">Tap to select an application</string>
     <string name="dialog_select_app">Select Application</string>
@@ -54,7 +54,7 @@
     <string name="pref_transparent_nav_bar_desc">Makes the gesture pill invisible but keeps it fully functional for gestures and Circle to Search.\n\nNOTE: You MUST enable the navigation bar in your system settings first, and also ensure Circle to Search is enabled in your system settings, then turn this on to hide the pill!</string>
 
     <string name="title_hide_ime_bar">Hide Keyboard Space</string>
-    <string name="summary_hide_ime_bar">Removes empty space under the keyboard and hides the navigation handle while typing</string>
+    <string name="summary_hide_ime_bar">Removes empty space under the keyboard and hides the navigation handle while typing.</string>
 
     <string name="pref_back_gesture_kill_title">Long Swipe Back to Kill App</string>
     <string name="pref_back_gesture_kill_summary">Hold the back swipe gesture then release to force-stop the foreground app.</string>
@@ -94,7 +94,7 @@
     <!-- Network Traffic -->
     <string name="cat_network_traffic">Network Speed Indicator</string>
     <string name="pref_network_traffic_title">Network speed indicator</string>
-    <string name="pref_network_traffic_summary">Display real-time upload and download speeds in the status bar</string>
+    <string name="pref_network_traffic_summary">Display real-time upload and download speeds in the status bar.</string>
     <string name="pref_network_traffic_position_title">Position</string>
     <string name="network_traffic_position_left">Next to Clock (Left)</string>
     <string name="network_traffic_position_right">Next to Battery &amp; Icons (Right)</string>
@@ -109,11 +109,11 @@
     <!-- Battery & Charging -->
     <string name="cat_battery">Battery &amp; Charging</string>
     <string name="pref_battery_cap_title">Charging limit</string>
-    <string name="pref_battery_cap_summary">Stop charging when battery reaches a set level to prolong battery lifespan</string>
+    <string name="pref_battery_cap_summary">Stop charging when battery reaches a set level to prolong battery lifespan.</string>
     <string name="pref_battery_cap_level_title">Stop charging at</string>
-    <string name="pref_battery_cap_level_summary">Pauses charging at the selected percentage</string>
+    <string name="pref_battery_cap_level_summary">Pauses charging at the selected percentage.</string>
     <string name="pref_battery_cap_notify_title">Charging paused notification</string>
-    <string name="pref_battery_cap_notify_summary">Show a notification when charging is stopped at the limit</string>
+    <string name="pref_battery_cap_notify_summary">Show a notification when charging is stopped at the limit.</string>
     <string name="pref_battery_cap_note_title">Why cap charging at 80%?</string>
     <string name="pref_battery_cap_note_summary">Battery research shows lithium-ion degradation accelerates significantly when cells sit at high voltage (&gt;80% / 4.2V+) and elevated temperatures. Capping the charge level relieves electrochemical stress on the cathode and slows SEI layer growth, which can more than double your battery\'s overall cycle lifespan.</string>
 
@@ -188,4 +188,6 @@
     <string name="volume_steps_count">%1$d steps</string>
     <string name="volume_steps_default">Default</string>
 
+    <string name="pref_skip_hidden_apps_auth_title">Unlock hidden apps directly</string>
+    <string name="pref_skip_hidden_apps_auth_summary">Open hidden apps drawer without asking for biometrics.</string>
 </resources>

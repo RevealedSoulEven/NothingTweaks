@@ -188,4 +188,6 @@
     <string name="pref_volume_steps_alarm">अलार्म</string>
     <string name="volume_steps_count">%1$d स्टेप्स</string>
     <string name="volume_steps_default">डिफ़ॉल्ट</string>
+    <string name="pref_skip_hidden_apps_auth_title">छिपे हुए ऐप्स सीधे अनलौक करें</string>
+    <string name="pref_skip_hidden_apps_auth_summary">फ़िंगरप्रिंट या पासकोड के बिना छिपा हुआ ऐप ड्रॉअर खोलें</string>
 </resources>

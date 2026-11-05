@@ -290,6 +290,13 @@
             app:summary="@string/pref_temp_warning_bypass_desc"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_skip_hidden_apps_auth"
+            app:title="@string/pref_skip_hidden_apps_auth_title"
+            app:summary="@string/pref_skip_hidden_apps_auth_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <!-- 7. Screenshot & Screen recording -->

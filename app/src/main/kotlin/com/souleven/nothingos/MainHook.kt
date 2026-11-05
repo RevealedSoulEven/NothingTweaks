@@ -27,6 +27,7 @@ import com.souleven.nothingos.hooks.NetworkTrafficHooks
 import com.souleven.nothingos.hooks.BatteryCapHooks
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.VolumeStepsHooks
+import com.souleven.nothingos.hooks.LauncherHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
@@ -105,6 +106,9 @@ class MainHook : IXposedHookLoadPackage {
         }
         if (lpparam.packageName == PKG_SYSTEMUI || lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("NavBarHooks" to NavBarHooks())
+        }
+        if (lpparam.packageName == PKG_LAUNCHER) {
+            hooks.add("LauncherHooks" to LauncherHooks())
         }
         if (lpparam.packageName == "com.google.android.inputmethod.latin") {
             hooks.add("ImeNavBarHooks" to ImeNavBarHooks())

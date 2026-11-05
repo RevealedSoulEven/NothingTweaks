@@ -188,4 +188,6 @@
     <string name="pref_volume_steps_alarm">アラーム</string>
     <string name="volume_steps_count">%1$d ステップ</string>
     <string name="volume_steps_default">デフォルト</string>
+    <string name="pref_skip_hidden_apps_auth_title">非表示アプトを直接ロック解除</string>
+    <string name="pref_skip_hidden_apps_auth_summary">指紋やパスコードを要求せずに非表示アプリドロワーを開く</string>
 </resources>
