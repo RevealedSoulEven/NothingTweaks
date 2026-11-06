@@ -1,6 +1,9 @@
 package com.souleven.nothingos.hooks
 
+import android.content.Context
 import android.content.Intent
+import android.net.Uri
+import android.view.View
 import com.souleven.nothingos.MainHook.Companion.TAG
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
@@ -11,47 +14,219 @@ class AIClipboardHooks : HookModule {
 
     companion object {
         const val KEY_AI_CLIPBOARD = "ai_clipboard_gemini"
+        private const val PACKAGE_GEMINI = "com.google.android.apps.bard"
+        private const val PACKAGE_CHATGPT = "com.openai.chatgpt"
+
+        private const val TEXT_TO_FILE_THRESHOLD = 3000
+        private const val MAX_DIRECT_TEXT_LENGTH = 5000
     }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         val classLoader = lpparam.classLoader
 
-        val hasGeminiCache = mutableMapOf<String, Boolean>()
-        
-        fun hasGemini(context: android.content.Context): Boolean {
-            return hasGeminiCache.getOrPut("gemini") {
-                try { context.packageManager.getPackageInfo("com.google.android.apps.bard", 0); true } catch (e: Exception) { false }
+        fun hasGemini(context: Context): Boolean {
+            return try {
+                context.packageManager.getPackageInfo(PACKAGE_GEMINI, 0)
+                true
+            } catch (_: Throwable) {
+                false
             }
         }
-        
-        fun hasChatGPT(context: android.content.Context): Boolean {
-            return try { context.packageManager.getPackageInfo("com.openai.chatgpt", 0); true } catch (e: Exception) { false }
+
+        fun hasChatGPT(context: Context): Boolean {
+            return try {
+                context.packageManager.getPackageInfo(PACKAGE_CHATGPT, 0)
+                true
+            } catch (_: Throwable) {
+                false
+            }
         }
 
-        // 1. Force the ChatGPT (Eye) icon to appear for Clipboard
+        fun getContext(obj: Any): Context? {
+            return (obj as? View)?.context
+                ?: try { XposedHelpers.getObjectField(obj, "mContext") as? Context } catch (_: Throwable) { null }
+                ?: try { XposedHelpers.getObjectField(obj, "context") as? Context } catch (_: Throwable) { null }
+                ?: run {
+                    try {
+                        val activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", null)
+                        XposedHelpers.callStaticMethod(activityThreadClass, "currentApplication") as? Context
+                    } catch (_: Throwable) { null }
+                }
+        }
+
+        fun createTextFileUri(context: Context, text: String): Uri? {
+            return try {
+                val bundle = context.contentResolver.call(
+                    RemotePreferenceProvider.CLIPBOARD_URI,
+                    RemotePreferenceProvider.METHOD_SET_CLIPBOARD_TEXT,
+                    text,
+                    null
+                )
+                if (bundle?.getBoolean("success") == true) {
+                    RemotePreferenceProvider.CLIPBOARD_URI
+                } else {
+                    null
+                }
+            } catch (e: Throwable) {
+                XposedBridge.log("$TAG Clipboard: Failed to prepare text file: ${e.message}")
+                null
+            }
+        }
+
+        fun applyTextOrFileToIntent(context: Context, intent: Intent, text: String) {
+            if (text.length > TEXT_TO_FILE_THRESHOLD) {
+                val fileUri = createTextFileUri(context, text)
+                if (fileUri != null) {
+                    intent.removeExtra(Intent.EXTRA_TEXT)
+                    intent.type = "text/plain"
+                    intent.putExtra(Intent.EXTRA_STREAM, fileUri)
+                    intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    intent.clipData = android.content.ClipData.newUri(context.contentResolver, "clipboard_snippet.txt", fileUri)
+                    try {
+                        context.grantUriPermission(PACKAGE_GEMINI, fileUri, Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                    } catch (_: Throwable) {}
+                    return
+                }
+            }
+
+            // direct text mode (normal or fallback if file creation failed)
+            val safeText = if (text.length > MAX_DIRECT_TEXT_LENGTH) {
+                text.substring(0, MAX_DIRECT_TEXT_LENGTH) + "\n\n[Text truncated due to size]"
+            } else {
+                text
+            }
+            intent.type = "text/plain"
+            intent.putExtra(Intent.EXTRA_TEXT, safeText)
+            intent.clipData = android.content.ClipData.newPlainText("text", safeText)
+        }
+
+        fun buildGeminiIntent(
+            context: Context,
+            clipData: android.content.ClipData?,
+            fallbackText: String? = null
+        ): Intent {
+            val intent = Intent(Intent.ACTION_SEND).apply {
+                addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
+                `package` = PACKAGE_GEMINI
+            }
+
+            var text: String? = null
+            var streamUri: Uri? = null
+
+            if (clipData != null && clipData.itemCount > 0) {
+                val item = clipData.getItemAt(0)
+                text = item.text?.toString()
+                    ?: try { item.coerceToText(context)?.toString() } catch (_: Throwable) { null }
+                streamUri = item.uri
+            }
+
+            if (text.isNullOrBlank() && !fallbackText.isNullOrBlank()) {
+                text = fallbackText
+            }
+
+            if (streamUri != null) {
+                val mimeType = try { context.contentResolver.getType(streamUri) } catch (_: Throwable) { null } ?: "image/*"
+                intent.type = mimeType
+                intent.putExtra(Intent.EXTRA_STREAM, streamUri)
+                intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
+                intent.clipData = android.content.ClipData.newUri(context.contentResolver, "image", streamUri)
+                if (!text.isNullOrBlank()) {
+                    val safeText = if (text.length > MAX_DIRECT_TEXT_LENGTH) text.substring(0, MAX_DIRECT_TEXT_LENGTH) else text
+                    intent.putExtra(Intent.EXTRA_TEXT, safeText)
+                }
+            } else if (!text.isNullOrBlank()) {
+                applyTextOrFileToIntent(context, intent, text)
+            }
+
+            return intent
+        }
+
+        fun extractClipData(controller: Any, context: Context): Pair<android.content.ClipData?, String?> {
+            var clipData: android.content.ClipData? = null
+            var fallbackText: String? = null
+
+            val model = try {
+                XposedHelpers.getObjectField(controller, "mClipboardModel")
+            } catch (_: Throwable) { null }
+
+            if (model != null) {
+                clipData = try {
+                    XposedHelpers.getObjectField(model, "clipData") as? android.content.ClipData
+                } catch (_: Throwable) {
+                    try {
+                        XposedHelpers.callMethod(model, "getClipData") as? android.content.ClipData
+                    } catch (_: Throwable) { null }
+                }
+
+                if (clipData == null || clipData.itemCount == 0) {
+                    fallbackText = try {
+                        (XposedHelpers.getObjectField(model, "text") as? CharSequence)?.toString()
+                    } catch (_: Throwable) {
+                        try {
+                            (XposedHelpers.callMethod(model, "getText") as? CharSequence)?.toString()
+                        } catch (_: Throwable) { null }
+                    }
+                }
+            }
+
+            if ((clipData == null || clipData.itemCount == 0) && fallbackText.isNullOrBlank()) {
+                try {
+                    val cm = context.getSystemService(Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
+                    clipData = cm?.primaryClip
+                } catch (_: Throwable) {}
+            }
+
+            return Pair(clipData, fallbackText)
+        }
+
+        fun launchGeminiAndDismiss(controller: Any, clipDataArg: android.content.ClipData?): Boolean {
+            val context = getContext(controller) ?: return false
+            if (!hasGemini(context)) return false
+
+            val (clipData, fallbackText) = if (clipDataArg != null) {
+                Pair(clipDataArg, null)
+            } else {
+                extractClipData(controller, context)
+            }
+
+            val intent = buildGeminiIntent(context, clipData, fallbackText)
+
+            try {
+                context.startActivity(intent)
+                val mode = if (intent.hasExtra(Intent.EXTRA_STREAM)) "file_stream" else "text"
+                XposedBridge.log("$TAG Clipboard: Started Gemini ($mode)")
+            } catch (e: Exception) {
+                XposedBridge.log("$TAG Clipboard: Failed to start Gemini: ${e.message}")
+            }
+
+            // dismiss the clipboard overlay cleanly
+            try {
+                XposedHelpers.callMethod(controller, "hideImmediate")
+            } catch (_: Throwable) {
+                try {
+                    val eventClass = XposedHelpers.findClass("com.android.systemui.clipboardoverlay.ClipboardOverlayEvent", classLoader)
+                    val dismissedEvent = XposedHelpers.getStaticObjectField(eventClass, "CLIPBOARD_OVERLAY_DISMISSED_OTHER")
+                    XposedHelpers.callMethod(controller, "finish", dismissedEvent)
+                } catch (_: Throwable) {}
+            }
+            return true
+        }
+
+        // 1. force the chatgpt (eye) icon to appear for Clipboard
         val clipboardViewClass = XposedHelpers.findClassIfExists("com.nothing.systemui.clipboardoverlay.NTClipboardOverlayView", classLoader)
         if (clipboardViewClass != null) {
             try {
                 XposedBridge.hookAllMethods(clipboardViewClass, "isChatGPTInstalled", object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
-                        val context = try {
-                            (param.thisObject as? android.view.View)?.context
-                        } catch (_: Throwable) { null } ?: try {
-                            XposedHelpers.getObjectField(param.thisObject, "mContext") as? android.content.Context
-                        } catch (_: Throwable) { null } ?: run {
-                            try {
-                                val activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", null)
-                                XposedHelpers.callStaticMethod(activityThreadClass, "currentApplication") as? android.content.Context
-                            } catch (_: Throwable) { null }
-                        } ?: return
+                        val context = getContext(param.thisObject) ?: return
                         param.result = hasGemini(context) || hasChatGPT(context)
                     }
                 })
-            } catch (t: Throwable) {}
+            } catch (_: Throwable) {}
         }
-        
-        // 2. Force the ChatGPT (Eye) icon to appear for Screenshots
+
+        // 2. force the chatgpt (Eye) icon to appear for Screenshots
         arrayOf(
             "com.android.systemui.screenshot.LegacyScreenshotController",
             "com.android.systemui.screenshot.ScreenshotController"
@@ -62,58 +237,27 @@ class AIClipboardHooks : HookModule {
                     XposedBridge.hookAllMethods(screenshotControllerClass, "isChatGPTInstalled", object : XC_MethodHook() {
                         override fun afterHookedMethod(param: MethodHookParam) {
                             if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
-                            val context = try {
-                                XposedHelpers.getObjectField(param.thisObject, "context") as? android.content.Context
-                            } catch (_: Throwable) {
-                                try {
-                                    XposedHelpers.getObjectField(param.thisObject, "mContext") as? android.content.Context
-                                } catch (_: Throwable) { null }
-                            } ?: run {
-                                try {
-                                    val activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", null)
-                                    XposedHelpers.callStaticMethod(activityThreadClass, "currentApplication") as? android.content.Context
-                                } catch (_: Throwable) { null }
-                            } ?: return
+                            val context = getContext(param.thisObject) ?: return
                             param.result = hasGemini(context) || hasChatGPT(context)
                         }
                     })
-                } catch (t: Throwable) {}
+                } catch (_: Throwable) {}
             }
         }
 
-        // 3. Hijack Clipboard Intent Creation (AOSP DefaultIntentCreator & ActionIntentCreator)
+        // 3. hijack clipboard intent creation (AOSP DefaultIntentCreator & ActionIntentCreator)
         val hookClipboardIntent = object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
                 if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
                 val clipData = param.args[0] as? android.content.ClipData ?: return
-                val context = param.args[1] as? android.content.Context ?: return
-                
+                val context = param.args[1] as? Context ?: return
+
                 if (hasGemini(context)) {
-                    val intent = Intent(Intent.ACTION_SEND)
-                    intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                    
-                    if (clipData.itemCount > 0) {
-                        val item = clipData.getItemAt(0)
-                        val text = item.text?.toString()
-                            ?: try { item.coerceToText(context)?.toString() } catch (_: Throwable) { null }
-                            ?: ""
-                        if (text.isNotBlank()) {
-                            intent.type = "text/plain"
-                            intent.putExtra(Intent.EXTRA_TEXT, text)
-                            intent.clipData = android.content.ClipData.newPlainText("text", text)
-                        } else if (item.uri != null) {
-                            intent.type = "image/*"
-                            intent.putExtra(Intent.EXTRA_STREAM, item.uri)
-                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            intent.clipData = android.content.ClipData.newUri(context.contentResolver, "image", item.uri)
-                        }
-                    }
-                    intent.setPackage("com.google.android.apps.bard")
-                    param.result = intent
+                    param.result = buildGeminiIntent(context, clipData)
                 }
             }
         }
-        
+
         arrayOf(
             "com.android.systemui.clipboardoverlay.DefaultIntentCreator",
             "com.android.systemui.clipboardoverlay.ActionIntentCreator"
@@ -122,152 +266,51 @@ class AIClipboardHooks : HookModule {
             if (creatorClass != null) {
                 try {
                     XposedBridge.hookAllMethods(creatorClass, "getGPTIntent", hookClipboardIntent)
-                } catch (t: Throwable) {}
+                } catch (_: Throwable) {}
             }
         }
 
-        // 3.5. Hook ClipboardOverlayController to prevent freezing and bypass ChatGPT package hardcoding
+        // 3.5. hook ClipboardOverlayController to prevent freezing and bypass ChatGPT package hardcoding
         val clipboardControllerClass = XposedHelpers.findClassIfExists("com.android.systemui.clipboardoverlay.ClipboardOverlayController", classLoader)
         if (clipboardControllerClass != null) {
-            val getClipDataFromController = { controller: Any, context: android.content.Context ->
-                val model = try {
-                    XposedHelpers.getObjectField(controller, "mClipboardModel")
-                } catch (_: Throwable) { null }
-                
-                val modelClip = model?.let { m ->
-                    try {
-                        XposedHelpers.getObjectField(m, "clipData") as? android.content.ClipData
-                    } catch (_: Throwable) {
-                        try {
-                            XposedHelpers.callMethod(m, "getClipData") as? android.content.ClipData
-                        } catch (_: Throwable) { null }
-                    }
-                }
-                if (modelClip != null && modelClip.itemCount > 0) {
-                    modelClip
-                } else {
-                    try {
-                        val cm = context.getSystemService(android.content.Context.CLIPBOARD_SERVICE) as? android.content.ClipboardManager
-                        cm?.primaryClip
-                    } catch (_: Throwable) { null }
-                }
-            }
-
-            val launchGeminiAndDismiss = { controller: Any, clipDataArg: android.content.ClipData? ->
-                val context = try {
-                    XposedHelpers.getObjectField(controller, "mContext") as? android.content.Context
-                } catch (_: Throwable) { null } ?: run {
-                    try {
-                        val activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", null)
-                        XposedHelpers.callStaticMethod(activityThreadClass, "currentApplication") as? android.content.Context
-                    } catch (_: Throwable) { null }
-                }
-
-                if (context != null && hasGemini(context)) {
-                    val clipData = clipDataArg ?: getClipDataFromController(controller, context)
-                    val intent = Intent(Intent.ACTION_SEND).apply {
-                        addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
-                        `package` = "com.google.android.apps.bard"
-                    }
-
-                    var hasContent = false
-                    if (clipData != null && clipData.itemCount > 0) {
-                        val item = clipData.getItemAt(0)
-                        val text = item.text?.toString()
-                            ?: try { item.coerceToText(context)?.toString() } catch (_: Throwable) { null }
-                            ?: ""
-                        if (text.isNotBlank()) {
-                            intent.type = "text/plain"
-                            intent.putExtra(Intent.EXTRA_TEXT, text)
-                            intent.clipData = android.content.ClipData.newPlainText("text", text)
-                            hasContent = true
-                        } else if (item.uri != null) {
-                            intent.type = "image/*"
-                            intent.putExtra(Intent.EXTRA_STREAM, item.uri)
-                            intent.addFlags(Intent.FLAG_GRANT_READ_URI_PERMISSION)
-                            intent.clipData = android.content.ClipData.newUri(context.contentResolver, "image", item.uri)
-                            hasContent = true
-                        }
-                    }
-
-                    if (!hasContent) {
-                        val model = try { XposedHelpers.getObjectField(controller, "mClipboardModel") } catch (_: Throwable) { null }
-                        val modelText = model?.let {
-                            try { (XposedHelpers.getObjectField(it, "text") as? CharSequence)?.toString() } catch (_: Throwable) {
-                                try { (XposedHelpers.callMethod(it, "getText") as? CharSequence)?.toString() } catch (_: Throwable) { null }
-                            }
-                        }
-                        if (!modelText.isNullOrBlank()) {
-                            intent.type = "text/plain"
-                            intent.putExtra(Intent.EXTRA_TEXT, modelText)
-                            intent.clipData = android.content.ClipData.newPlainText("text", modelText)
-                            hasContent = true
-                        }
-                    }
-
-                    try {
-                        context.startActivity(intent)
-                        XposedBridge.log("$TAG Clipboard: Started Gemini with text=${intent.getStringExtra(Intent.EXTRA_TEXT)}")
-                    } catch (e: Exception) {
-                        XposedBridge.log("$TAG Clipboard: Failed to start Gemini: ${e.message}")
-                    }
-
-                    // Dismiss the clipboard overlay cleanly
-                    try {
-                        XposedHelpers.callMethod(controller, "hideImmediate")
-                    } catch (_: Throwable) {
-                        try {
-                            val eventClass = XposedHelpers.findClass("com.android.systemui.clipboardoverlay.ClipboardOverlayEvent", classLoader)
-                            val dismissedEvent = XposedHelpers.getStaticObjectField(eventClass, "CLIPBOARD_OVERLAY_DISMISSED_OTHER")
-                            XposedHelpers.callMethod(controller, "finish", dismissedEvent)
-                        } catch (_: Throwable) {}
-                    }
-                    true
-                } else {
-                    false
-                }
-            }
-
             try {
                 XposedBridge.hookAllMethods(clipboardControllerClass, "shareToAI", object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
                         val clipData = param.args.getOrNull(0) as? android.content.ClipData
                         if (launchGeminiAndDismiss(param.thisObject, clipData)) {
-                            param.result = null // Skip stock shareToAI which hardcodes com.openai.chatgpt
+                            param.result = null // skip stock shareToAI which hardcodes com.openai.chatgpt
                         }
                     }
                 })
-            } catch (t: Throwable) {}
+            } catch (_: Throwable) {}
 
             try {
                 XposedBridge.hookAllMethods(clipboardControllerClass, "onShareAIClicked", object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
                         if (launchGeminiAndDismiss(param.thisObject, null)) {
-                            param.result = null // Skip stock onShareAIClicked to avoid finishWithSharedTransition
+                            param.result = null // skip stock onShareAIClicked to avoid finishWithSharedTransition
                         }
                     }
                 })
-            } catch (t: Throwable) {}
+            } catch (_: Throwable) {}
 
             try {
                 XposedBridge.hookAllMethods(clipboardControllerClass, "finishWithSharedTransition", object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
                         val intent = (if (param.args.size > 1) param.args[1] else param.args.getOrNull(0)) as? Intent ?: return
-                        val isGemini = intent.`package` == "com.google.android.apps.bard" ||
-                                intent.component?.packageName == "com.google.android.apps.bard"
+                        val isGemini = intent.`package` == PACKAGE_GEMINI ||
+                                intent.component?.packageName == PACKAGE_GEMINI
                         if (isGemini) {
-                            val extraText = intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
-                            if (extraText != null) {
-                                intent.putExtra(Intent.EXTRA_TEXT, extraText)
-                                intent.clipData = android.content.ClipData.newPlainText("text", extraText)
-                            }
-                            val context = try {
-                                XposedHelpers.getObjectField(param.thisObject, "mContext") as? android.content.Context
-                            } catch (_: Throwable) { null }
+                            val context = getContext(param.thisObject)
                             if (context != null) {
+                                val extraText = intent.getStringExtra(Intent.EXTRA_TEXT)
+                                    ?: intent.getCharSequenceExtra(Intent.EXTRA_TEXT)?.toString()
+                                if (extraText != null) {
+                                    applyTextOrFileToIntent(context, intent, extraText)
+                                }
                                 try {
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK or Intent.FLAG_ACTIVITY_CLEAR_TASK)
                                     context.startActivity(intent)
@@ -280,10 +323,10 @@ class AIClipboardHooks : HookModule {
                         }
                     }
                 })
-            } catch (t: Throwable) {}
+            } catch (_: Throwable) {}
         }
-        
-        // 4. Hijack Screenshot Intent Creation and Bypass Shared Transition
+
+        // 4. hijack screenshot intent creation and bypass shared transition
         val screenshotIntentCreatorClass = XposedHelpers.findClassIfExists("com.android.systemui.screenshot.ActionIntentCreator", classLoader)
         if (screenshotIntentCreatorClass != null) {
             try {
@@ -291,21 +334,20 @@ class AIClipboardHooks : HookModule {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
                         val originalIntent = param.result as? Intent ?: return
-                        
-                        val activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", null)
-                        val context = XposedHelpers.callStaticMethod(activityThreadClass, "currentApplication") as? android.content.Context
+
+                        val context = getContext(param.thisObject)
                         if (context != null && hasGemini(context)) {
                             originalIntent.component = null
-                            originalIntent.setPackage("com.google.android.apps.bard")
+                            originalIntent.setPackage(PACKAGE_GEMINI)
                             originalIntent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                             param.result = originalIntent
                         }
                     }
                 })
-            } catch (t: Throwable) {}
+            } catch (_: Throwable) {}
         }
-        
-        // 5. Prevent freezing by bypassing startSharedTransition for Gemini
+
+        // 5. prevent freezing by bypassing startSharedTransition for Gemini
         val actionExecutorClass = XposedHelpers.findClassIfExists("com.android.systemui.screenshot.ActionExecutor", classLoader)
         if (actionExecutorClass != null) {
             try {
@@ -313,28 +355,18 @@ class AIClipboardHooks : HookModule {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         if (!prefs.getBoolean(KEY_AI_CLIPBOARD, false)) return
                         val intent = param.args[0] as? Intent ?: return
-                        val isGemini = intent.`package` == "com.google.android.apps.bard" ||
-                                intent.component?.packageName == "com.google.android.apps.bard"
+                        val isGemini = intent.`package` == PACKAGE_GEMINI ||
+                                intent.component?.packageName == PACKAGE_GEMINI
                         if (isGemini) {
-                            // Bypass shared transition which freezes if the target app doesn't support it
-                            val context = try {
-                                val window = XposedHelpers.getObjectField(param.thisObject, "window") as? android.view.Window
-                                window?.context
-                            } catch (_: Throwable) { null } ?: run {
-                                try {
-                                    val activityThreadClass = XposedHelpers.findClass("android.app.ActivityThread", classLoader)
-                                    XposedHelpers.callStaticMethod(activityThreadClass, "currentApplication") as? android.content.Context
-                                } catch (_: Throwable) { null }
-                            }
-
+                            val context = getContext(param.thisObject)
                             if (context != null) {
                                 try {
                                     intent.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK)
                                     context.startActivity(intent)
                                 } catch (_: Exception) {}
                             }
-                            
-                            // Dismiss the screenshot overlay properly
+
+                            // dismiss the screenshot overlay properly
                             try {
                                 val finishDismiss = XposedHelpers.getObjectField(param.thisObject, "finishDismiss")
                                 if (finishDismiss != null) {
@@ -363,7 +395,7 @@ class AIClipboardHooks : HookModule {
                         }
                     }
                 })
-            } catch (t: Throwable) {}
+            } catch (_: Throwable) {}
         }
     }
 }

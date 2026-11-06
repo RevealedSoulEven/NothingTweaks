@@ -8,7 +8,9 @@ import android.database.Cursor
 import android.database.MatrixCursor
 import android.net.Uri
 import android.os.Bundle
+import android.os.ParcelFileDescriptor
 import android.os.UserManager
+import android.provider.OpenableColumns
 import com.souleven.nothingos.MainHook
 import java.io.File
 
@@ -17,7 +19,10 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
     companion object {
         const val AUTHORITY = "com.souleven.nothingos.provider"
         val CONTENT_URI: Uri = Uri.parse("content://$AUTHORITY/prefs")
+        val CLIPBOARD_URI: Uri = Uri.parse("content://$AUTHORITY/clipboard_text.txt")
         const val METHOD_GET_ALL = "get_all"
+        const val METHOD_SET_CLIPBOARD_TEXT = "set_clipboard_text"
+        private const val CLIPBOARD_FILE_NAME = "clipboard_snippet.txt"
         private const val KEY_MIGRATED = "_migrated_from_ce"
 
         fun getDeviceProtectedPrefs(context: Context): SharedPreferences {
@@ -126,6 +131,16 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
                 }
             }
             return bundle
+        } else if (method == METHOD_SET_CLIPBOARD_TEXT) {
+            val ctx = context ?: return null
+            val text = arg ?: return null
+            return try {
+                val file = File(ctx.cacheDir, CLIPBOARD_FILE_NAME)
+                file.writeText(text, Charsets.UTF_8)
+                Bundle().apply { putBoolean("success", true) }
+            } catch (_: Throwable) {
+                null
+            }
         }
         return null
     }
@@ -138,6 +153,14 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
         sortOrder: String?
     ): Cursor? {
         val ctx = context ?: return null
+
+        if (uri.path?.contains("clipboard_text") == true) {
+            val file = File(ctx.cacheDir, CLIPBOARD_FILE_NAME)
+            val cursor = MatrixCursor(arrayOf(OpenableColumns.DISPLAY_NAME, OpenableColumns.SIZE))
+            cursor.addRow(arrayOf<Any?>(CLIPBOARD_FILE_NAME, if (file.exists()) file.length() else 0L))
+            return cursor
+        }
+
         val sharedPrefs = prefs ?: getDeviceProtectedPrefs(ctx).also { prefs = it }
         val cursor = MatrixCursor(arrayOf("key", "type", "value"))
         for ((k, v) in sharedPrefs.all) {
@@ -156,7 +179,24 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
         return cursor
     }
 
-    override fun getType(uri: Uri): String? = null
+    override fun getType(uri: Uri): String? {
+        if (uri.path?.contains("clipboard_text") == true) {
+            return "text/plain"
+        }
+        return null
+    }
+
+    override fun openFile(uri: Uri, mode: String): ParcelFileDescriptor? {
+        val ctx = context ?: return null
+        if (uri.path?.contains("clipboard_text") == true) {
+            val file = File(ctx.cacheDir, CLIPBOARD_FILE_NAME)
+            if (file.exists()) {
+                return ParcelFileDescriptor.open(file, ParcelFileDescriptor.MODE_READ_ONLY)
+            }
+        }
+        return super.openFile(uri, mode)
+    }
+
     override fun insert(uri: Uri, values: ContentValues?): Uri? = null
     override fun delete(uri: Uri, selection: String?, selectionArgs: Array<out String>?): Int = 0
     override fun update(uri: Uri, values: ContentValues?, selection: String?, selectionArgs: Array<out String>?): Int = 0
