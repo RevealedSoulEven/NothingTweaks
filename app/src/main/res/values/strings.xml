@@ -190,4 +190,13 @@
 
     <string name="pref_skip_hidden_apps_auth_title">Unlock hidden apps directly</string>
     <string name="pref_skip_hidden_apps_auth_summary">Open hidden apps drawer without asking for biometrics.</string>
+
+    <string name="pref_hide_statusbar_icons">Hide more status bar icons</string>
+    <string name="pref_hide_statusbar_icons_desc">Choose additional status bar icons to hide in real time.</string>
+    <string name="hide_icon_clock">Clock</string>
+    <string name="hide_icon_silent">Silent mode</string>
+    <string name="hide_icon_network_type">Network type</string>
+    <string name="hide_icon_sim1">SIM 1 indicator</string>
+    <string name="hide_icon_sim2">SIM 2 indicator</string>
+    <string name="hide_icon_alarm">Alarm</string>
 </resources>

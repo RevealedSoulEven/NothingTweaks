@@ -46,6 +46,12 @@
             app:summary="@string/pref_force_earphone_icon_desc"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_hide_statusbar_icons"
+            app:title="@string/pref_hide_statusbar_icons"
+            app:summary="@string/pref_hide_statusbar_icons_desc"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <!-- 2. Status Bar Clock -->

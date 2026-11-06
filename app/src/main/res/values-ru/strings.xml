@@ -190,4 +190,13 @@
     <string name="volume_steps_default">По умолчанию</string>
     <string name="pref_skip_hidden_apps_auth_title">Разблокировать скрытые приложения напрямую</string>
     <string name="pref_skip_hidden_apps_auth_summary">Открывать скрытые приложения без запроса отпечатка пальца или пароля</string>
+
+    <string name="pref_hide_statusbar_icons">Скрыть больше значков строки состояния</string>
+    <string name="pref_hide_statusbar_icons_desc">Выберите дополнительные значки строки состояния для скрытия в реальном времени.</string>
+    <string name="hide_icon_clock">Часы</string>
+    <string name="hide_icon_silent">Беззвучный режим</string>
+    <string name="hide_icon_network_type">Тип сети</string>
+    <string name="hide_icon_sim1">Индикатор SIM 1</string>
+    <string name="hide_icon_sim2">Индикатор SIM 2</string>
+    <string name="hide_icon_alarm">Будильник</string>
 </resources>

@@ -190,4 +190,13 @@
     <string name="volume_steps_default">Standard</string>
     <string name="pref_skip_hidden_apps_auth_title">Versteckte Apps direkt entsperren</string>
     <string name="pref_skip_hidden_apps_auth_summary">Versteckte Apps öffnen ohne Fingerabdruck- oder Passcode-Abfrage</string>
+
+    <string name="pref_hide_statusbar_icons">Weitere Statusleisten-Symbole ausblenden</string>
+    <string name="pref_hide_statusbar_icons_desc">Wählen Sie weitere Statusleisten-Symbole aus, die in Echtzeit ausgeblendet werden sollen.</string>
+    <string name="hide_icon_clock">Uhr</string>
+    <string name="hide_icon_silent">Lautlos-Modus</string>
+    <string name="hide_icon_network_type">Netzwerktyp</string>
+    <string name="hide_icon_sim1">SIM 1-Anzeige</string>
+    <string name="hide_icon_sim2">SIM 2-Anzeige</string>
+    <string name="hide_icon_alarm">Wecker</string>
 </resources>

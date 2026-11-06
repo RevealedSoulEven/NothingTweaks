@@ -23,6 +23,7 @@ import androidx.preference.SwitchPreferenceCompat
 import androidx.recyclerview.widget.LinearLayoutManager
 import androidx.recyclerview.widget.RecyclerView
 import com.google.android.material.dialog.MaterialAlertDialogBuilder
+import com.google.android.material.materialswitch.MaterialSwitch
 import com.google.android.material.textfield.TextInputEditText
 import com.google.android.material.textfield.TextInputLayout
 import com.souleven.nothingos.MainHook
@@ -30,6 +31,7 @@ import com.souleven.nothingos.R
 import com.souleven.nothingos.hooks.BatteryCapSeekBarPreference
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.RemotePreferenceProvider
+import com.souleven.nothingos.hooks.StatusBarIconHooks
 import com.souleven.nothingos.hooks.VolumeStepsHooks
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
@@ -61,6 +63,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
         updateVolumeStepsSummary()
+        updateHideStatusBarIconsSummary()
     }
 
     override fun onPause() {
@@ -82,6 +85,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         if (key == VolumeStepsHooks.KEY_ENABLED || key == VolumeStepsHooks.KEY_MEDIA ||
             key == VolumeStepsHooks.KEY_RING || key == VolumeStepsHooks.KEY_ALARM) {
             updateVolumeStepsSummary()
+        }
+
+        if (key in StatusBarIconHooks.ALL_KEYS) {
+            updateHideStatusBarIconsSummary()
         }
 
         try {
@@ -426,6 +433,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             showVolumeStepsDialog()
             return true
         }
+        if (preference.key == "pref_hide_statusbar_icons") {
+            showHideStatusBarIconsDialog()
+            return true
+        }
         return super.onPreferenceTreeClick(preference)
     }
 
@@ -547,6 +558,85 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             updateValueText(textRingValue, VolumeStepsHooks.DEFAULT_RING_STEPS, VolumeStepsHooks.DEFAULT_RING_STEPS)
             updateValueText(textAlarmValue, VolumeStepsHooks.DEFAULT_ALARM_STEPS, VolumeStepsHooks.DEFAULT_ALARM_STEPS)
             setContainerState(false)
+        }
+    }
+
+    private fun updateHideStatusBarIconsSummary() {
+        val pref = findPreference<Preference>("pref_hide_statusbar_icons") ?: return
+        val prefs = preferenceManager.sharedPreferences ?: return
+        val hiddenList = mutableListOf<String>()
+        if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_STATUSBAR_CLOCK, false)) {
+            hiddenList.add(getString(R.string.hide_icon_clock))
+        }
+        if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_SILENT_ICON, false)) {
+            hiddenList.add(getString(R.string.hide_icon_silent))
+        }
+        if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_NETWORK_TYPE, false)) {
+            hiddenList.add(getString(R.string.hide_icon_network_type))
+        }
+        if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_SIM1, false)) {
+            hiddenList.add(getString(R.string.hide_icon_sim1))
+        }
+        if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_SIM2, false)) {
+            hiddenList.add(getString(R.string.hide_icon_sim2))
+        }
+        if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_ALARM_ICON, false)) {
+            hiddenList.add(getString(R.string.hide_icon_alarm))
+        }
+
+        if (hiddenList.isEmpty()) {
+            pref.summary = getString(R.string.pref_hide_statusbar_icons_desc)
+        } else {
+            pref.summary = hiddenList.joinToString(" · ")
+        }
+    }
+
+    private fun showHideStatusBarIconsDialog() {
+        val ctx = context ?: return
+        val prefs = preferenceManager.sharedPreferences ?: return
+
+        val dialogView = layoutInflater.inflate(R.layout.dialog_hide_statusbar_icons, null)
+
+        val switchClock = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_clock)
+        val switchMute = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_mute)
+        val switchNetType = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_network_type)
+        val switchSim1 = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_sim1)
+        val switchSim2 = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_sim2)
+        val switchAlarm = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_alarm)
+
+        val switches = listOf(
+            switchClock to StatusBarIconHooks.PREF_HIDE_STATUSBAR_CLOCK,
+            switchMute to StatusBarIconHooks.PREF_HIDE_SILENT_ICON,
+            switchNetType to StatusBarIconHooks.PREF_HIDE_NETWORK_TYPE,
+            switchSim1 to StatusBarIconHooks.PREF_HIDE_SIM1,
+            switchSim2 to StatusBarIconHooks.PREF_HIDE_SIM2,
+            switchAlarm to StatusBarIconHooks.PREF_HIDE_ALARM_ICON,
+        )
+
+        for ((switch, key) in switches) {
+            switch.isChecked = prefs.getBoolean(key, false)
+            switch.setOnCheckedChangeListener { _, isChecked ->
+                prefs.edit().putBoolean(key, isChecked).apply()
+            }
+        }
+
+        val dialog = MaterialAlertDialogBuilder(ctx)
+            .setTitle(R.string.pref_hide_statusbar_icons)
+            .setBackground(ContextCompat.getDrawable(ctx, R.drawable.dialog_background))
+            .setView(dialogView)
+            .setPositiveButton(android.R.string.ok, null)
+            .setNeutralButton(R.string.reset_txt, null)
+            .create()
+
+        dialog.show()
+
+        dialog.getButton(android.content.DialogInterface.BUTTON_NEUTRAL)?.setOnClickListener {
+            val editor = prefs.edit()
+            for ((switch, key) in switches) {
+                switch.isChecked = false
+                editor.putBoolean(key, false)
+            }
+            editor.apply()
         }
     }
 }

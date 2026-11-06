@@ -190,4 +190,13 @@
     <string name="volume_steps_default">デフォルト</string>
     <string name="pref_skip_hidden_apps_auth_title">非表示アプトを直接ロック解除</string>
     <string name="pref_skip_hidden_apps_auth_summary">指紋やパスコードを要求せずに非表示アプリドロワーを開く</string>
+
+    <string name="pref_hide_statusbar_icons">さらにステータスバーアイコンを非表示</string>
+    <string name="pref_hide_statusbar_icons_desc">リアルタイムで非表示にするステータスバーアイコンを選択します。</string>
+    <string name="hide_icon_clock">時計</string>
+    <string name="hide_icon_silent">サイレントモード</string>
+    <string name="hide_icon_network_type">ネットワーク種別</string>
+    <string name="hide_icon_sim1">SIM 1 インジケーター</string>
+    <string name="hide_icon_sim2">SIM 2 インジケーター</string>
+    <string name="hide_icon_alarm">アラーム</string>
 </resources>

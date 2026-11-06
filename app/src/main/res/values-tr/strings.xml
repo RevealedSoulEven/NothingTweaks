@@ -190,4 +190,13 @@
     <string name="volume_steps_default">Varsayılan</string>
     <string name="pref_skip_hidden_apps_auth_title">Gizli uygulamaların kilidini doğrudan aç</string>
     <string name="pref_skip_hidden_apps_auth_summary">Parmak izi veya şifre istemeden gizli uygulamalar çekmecesini aç</string>
+
+    <string name="pref_hide_statusbar_icons">Daha fazla durum çubuğu simgesini gizle</string>
+    <string name="pref_hide_statusbar_icons_desc">Gerçek zamanlı olarak gizlenecek ek durum çubuğu simgelerini seçin.</string>
+    <string name="hide_icon_clock">Saat</string>
+    <string name="hide_icon_silent">Sessiz mod</string>
+    <string name="hide_icon_network_type">Ağ türü</string>
+    <string name="hide_icon_sim1">SIM 1 göstergesi</string>
+    <string name="hide_icon_sim2">SIM 2 göstergesi</string>
+    <string name="hide_icon_alarm">Alarm</string>
 </resources>

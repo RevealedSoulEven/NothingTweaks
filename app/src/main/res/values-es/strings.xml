@@ -190,4 +190,13 @@
     <string name="volume_steps_default">Predeterminado</string>
     <string name="pref_skip_hidden_apps_auth_title">Desbloquear aplicaciones ocultas directamente</string>
     <string name="pref_skip_hidden_apps_auth_summary">Abrir aplicaciones ocultas sin solicitar huella digital ni contraseña</string>
+
+    <string name="pref_hide_statusbar_icons">Ocultar más iconos de la barra de estado</string>
+    <string name="pref_hide_statusbar_icons_desc">Elige iconos adicionales de la barra de estado para ocultar en tiempo real.</string>
+    <string name="hide_icon_clock">Reloj</string>
+    <string name="hide_icon_silent">Modo silencio</string>
+    <string name="hide_icon_network_type">Tipo de red</string>
+    <string name="hide_icon_sim1">Indicador SIM 1</string>
+    <string name="hide_icon_sim2">Indicador SIM 2</string>
+    <string name="hide_icon_alarm">Alarma</string>
 </resources>

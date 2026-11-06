@@ -190,4 +190,13 @@
     <string name="volume_steps_default">डिफ़ॉल्ट</string>
     <string name="pref_skip_hidden_apps_auth_title">छिपे हुए ऐप्स सीधे अनलौक करें</string>
     <string name="pref_skip_hidden_apps_auth_summary">फ़िंगरप्रिंट या पासकोड के बिना छिपा हुआ ऐप ड्रॉअर खोलें</string>
+
+    <string name="pref_hide_statusbar_icons">और स्टेटस बार आइकन छुपाएं</string>
+    <string name="pref_hide_statusbar_icons_desc">रियल-टाइम में छुपाने के लिए अतिरिक्त स्टेटस बार आइकन चुनें।</string>
+    <string name="hide_icon_clock">घड़ी</string>
+    <string name="hide_icon_silent">साइलेंट मोड</string>
+    <string name="hide_icon_network_type">नेटवर्क प्रकार</string>
+    <string name="hide_icon_sim1">SIM 1 संकेतक</string>
+    <string name="hide_icon_sim2">SIM 2 संकेतक</string>
+    <string name="hide_icon_alarm">अलार्म</string>
 </resources>

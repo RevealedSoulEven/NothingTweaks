@@ -190,4 +190,13 @@
     <string name="volume_steps_default">默认</string>
     <string name="pref_skip_hidden_apps_auth_title">直接解锁隐藏应用</string>
     <string name="pref_skip_hidden_apps_auth_summary">无需指纹或密码即可打开隐藏应用抽屉</string>
+
+    <string name="pref_hide_statusbar_icons">隐藏更多状态栏图标</string>
+    <string name="pref_hide_statusbar_icons_desc">实时选择要隐藏的额外状态栏图标。</string>
+    <string name="hide_icon_clock">时钟</string>
+    <string name="hide_icon_silent">静音模式</string>
+    <string name="hide_icon_network_type">网络类型</string>
+    <string name="hide_icon_sim1">SIM 1 指示器</string>
+    <string name="hide_icon_sim2">SIM 2 指示器</string>
+    <string name="hide_icon_alarm">闹钟</string>
 </resources>

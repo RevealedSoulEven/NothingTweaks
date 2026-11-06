@@ -28,6 +28,7 @@ import com.souleven.nothingos.hooks.BatteryCapHooks
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.VolumeStepsHooks
 import com.souleven.nothingos.hooks.LauncherHooks
+import com.souleven.nothingos.hooks.StatusBarIconHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
@@ -103,6 +104,7 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("TorchHooks" to TorchHooks())
             hooks.add("NetworkTrafficHooks" to NetworkTrafficHooks())
             hooks.add("PowerButtonHooks" to PowerButtonHooks())
+            hooks.add("StatusBarIconHooks" to StatusBarIconHooks())
         }
         if (lpparam.packageName == PKG_SYSTEMUI || lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("NavBarHooks" to NavBarHooks())
