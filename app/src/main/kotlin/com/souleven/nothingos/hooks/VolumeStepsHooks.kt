@@ -27,7 +27,7 @@ class VolumeStepsHooks : HookModule {
         const val GLOBAL_SETTINGS_KEY = "nothingtweaks_volume_steps"
 
         const val MIN_STEPS = 4
-        const val MAX_STEPS = 20
+        const val MAX_STEPS = 32
 
         const val DEFAULT_MEDIA_STEPS = 16
         const val DEFAULT_RING_STEPS = 16
@@ -77,10 +77,9 @@ class VolumeStepsHooks : HookModule {
             XposedBridge.hookAllConstructors(audioServiceClass, object : XC_MethodHook() {
                 override fun afterHookedMethod(param: MethodHookParam) {
                     audioServiceRef = WeakReference(param.thisObject)
+                    captureStockMaxVolume(audioServiceClass)
                 }
             })
-
-            XposedBridge.log("$TAG [VolumeSteps] successfully hooked AudioService")
         } catch (t: Throwable) {
             XposedBridge.log("$TAG [VolumeSteps] failed to hook AudioService: ${t.message}")
         }
@@ -99,35 +98,42 @@ class VolumeStepsHooks : HookModule {
             val arr = XposedHelpers.getStaticObjectField(audioServiceClass, "MAX_STREAM_VOLUME") as? IntArray
             if (arr != null && arr.size > STREAM_DTMF) {
                 stockMaxStreamVolume = arr.clone()
-                XposedBridge.log("$TAG [VolumeSteps] captured stock MAX_STREAM_VOLUME: [media=${arr[STREAM_MUSIC]}, ring=${arr[STREAM_RING]}, alarm=${arr[STREAM_ALARM]}]")
             }
         } catch (t: Throwable) {
             XposedBridge.log("$TAG [VolumeSteps] error capturing stock volumes: ${t.message}")
         }
     }
 
+    private fun isSteplessMediaSupported(audioServiceClass: Class<*>): Boolean {
+        val stockMedia = stockMaxStreamVolume?.getOrNull(STREAM_MUSIC) ?: 0
+        if (stockMedia >= 100) return true
+        try {
+            val ntFeaturesClass = XposedHelpers.findClassIfExists("com.nothing.NtFeaturesUtils", audioServiceClass.classLoader)
+            if (ntFeaturesClass != null) {
+                val isSupport = XposedHelpers.callStaticMethod(ntFeaturesClass, "isSupport", intArrayOf(148)) as? Boolean
+                if (isSupport == true) return true
+            }
+        } catch (_: Throwable) {}
+        return false
+    }
+
     private fun applyBootConfig(audioService: Any, audioServiceClass: Class<*>) {
         try {
             val resolver = XposedHelpers.getObjectField(audioService, "mContentResolver") as? ContentResolver ?: return
             val raw = Settings.Global.getString(resolver, GLOBAL_SETTINGS_KEY)
-            if (raw.isNullOrBlank()) {
-                XposedBridge.log("$TAG [VolumeSteps] boot: no config saved yet, using stock defaults")
-                return
-            }
+            if (raw.isNullOrBlank()) return
 
             val map = decodeConfig(raw)
             val enabled = map["enabled"]?.toBooleanStrictOrNull() ?: false
-            if (!enabled) {
-                XposedBridge.log("$TAG [VolumeSteps] boot: feature disabled, keeping stock defaults")
-                return
-            }
+            if (!enabled) return
 
             val media = map["media"]?.toIntOrNull()?.coerceIn(MIN_STEPS, MAX_STEPS)
             val ring = map["ring"]?.toIntOrNull()?.coerceIn(MIN_STEPS, MAX_STEPS)
             val alarm = map["alarm"]?.toIntOrNull()?.coerceIn(MIN_STEPS, MAX_STEPS)
 
             val arr = XposedHelpers.getStaticObjectField(audioServiceClass, "MAX_STREAM_VOLUME") as? IntArray ?: return
-            if (media != null) arr[STREAM_MUSIC] = media
+            val mediaFactor = if (isSteplessMediaSupported(audioServiceClass)) 10 else 1
+            if (media != null) arr[STREAM_MUSIC] = media * mediaFactor
             if (ring != null) {
                 arr[STREAM_RING] = ring
                 arr[STREAM_SYSTEM] = ring
@@ -136,8 +142,6 @@ class VolumeStepsHooks : HookModule {
                 arr[STREAM_DTMF] = ring
             }
             if (alarm != null) arr[STREAM_ALARM] = alarm
-
-            XposedBridge.log("$TAG [VolumeSteps] boot: patched MAX_STREAM_VOLUME [media=$media, ring=$ring, alarm=$alarm]")
         } catch (t: Throwable) {
             XposedBridge.log("$TAG [VolumeSteps] boot config failed: ${t.message}")
         }
@@ -157,7 +161,6 @@ class VolumeStepsHooks : HookModule {
                 val encoded = encodeConfig(enabled, media, ring, alarm)
                 if (Settings.Global.getString(resolver, GLOBAL_SETTINGS_KEY) != encoded) {
                     Settings.Global.putString(resolver, GLOBAL_SETTINGS_KEY, encoded)
-                    XposedBridge.log("$TAG [VolumeSteps] saved config to Settings.Global: $encoded")
                 }
             }
 
@@ -169,9 +172,13 @@ class VolumeStepsHooks : HookModule {
     }
 
     private fun applyRealtime(audioService: Any, enabled: Boolean, media: Int, ring: Int, alarm: Int) {
+        val audioServiceClass = audioService.javaClass
+        if (stockMaxStreamVolume == null) {
+            captureStockMaxVolume(audioServiceClass)
+        }
         val stock = stockMaxStreamVolume
         val streamStates = XposedHelpers.getObjectField(audioService, "mStreamStates") as? SparseArray<*> ?: return
-        val maxStreamVolume = XposedHelpers.getStaticObjectField(audioService.javaClass, "MAX_STREAM_VOLUME") as? IntArray ?: return
+        val maxStreamVolume = XposedHelpers.getStaticObjectField(audioServiceClass, "MAX_STREAM_VOLUME") as? IntArray ?: return
 
         if (!enabled) {
             // revert back to stock defaults
@@ -184,13 +191,13 @@ class VolumeStepsHooks : HookModule {
                 restoreStreamToStock(streamStates, maxStreamVolume, STREAM_DTMF, stock[STREAM_DTMF])
                 restoreStreamToStock(streamStates, maxStreamVolume, STREAM_ALARM, stock[STREAM_ALARM])
                 broadcastVolumeChanged(audioService, STREAM_MUSIC)
-                XposedBridge.log("$TAG [VolumeSteps] realtime: reverted to stock volumes")
             }
             return
         }
 
         // apply custom steps in real-time
-        updateStreamSteps(streamStates, maxStreamVolume, STREAM_MUSIC, media)
+        val mediaFactor = if (isSteplessMediaSupported(audioServiceClass)) 10 else 1
+        updateStreamSteps(streamStates, maxStreamVolume, STREAM_MUSIC, media * mediaFactor)
         updateStreamSteps(streamStates, maxStreamVolume, STREAM_RING, ring)
         updateStreamSteps(streamStates, maxStreamVolume, STREAM_SYSTEM, ring)
         updateStreamSteps(streamStates, maxStreamVolume, STREAM_NOTIFICATION, ring)
@@ -199,7 +206,6 @@ class VolumeStepsHooks : HookModule {
         updateStreamSteps(streamStates, maxStreamVolume, STREAM_ALARM, alarm)
 
         broadcastVolumeChanged(audioService, STREAM_MUSIC)
-        XposedBridge.log("$TAG [VolumeSteps] realtime: applied steps [media=$media, ring=$ring, alarm=$alarm]")
     }
 
     private fun updateStreamSteps(
@@ -220,10 +226,11 @@ class VolumeStepsHooks : HookModule {
 
             // rescale current indices in mIndexMap proportionally so loudness ratio is preserved
             val indexMap = XposedHelpers.getObjectField(vss, "mIndexMap") as? SparseIntArray
+            val indexMin = try { XposedHelpers.getIntField(vss, "mIndexMin") } catch (_: Throwable) { 0 }
             if (indexMap != null && oldIndexMax > 0) {
                 for (i in 0 until indexMap.size()) {
                     val oldVal = indexMap.valueAt(i)
-                    val scaledVal = ((oldVal.toDouble() * newIndexMax) / oldIndexMax).roundToInt().coerceIn(0, newIndexMax)
+                    val scaledVal = ((oldVal.toDouble() * newIndexMax) / oldIndexMax).roundToInt().coerceIn(indexMin, newIndexMax)
                     indexMap.setValueAt(i, scaledVal)
                 }
             }
