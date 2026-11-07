@@ -25,6 +25,7 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 | **Status Bar Edge Padding** | Adjust left and right edge spacing of the status bar content to match your display corners. |
 | **Notification Icon Limit** | Set the maximum number of notification icons shown in the status bar and AOD. |
 | **Nothing Earphone Icon** | Replaces the generic Bluetooth status bar icon with the official Nothing earbud glyph whenever any Bluetooth audio device is connected. |
+| **Hide Status Bar Icons** | Select additional status bar icons to hide. |
 
 </details>
 
@@ -107,6 +108,7 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 | **Gemini AI Clipboard Chip** | Redirects the Nothing OS clipboard AI action chip to Google Gemini instead of ChatGPT. |
 | **Volume Panel Timeout** | Customize the duration (in milliseconds) before the volume slider automatically dismisses (default: 3000 ms). |
 | **Disable Temperature Warnings** | Disables intrusive high-temperature system warning dialogs. |
+| **Unlock Hidden Apps Directly** | Open the hidden apps drawer directly without prompting for fingerprint or passcode authentication. |
 
 </details>
 
