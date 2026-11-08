@@ -22,7 +22,14 @@ class FeatureFlagHooks : HookModule {
         const val KEY_RECORD_LIMIT = "record_limit"
         const val RECORD_LIMIT_OFF = "off"
         const val RECORD_LIMIT_720P = "720p"
-        const val RECORD_LIMIT_60FPS_1080P = "60fps1080p"
+        const val RECORD_LIMIT_1080P_60FPS = "1080p60fps"
+        const val RECORD_LIMIT_60FPS_1080P_LEGACY = "60fps1080p"
+
+        private fun is1080p60(limit: String) =
+            limit == RECORD_LIMIT_1080P_60FPS || limit == RECORD_LIMIT_60FPS_1080P_LEGACY
+
+        private fun is720p(limit: String) =
+            limit == RECORD_LIMIT_720P
     }
 
     private val methods = listOf(
@@ -39,51 +46,42 @@ class FeatureFlagHooks : HookModule {
         "isEnableWatermark" ->
             if (prefs.getBoolean(KEY_WATERMARK_FORCE_ON, false)) STATE_TRUE else STATE_SKIP
 
-        "isScreenRecordBy720P" -> when (prefs.getString(KEY_RECORD_LIMIT, RECORD_LIMIT_OFF)) {
-            RECORD_LIMIT_720P -> STATE_TRUE
-            RECORD_LIMIT_60FPS_1080P -> STATE_FALSE
-            else -> STATE_SKIP
+        "isScreenRecordBy720P" -> {
+            val limit = prefs.getString(KEY_RECORD_LIMIT, RECORD_LIMIT_OFF)
+            when {
+                is720p(limit) -> STATE_TRUE
+                is1080p60(limit) -> STATE_FALSE
+                else -> STATE_SKIP
+            }
         }
 
-        "isScreenRecordByLimit60FpsAnd1080P" -> when (prefs.getString(KEY_RECORD_LIMIT, RECORD_LIMIT_OFF)) {
-            RECORD_LIMIT_60FPS_1080P -> STATE_TRUE
-            RECORD_LIMIT_720P -> STATE_FALSE
-            else -> STATE_SKIP
+        "isScreenRecordByLimit60FpsAnd1080P" -> {
+            val limit = prefs.getString(KEY_RECORD_LIMIT, RECORD_LIMIT_OFF)
+            when {
+                is1080p60(limit) -> STATE_TRUE
+                is720p(limit) -> STATE_FALSE
+                else -> STATE_SKIP
+            }
         }
 
         else -> if (prefs.getBoolean(prefKeyFor(method), false)) STATE_TRUE else STATE_SKIP
     }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
-        val clazz = try {
-            XposedHelpers.findClass(className, lpparam.classLoader)
-        } catch (t: Throwable) {
-            XposedBridge.log("$TAG   [FeatureFlags] class not found: $className — ${t.message}")
-            return
-        }
+        val clazz = XposedHelpers.findClassIfExists(className, lpparam.classLoader) ?: return
 
         for (method in methods) {
             try {
-                XposedHelpers.findAndHookMethod(clazz, method, object : XC_MethodHook() {
-                    override fun afterHookedMethod(param: MethodHookParam) {
-                        val state = stateFor(method, prefs)
-                        if (state == STATE_SKIP) return
-
-                        val forced = when (state) {
-                            STATE_TRUE -> true
-                            STATE_FALSE -> false
-                            else -> return
+                if (clazz.declaredMethods.any { it.name == method }) {
+                    XposedHelpers.findAndHookMethod(clazz, method, object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            val state = stateFor(method, prefs)
+                            if (state == STATE_SKIP) return
+                            param.result = (state == STATE_TRUE)
                         }
-
-                        val orig = param.result as? Boolean ?: return
-                        if (orig != forced) {
-                            param.result = forced
-                        }
-                    }
-                })
-            } catch (t: Throwable) {
-                XposedBridge.log("$TAG   [FeatureFlags] FAILED to hook $method: ${t.message}")
-            }
+                    })
+                }
+            } catch (_: Throwable) {}
         }
     }
 }
