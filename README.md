@@ -9,6 +9,8 @@
 
 By leveraging the modern Xposed framework, this module injects deep system-level tweaks allowing you to tailor your Nothing device exactly to your liking.
 
+> **🌟 Now Supports Nothing OS 5.0**
+
 
 ## ✨ Features
 

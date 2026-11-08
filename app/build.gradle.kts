@@ -12,8 +12,8 @@ android {
         applicationId = "com.souleven.nothingos"
         minSdk = 34
         targetSdk = 37
-        versionCode = 33
-        versionName = "3.3"
+        versionCode = 34
+        versionName = "3.4"
         testInstrumentationRunner = "androidx.test.runner.AndroidJUnitRunner"
     }
 
