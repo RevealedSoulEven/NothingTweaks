@@ -469,7 +469,7 @@ class StatusBarIconHooks : HookModule {
     }
 
     private fun shouldHideMobileView(view: ViewGroup, prefs: Prefs): Boolean {
-        // dual SIM indicator
+        // NOS 5 Compose dual SIM indicator
         if (view.javaClass.name.contains("Compose") || view.javaClass.name.contains("Stacked")) {
             val hideDualSim = prefs.getBoolean(PREF_HIDE_DUAL_SIM, false)
             val hideSim1 = prefs.getBoolean(PREF_HIDE_SIM1, false)
@@ -723,7 +723,7 @@ class StatusBarIconHooks : HookModule {
     }
 
     private fun applyAll(prefs: Prefs) {
-        // dual-SIM network type
+        // NOS 5 Compose dual-SIM network type suppressor
         val suppressorClass = suppressorClassRef
         if (suppressorClass != null) {
             try {

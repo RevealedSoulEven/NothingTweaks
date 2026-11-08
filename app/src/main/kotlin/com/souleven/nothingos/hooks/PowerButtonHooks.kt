@@ -1,11 +1,13 @@
 package com.souleven.nothingos.hooks
 
 import android.app.AndroidAppHelper
+import android.app.KeyguardManager
 import android.content.Context
 import android.content.Intent
 import android.os.Build
 import android.os.Handler
 import android.os.Looper
+import android.os.PowerManager
 import android.os.SystemClock
 import android.os.VibrationEffect
 import android.os.Vibrator
@@ -37,34 +39,121 @@ class PowerButtonHooks : HookModule {
         val glsClass = XposedHelpers.findClassIfExists(
             "com.android.server.GestureLauncherService",
             classLoader
-        ) ?: return
-
-        // ensure system gesture detection remains active even if user turned off camera gesture in stock settings
-        try {
-            XposedBridge.hookAllMethods(glsClass, "isCameraDoubleTapPowerEnabled", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
-                    val targetPackage = prefs.getString(KEY_APP, "")
-                    if (enabled && targetPackage.isNotEmpty()) {
-                        param.result = true
+        )
+        if (glsClass != null) {
+            // ensure system gesture detection remains active even if user turned off camera gesture in stock settings
+            try {
+                XposedBridge.hookAllMethods(glsClass, "isCameraDoubleTapPowerEnabled", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
+                        val targetPackage = prefs.getString(KEY_APP, "")
+                        if (enabled && targetPackage.isNotEmpty()) {
+                            param.result = true
+                        }
                     }
-                }
-            })
-        } catch (_: Throwable) {}
+                })
+            } catch (_: Throwable) {}
 
-        try {
-            XposedBridge.hookAllMethods(glsClass, "interceptPowerKeyDown", object : XC_MethodHook() {
-                override fun beforeHookedMethod(param: MethodHookParam) {
-                    val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
-                    val targetPackage = prefs.getString(KEY_APP, "")
-                    if (enabled && targetPackage.isNotEmpty()) {
-                        try {
-                            XposedHelpers.setBooleanField(param.thisObject, "mCameraDoubleTapPowerEnabled", true)
-                        } catch (_: Throwable) {}
+            try {
+                XposedBridge.hookAllMethods(glsClass, "interceptPowerKeyDown", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
+                        val targetPackage = prefs.getString(KEY_APP, "")
+                        if (enabled && targetPackage.isNotEmpty()) {
+                            try {
+                                XposedHelpers.setBooleanField(param.thisObject, "mCameraDoubleTapPowerEnabled", true)
+                            } catch (_: Throwable) {}
+                        }
                     }
-                }
-            })
-        } catch (_: Throwable) {}
+                })
+            } catch (_: Throwable) {}
+        }
+
+        val pwmClass = XposedHelpers.findClassIfExists(
+            "com.android.server.policy.PhoneWindowManager",
+            classLoader
+        )
+        if (pwmClass != null) {
+            // NOS 5 enables early short press on power key which immediately turns off the screen on the first press
+            // disable it when custom double-tap app is active so double-tap can be detected without prematurely locking
+            try {
+                XposedBridge.hookAllMethods(pwmClass, "initSingleKeyGestureRules", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
+                        val targetPackage = prefs.getString(KEY_APP, "")
+                        if (enabled && targetPackage.isNotEmpty()) {
+                            try {
+                                XposedHelpers.setBooleanField(param.thisObject, "mShouldEarlyShortPressOnPower", false)
+                            } catch (_: Throwable) {}
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+
+            try {
+                XposedBridge.hookAllMethods(pwmClass, "updateSettings", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
+                        val targetPackage = prefs.getString(KEY_APP, "")
+                        if (enabled && targetPackage.isNotEmpty()) {
+                            try {
+                                XposedHelpers.setBooleanField(param.thisObject, "mShouldEarlyShortPressOnPower", false)
+                            } catch (_: Throwable) {}
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+
+            try {
+                XposedBridge.hookAllMethods(pwmClass, "interceptPowerKeyDown", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
+                        val targetPackage = prefs.getString(KEY_APP, "")
+                        if (enabled && targetPackage.isNotEmpty()) {
+                            try {
+                                XposedHelpers.setBooleanField(param.thisObject, "mShouldEarlyShortPressOnPower", false)
+                            } catch (_: Throwable) {}
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+
+            try {
+                XposedBridge.hookAllMethods(pwmClass, "getMaxMultiPressPowerCount", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
+                        val targetPackage = prefs.getString(KEY_APP, "")
+                        if (enabled && targetPackage.isNotEmpty()) {
+                            val count = (param.result as? Int) ?: 1
+                            if (count < 2) {
+                                param.result = 2
+                            }
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+        }
+
+        val powerRuleClass = XposedHelpers.findClassIfExists(
+            "com.android.server.policy.PhoneWindowManager\$PowerKeyRule",
+            classLoader
+        )
+        if (powerRuleClass != null) {
+            try {
+                XposedBridge.hookAllMethods(powerRuleClass, "onKeyUp", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        val enabled = prefs.getBoolean(KEY_CUSTOM_APP, false)
+                        val targetPackage = prefs.getString(KEY_APP, "")
+                        if (enabled && targetPackage.isNotEmpty()) {
+                            val count = param.args.getOrNull(0) as? Int ?: 1
+                            if (count == 1) {
+                                param.result = null
+                            }
+                        }
+                    }
+                })
+            } catch (_: Throwable) {}
+        }
     }
 
     private fun hookSystemUI(classLoader: ClassLoader, prefs: Prefs) {
@@ -241,7 +330,29 @@ class PowerButtonHooks : HookModule {
                 found
             } catch (_: Throwable) { null }
 
+        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+        if (powerManager != null && !powerManager.isInteractive) {
+            try {
+                XposedHelpers.callMethod(powerManager, "wakeUp", SystemClock.uptimeMillis(), 4, "PowerButtonDoubleTap")
+            } catch (_: Throwable) {
+                try {
+                    XposedHelpers.callMethod(powerManager, "wakeUp", SystemClock.uptimeMillis())
+                } catch (_: Throwable) {}
+            }
+        }
+
+        val km = context.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+        val isLocked = km?.isKeyguardLocked ?: false
+
         if (activityStarter != null) {
+            if (!isLocked) {
+                try {
+                    XposedHelpers.callMethod(activityStarter, "startActivity", intent, true)
+                    XposedBridge.log("$TAG [PowerButton] Launched $targetPackage directly via ActivityStarter#startActivity (unlocked)")
+                    return
+                } catch (_: Throwable) {}
+            }
+
             try {
                 XposedHelpers.callMethod(activityStarter, "postStartActivityDismissingKeyguard", intent, 0)
                 XposedBridge.log("$TAG [PowerButton] Launched $targetPackage via postStartActivityDismissingKeyguard")
