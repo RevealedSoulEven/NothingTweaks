@@ -22,7 +22,9 @@ import java.lang.reflect.InvocationHandler
 import java.lang.reflect.Method
 import java.lang.reflect.Modifier
 import java.lang.reflect.Proxy
+import java.util.Collections
 import java.util.Locale
+import java.util.WeakHashMap
 
 class LockScreenHooks : HookModule {
 
@@ -175,6 +177,9 @@ class LockScreenHooks : HookModule {
 
         // Nothing OS 5.0 / Flexiglass Scene Container
         hookComposeScramblePin(lpparam, prefs)
+
+        // Nothing OS 5.0 / Compose & Scene Container
+        hookComposeHideClock(lpparam, prefs)
 
         val keyguardRootViewClass = XposedHelpers.findClassIfExists("com.android.systemui.keyguard.ui.view.KeyguardRootView", lpparam.classLoader)
         if (keyguardRootViewClass != null) {
@@ -753,6 +758,69 @@ class LockScreenHooks : HookModule {
                 return true
             }
         })
+    }
+
+    private fun hookComposeHideClock(lpparam: LoadPackageParam, prefs: Prefs) {
+        val hookedViews = Collections.synchronizedSet(Collections.newSetFromMap(WeakHashMap<View, Boolean>()))
+
+        val hideClock = { view: View? ->
+            if (view != null && hookedViews.add(view)) {
+                var hiddenByUs = false
+                view.viewTreeObserver.addOnPreDrawListener {
+                    try {
+                        if (prefs.getBoolean("pref_hide_lockscreen_clock", false)) {
+                            if (view.visibility != View.INVISIBLE) {
+                                view.visibility = View.INVISIBLE
+                                hiddenByUs = true
+                            }
+                            if (view.alpha != 0f) {
+                                view.alpha = 0f
+                                hiddenByUs = true
+                            }
+                        } else if (hiddenByUs) {
+                            view.visibility = View.VISIBLE
+                            view.alpha = 1f
+                            hiddenByUs = false
+                        }
+                    } catch (_: Throwable) {}
+                    true
+                }
+            }
+        }
+
+        val clockViewCompanion = XposedHelpers.findClassIfExists(
+            "com.android.systemui.customization.clocks.view.DefaultClockFaceLayout\$Companion",
+            lpparam.classLoader
+        )
+        if (clockViewCompanion != null) {
+            try {
+                XposedBridge.hookAllMethods(clockViewCompanion, "ClockView", object : XC_MethodHook() {
+                    override fun beforeHookedMethod(param: MethodHookParam) {
+                        hideClock(param.args.getOrNull(0) as? View)
+                    }
+                })
+            } catch (_: Throwable) {}
+        }
+
+        val clockEventController = XposedHelpers.findClassIfExists(
+            "com.android.keyguard.ClockEventController",
+            lpparam.classLoader
+        )
+        if (clockEventController != null) {
+            try {
+                XposedBridge.hookAllMethods(clockEventController, "setClock", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val clock = param.args.getOrNull(0) ?: return
+                        try {
+                            val small = XposedHelpers.callMethod(clock, "getSmallClock")
+                            val large = XposedHelpers.callMethod(clock, "getLargeClock")
+                            hideClock(XposedHelpers.callMethod(small, "getView") as? View)
+                            hideClock(XposedHelpers.callMethod(large, "getView") as? View)
+                        } catch (_: Throwable) {}
+                    }
+                })
+            } catch (_: Throwable) {}
+        }
     }
 
     private fun hookBool(
