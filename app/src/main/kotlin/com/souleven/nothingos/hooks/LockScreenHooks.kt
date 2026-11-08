@@ -17,6 +17,11 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
+import java.lang.ref.WeakReference
+import java.lang.reflect.InvocationHandler
+import java.lang.reflect.Method
+import java.lang.reflect.Modifier
+import java.lang.reflect.Proxy
 import java.util.Locale
 
 class LockScreenHooks : HookModule {
@@ -51,6 +56,16 @@ class LockScreenHooks : HookModule {
         try {
             appCtx.registerReceiver(receiver, IntentFilter(Intent.ACTION_BATTERY_CHANGED))
             batteryReceiver = receiver
+        } catch (_: Throwable) {}
+
+        try {
+            appCtx.registerReceiver(object : BroadcastReceiver() {
+                override fun onReceive(ctx: Context?, intent: Intent?) {
+                    if (intent?.action == Intent.ACTION_SCREEN_OFF) {
+                        reshuffleComposePin()
+                    }
+                }
+            }, IntentFilter(Intent.ACTION_SCREEN_OFF))
         } catch (_: Throwable) {}
     }
 
@@ -157,6 +172,9 @@ class LockScreenHooks : HookModule {
                 XposedBridge.log("$TAG   [LockScreen] FAILED to hook scramble pin: ${t.message}")
             }
         }
+
+        // Nothing OS 5.0 / Flexiglass Scene Container
+        hookComposeScramblePin(lpparam, prefs)
 
         val keyguardRootViewClass = XposedHelpers.findClassIfExists("com.android.systemui.keyguard.ui.view.KeyguardRootView", lpparam.classLoader)
         if (keyguardRootViewClass != null) {
@@ -757,6 +775,201 @@ class LockScreenHooks : HookModule {
         } catch (t: Throwable) {
             XposedBridge.log("$TAG   [LockScreen] FAILED to hook $method: ${t.message}")
             XposedBridge.log(t)
+        }
+    }
+
+    @Volatile
+    private var composeScrambleMap: IntArray = (0..9).shuffled().toIntArray()
+
+    @Volatile
+    private var lastPinBouncerViewModel: WeakReference<Any>? = null
+
+    private fun reshuffleComposePin() {
+        composeScrambleMap = (0..9).shuffled().toIntArray()
+    }
+
+    private fun resolvePinBouncerViewModel(origOnClicked: Any): Any? {
+        lastPinBouncerViewModel?.get()?.let { return it }
+        return try {
+            origOnClicked.javaClass.declaredFields.firstOrNull { field ->
+                field.type.name.contains("PinBouncerViewModel")
+            }?.apply { isAccessible = true }?.get(origOnClicked)
+        } catch (_: Throwable) {
+            null
+        }
+    }
+
+    private fun dispatchPinButtonClicked(vm: Any?, digit: Int) {
+        if (vm == null) return
+        try {
+            XposedHelpers.callMethod(vm, "onPinButtonClicked", digit)
+        } catch (_: Throwable) {
+            try {
+                val method = vm.javaClass.methods.firstOrNull { m ->
+                    m.returnType == java.lang.Void.TYPE &&
+                    m.parameterTypes.size == 1 &&
+                    m.parameterTypes[0] == java.lang.Integer.TYPE &&
+                    (m.name.contains("PinButton", ignoreCase = true) || m.name.contains("Digit", ignoreCase = true))
+                }
+                method?.invoke(vm, digit)
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] Compose PIN: error dispatching digit $digit: ${t.message}")
+            }
+        }
+    }
+
+    private class ComposePinProxyHandler(
+        private val origOnClicked: Any,
+        private val origDigit: Int,
+        private val targetDigit: Int,
+        private val vmResolver: (Any) -> Any?,
+        private val clickDispatcher: (Any?, Int) -> Unit
+    ) : InvocationHandler {
+        override fun invoke(proxy: Any?, method: Method, args: Array<out Any>?): Any? {
+            if (method.name == "invoke" && args != null && args.isNotEmpty()) {
+                val digit = (args[0] as? Number)?.toInt() ?: targetDigit
+                if (origDigit in 1..9) {
+                    try {
+                        val invokeMethod = origOnClicked.javaClass.methods.firstOrNull {
+                            it.name == "invoke" && it.parameterTypes.size == 1
+                        }
+                        if (invokeMethod != null) {
+                            return invokeMethod.invoke(origOnClicked, digit)
+                        }
+                    } catch (t: Throwable) {
+                        XposedBridge.log("$TAG   [LockScreen] Compose PIN: error invoking origOnClicked for digit $digit: ${t.message}")
+                    }
+                }
+                val vm = vmResolver(origOnClicked)
+                clickDispatcher(vm, digit)
+                val unitInstance = try {
+                    origOnClicked.javaClass.classLoader?.loadClass("kotlin.Unit")
+                        ?.getField("INSTANCE")?.get(null) ?: Unit
+                } catch (_: Throwable) {
+                    Unit
+                }
+                return unitInstance
+            }
+            return when (method.name) {
+                "equals" -> proxy === args?.getOrNull(0)
+                "hashCode" -> System.identityHashCode(proxy)
+                "toString" -> "ComposePinProxyHandler(orig=$origDigit, target=$targetDigit)"
+                else -> null
+            }
+        }
+    }
+
+    private fun hookComposeScramblePin(lpparam: LoadPackageParam, prefs: Prefs) {
+        val pinBouncerViewModelClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.bouncer.ui.viewmodel.PinBouncerViewModel",
+            lpparam.classLoader
+        )
+        if (pinBouncerViewModelClass != null) {
+            try {
+                XposedBridge.hookAllConstructors(pinBouncerViewModelClass, object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        lastPinBouncerViewModel = WeakReference(param.thisObject)
+                        if (prefs.getBoolean("scramble_pin", false)) {
+                            reshuffleComposePin()
+                        }
+                    }
+                })
+                val onActivatedMethods = pinBouncerViewModelClass.declaredMethods.filter { m ->
+                    m.name == "onActivated" || (m.parameterTypes.size == 1 && m.parameterTypes[0].name.contains("Continuation"))
+                }
+                for (m in onActivatedMethods) {
+                    XposedBridge.hookMethod(m, object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            lastPinBouncerViewModel = WeakReference(param.thisObject)
+                            if (prefs.getBoolean("scramble_pin", false)) {
+                                reshuffleComposePin()
+                            }
+                        }
+                    })
+                }
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] FAILED to hook PinBouncerViewModel: ${t.message}")
+            }
+        }
+
+        val authBouncerViewModelClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.bouncer.ui.viewmodel.AuthMethodBouncerViewModel",
+            lpparam.classLoader
+        )
+        if (authBouncerViewModelClass != null) {
+            try {
+                XposedBridge.hookAllMethods(authBouncerViewModelClass, "onFailureAnimationShown", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        if (prefs.getBoolean("scramble_pin", false)) {
+                            reshuffleComposePin()
+                        }
+                    }
+                })
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] FAILED to hook onFailureAnimationShown: ${t.message}")
+            }
+        }
+
+        val pinBouncerKtClass = XposedHelpers.findClassIfExists(
+            "com.android.systemui.bouncer.ui.composable.PinBouncerKt",
+            lpparam.classLoader
+        )
+        if (pinBouncerKtClass != null) {
+            try {
+                val digitButtonMethods = pinBouncerKtClass.declaredMethods.filter { m ->
+                    Modifier.isStatic(m.modifiers) &&
+                    m.name.startsWith("DigitButton") &&
+                    !m.name.contains("$") &&
+                    m.returnType == java.lang.Void.TYPE &&
+                    m.parameterTypes.size >= 8 &&
+                    m.parameterTypes[0] == java.lang.Integer.TYPE &&
+                    m.parameterTypes[1] == java.lang.Boolean.TYPE &&
+                    m.parameterTypes[2].name.endsWith("Function1")
+                }
+                for (m in digitButtonMethods) {
+                    XposedBridge.hookMethod(m, object : XC_MethodHook() {
+                        override fun beforeHookedMethod(param: MethodHookParam) {
+                            if (!prefs.getBoolean("scramble_pin", false)) return
+                            val onClicked = param.args.getOrNull(2) ?: return
+                            if (Proxy.isProxyClass(onClicked.javaClass)) {
+                                val handler = Proxy.getInvocationHandler(onClicked)
+                                if (handler is ComposePinProxyHandler) {
+                                    return
+                                }
+                            }
+
+                            val origDigit = param.args[0] as? Int ?: return
+                            if (origDigit !in 0..9) return
+
+                            val slotIndex = if (origDigit == 0) 9 else origDigit - 1
+                            val newDigit = composeScrambleMap.getOrNull(slotIndex) ?: origDigit
+
+                            param.args[0] = newDigit
+
+                            val function1Class = try {
+                                onClicked.javaClass.classLoader?.loadClass("kotlin.jvm.functions.Function1")
+                            } catch (_: Throwable) {
+                                null
+                            } ?: return
+
+                            val proxy = Proxy.newProxyInstance(
+                                onClicked.javaClass.classLoader,
+                                arrayOf(function1Class),
+                                ComposePinProxyHandler(
+                                    origOnClicked = onClicked,
+                                    origDigit = origDigit,
+                                    targetDigit = newDigit,
+                                    vmResolver = ::resolvePinBouncerViewModel,
+                                    clickDispatcher = ::dispatchPinButtonClicked
+                                )
+                            )
+                            param.args[2] = proxy
+                        }
+                    })
+                }
+            } catch (t: Throwable) {
+                XposedBridge.log("$TAG   [LockScreen] FAILED to hook PinBouncerKt DigitButton: ${t.message}")
+            }
         }
     }
 }
