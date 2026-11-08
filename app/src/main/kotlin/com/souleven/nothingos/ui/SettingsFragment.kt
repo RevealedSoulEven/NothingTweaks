@@ -580,6 +580,9 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_SIM2, false)) {
             hiddenList.add(getString(R.string.hide_icon_sim2))
         }
+        if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_DUAL_SIM, false)) {
+            hiddenList.add(getString(R.string.hide_icon_dual_sim))
+        }
         if (prefs.getBoolean(StatusBarIconHooks.PREF_HIDE_ALARM_ICON, false)) {
             hiddenList.add(getString(R.string.hide_icon_alarm))
         }
@@ -602,6 +605,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         val switchNetType = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_network_type)
         val switchSim1 = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_sim1)
         val switchSim2 = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_sim2)
+        val switchDualSim = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_dual_sim)
         val switchAlarm = dialogView.findViewById<MaterialSwitch>(R.id.switch_hide_alarm)
 
         val switches = listOf(
@@ -610,6 +614,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             switchNetType to StatusBarIconHooks.PREF_HIDE_NETWORK_TYPE,
             switchSim1 to StatusBarIconHooks.PREF_HIDE_SIM1,
             switchSim2 to StatusBarIconHooks.PREF_HIDE_SIM2,
+            switchDualSim to StatusBarIconHooks.PREF_HIDE_DUAL_SIM,
             switchAlarm to StatusBarIconHooks.PREF_HIDE_ALARM_ICON,
         )
 

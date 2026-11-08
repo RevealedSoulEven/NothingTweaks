@@ -198,5 +198,6 @@
     <string name="hide_icon_network_type">Network type</string>
     <string name="hide_icon_sim1">SIM 1 indicator</string>
     <string name="hide_icon_sim2">SIM 2 indicator</string>
+    <string name="hide_icon_dual_sim">Dual SIM indicator</string>
     <string name="hide_icon_alarm">Alarm</string>
 </resources>

@@ -23,6 +23,7 @@ class StatusBarIconHooks : HookModule {
         const val PREF_HIDE_NETWORK_TYPE = "pref_hide_network_type"
         const val PREF_HIDE_SIM1 = "pref_hide_sim1"
         const val PREF_HIDE_SIM2 = "pref_hide_sim2"
+        const val PREF_HIDE_DUAL_SIM = "pref_hide_dual_sim"
         const val PREF_HIDE_ALARM_ICON = "pref_hide_alarm_icon"
 
         val ALL_KEYS = setOf(
@@ -31,6 +32,7 @@ class StatusBarIconHooks : HookModule {
             PREF_HIDE_NETWORK_TYPE,
             PREF_HIDE_SIM1,
             PREF_HIDE_SIM2,
+            PREF_HIDE_DUAL_SIM,
             PREF_HIDE_ALARM_ICON
         )
 
@@ -57,6 +59,10 @@ class StatusBarIconHooks : HookModule {
         private const val CLASS_MODERN_VIEW = "com.android.systemui.statusbar.pipeline.shared.ui.view.ModernStatusBarView"
         private const val CLASS_MODERN_SHADE_MOBILE_VIEW = "com.android.systemui.statusbar.pipeline.mobile.ui.view.ModernShadeCarrierGroupMobileView"
         private const val CLASS_SHADE_CARRIER_GROUP = "com.android.systemui.shade.carrier.ShadeCarrierGroup"
+        private const val CLASS_STACKED_MOBILE_SUPPRESSOR =
+            "com.nothing.systemui.statusbar.pipeline.mobile.ui.NTStackedMobileTypeSuppressor"
+        private const val CLASS_MOBILE_TYPE_ANIMATOR =
+            "com.nothing.systemui.statusbar.pipeline.mobile.ui.binder.NTMobileTypeAnimator"
     }
 
     private val mainHandler = Handler(Looper.getMainLooper())
@@ -69,6 +75,11 @@ class StatusBarIconHooks : HookModule {
     private val mobileViews: MutableSet<ViewGroup> = Collections.newSetFromMap(WeakHashMap())
     private val mobileViewsHiddenByUs: MutableSet<View> = Collections.newSetFromMap(WeakHashMap())
     private val mobileTypeHiddenByUs: MutableSet<View> = Collections.newSetFromMap(WeakHashMap())
+
+    @Volatile
+    private var suppressorClassRef: Class<*>? = null
+    @Volatile
+    private var animatorClassRef: Class<*>? = null
 
     private val carrierGroups: MutableSet<ViewGroup> = Collections.newSetFromMap(WeakHashMap())
     private val carrierGroupsModified: MutableSet<ViewGroup> = Collections.newSetFromMap(WeakHashMap())
@@ -326,16 +337,17 @@ class StatusBarIconHooks : HookModule {
         val modernViewClass = XposedHelpers.findClassIfExists(CLASS_MODERN_VIEW, classLoader)
         val shadeMobileClass = XposedHelpers.findClassIfExists(CLASS_MODERN_SHADE_MOBILE_VIEW, classLoader)
 
+        suppressorClassRef = XposedHelpers.findClassIfExists(CLASS_STACKED_MOBILE_SUPPRESSOR, classLoader)
+        animatorClassRef = XposedHelpers.findClassIfExists(CLASS_MOBILE_TYPE_ANIMATOR, classLoader)
+
         // hook isIconVisible on ModernStatusBarView so StatusIconContainer skips hidden mobile views
         if (modernViewClass != null) {
             try {
                 XposedBridge.hookAllMethods(modernViewClass, "isIconVisible", object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
                         val view = param.thisObject as? ViewGroup ?: return
-                        if (mobileViewClass != null && mobileViewClass.isInstance(view)) {
-                            if (shouldHideMobileView(view, prefs)) {
-                                param.result = false
-                            }
+                        if (shouldHideMobileView(view, prefs)) {
+                            param.result = false
                         }
                     }
                 })
@@ -347,7 +359,8 @@ class StatusBarIconHooks : HookModule {
                 XposedBridge.hookAllMethods(modernViewClass, "initView", object : XC_MethodHook() {
                     override fun afterHookedMethod(param: MethodHookParam) {
                         val view = param.thisObject as? ViewGroup ?: return
-                        if (mobileViewClass != null && mobileViewClass.isInstance(view)) {
+                        val slot = (param.args.getOrNull(0) as? String) ?: ""
+                        if (!slot.lowercase().contains("satellite")) {
                             registerMobileView(view, prefs)
                         }
                     }
@@ -456,6 +469,14 @@ class StatusBarIconHooks : HookModule {
     }
 
     private fun shouldHideMobileView(view: ViewGroup, prefs: Prefs): Boolean {
+        // dual SIM indicator
+        if (view.javaClass.name.contains("Compose") || view.javaClass.name.contains("Stacked")) {
+            val hideDualSim = prefs.getBoolean(PREF_HIDE_DUAL_SIM, false)
+            val hideSim1 = prefs.getBoolean(PREF_HIDE_SIM1, false)
+            val hideSim2 = prefs.getBoolean(PREF_HIDE_SIM2, false)
+            return hideDualSim || (hideSim1 && hideSim2)
+        }
+
         val hideSim1 = prefs.getBoolean(PREF_HIDE_SIM1, false)
         val hideSim2 = prefs.getBoolean(PREF_HIDE_SIM2, false)
         if (!hideSim1 && !hideSim2) return false
@@ -542,8 +563,9 @@ class StatusBarIconHooks : HookModule {
     private fun applyCarrierGroup(group: ViewGroup, prefs: Prefs) {
         val hideSim1 = prefs.getBoolean(PREF_HIDE_SIM1, false)
         val hideSim2 = prefs.getBoolean(PREF_HIDE_SIM2, false)
+        val hideDualSim = prefs.getBoolean(PREF_HIDE_DUAL_SIM, false)
 
-        if (!hideSim1 && !hideSim2) {
+        if (!hideSim1 && !hideSim2 && !hideDualSim) {
             if (carrierGroupsModified.remove(group)) {
                 try {
                     val carrier1 = XposedHelpers.callMethod(group, "getCarrier1View") as? View
@@ -565,7 +587,7 @@ class StatusBarIconHooks : HookModule {
             val carrier2 = XposedHelpers.callMethod(group, "getCarrier2View") as? View
             val divider1 = XposedHelpers.callMethod(group, "getCarrierDivider1") as? View
 
-            if (hideSim1 && hideSim2) {
+            if (hideDualSim || (hideSim1 && hideSim2)) {
                 group.visibility = View.GONE
             } else {
                 if (group.visibility != View.VISIBLE) group.visibility = View.VISIBLE
@@ -586,13 +608,14 @@ class StatusBarIconHooks : HookModule {
     private fun applyMobileView(view: ViewGroup, prefs: Prefs) {
         val hideSim1 = prefs.getBoolean(PREF_HIDE_SIM1, false)
         val hideSim2 = prefs.getBoolean(PREF_HIDE_SIM2, false)
+        val hideDualSim = prefs.getBoolean(PREF_HIDE_DUAL_SIM, false)
         val hideType = prefs.getBoolean(PREF_HIDE_NETWORK_TYPE, false)
 
         val wasHidden = mobileViewsHiddenByUs.contains(view)
         val wasTypeHidden = mobileTypeHiddenByUs.isNotEmpty()
 
         // if all mobile preferences are OFF and we haven't touched this view, do nothing
-        if (!hideSim1 && !hideSim2 && !hideType && !wasHidden && !wasTypeHidden) {
+        if (!hideSim1 && !hideSim2 && !hideDualSim && !hideType && !wasHidden && !wasTypeHidden) {
             return
         }
 
@@ -652,6 +675,13 @@ class StatusBarIconHooks : HookModule {
         val typeContainer = if (typeContainerId != 0) view.findViewById<View>(typeContainerId) else null
         val typeImageView = if (typeId != 0) view.findViewById<View>(typeId) as? android.widget.ImageView else null
 
+        val animatorClass = animatorClassRef
+        if (animatorClass != null && typeImageView != null) {
+            try {
+                XposedHelpers.callStaticMethod(animatorClass, "setSuppressed", typeImageView, hideType)
+            } catch (_: Throwable) {}
+        }
+
         if (typeImageView != null || typeContainer != null) {
             val mainView = typeContainer ?: typeImageView!!
             if (hideType) {
@@ -693,6 +723,17 @@ class StatusBarIconHooks : HookModule {
     }
 
     private fun applyAll(prefs: Prefs) {
+        // dual-SIM network type
+        val suppressorClass = suppressorClassRef
+        if (suppressorClass != null) {
+            try {
+                val hideType = prefs.getBoolean(PREF_HIDE_NETWORK_TYPE, false)
+                val instance = XposedHelpers.getStaticObjectField(suppressorClass, "INSTANCE") ?: return
+                val state = XposedHelpers.callMethod(instance, "getSuppressed") ?: return
+                XposedHelpers.callMethod(state, "setValue", hideType)
+            } catch (_: Throwable) {}
+        }
+
         // clock
         for (view in clockViews) {
             try {
@@ -707,7 +748,7 @@ class StatusBarIconHooks : HookModule {
             } catch (_: Throwable) {}
         }
 
-        // mobile views (SIM 1, SIM 2, 5G/4G)
+        // mobile views (SIM 1, SIM 2, Dual SIM, 5G/4G)
         for (view in mobileViews) {
             try {
                 applyMobileView(view, prefs)

@@ -171,7 +171,37 @@
             android:background="?attr/colorOutlineVariant"
             android:alpha="0.2" />
 
-        <!-- 6. Alarm Icon -->
+        <!-- 6. Dual SIM Indicator -->
+        <LinearLayout
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:paddingTop="6dp"
+            android:paddingBottom="6dp">
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:paddingEnd="16dp"
+                android:text="@string/hide_icon_dual_sim"
+                android:textSize="15sp"
+                android:textColor="?attr/colorOnSurface" />
+
+            <com.google.android.material.materialswitch.MaterialSwitch
+                android:id="@+id/switch_hide_dual_sim"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content" />
+        </LinearLayout>
+
+        <View
+            android:layout_width="match_parent"
+            android:layout_height="1dp"
+            android:background="?attr/colorOutlineVariant"
+            android:alpha="0.2" />
+
+        <!-- 7. Alarm Icon -->
         <LinearLayout
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
