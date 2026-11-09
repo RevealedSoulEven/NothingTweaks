@@ -199,4 +199,6 @@
     <string name="hide_icon_sim1">Индикатор SIM 1</string>
     <string name="hide_icon_sim2">Индикатор SIM 2</string>
     <string name="hide_icon_alarm">Будильник</string>
+    <string name="pref_screenshot_disable_flash">Отключить вспышку скриншота</string>
+    <string name="pref_screenshot_disable_flash_desc">Отключить белую вспышку экрана при создании скриншота.</string>
 </resources>

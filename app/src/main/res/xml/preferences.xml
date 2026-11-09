@@ -311,6 +311,13 @@
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
+            app:key="screenshot_disable_flash"
+            app:title="@string/pref_screenshot_disable_flash"
+            app:summary="@string/pref_screenshot_disable_flash_desc"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
             app:key="pref_disable_flag_secure"
             app:title="@string/pref_disable_flag_secure"
             app:summary="@string/pref_disable_flag_secure_desc"
