@@ -200,4 +200,6 @@
     <string name="hide_icon_sim2">SIM 2 indicator</string>
     <string name="hide_icon_dual_sim">Dual SIM indicator</string>
     <string name="hide_icon_alarm">Alarm</string>
+    <string name="pref_screenshot_disable_flash">Disable screenshot flash</string>
+    <string name="pref_screenshot_disable_flash_desc">Disable the white screen flash when taking a screenshot.</string>
 </resources>
