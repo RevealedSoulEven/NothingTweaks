@@ -23,8 +23,10 @@ class TorchHooks : HookModule {
     companion object {
         const val PREF_KEY = "pref_volume_both_for_torch"
         const val ACTION_TOGGLE_TORCH = "com.souleven.nothingos.action.TOGGLE_TORCH"
+        const val EXTRA_ESSENTIAL = "essential_key"
         private const val CHORD_WINDOW_MS = 500L
         private const val DEBOUNCE_MS = 1200L
+        private const val ESSENTIAL_DEBOUNCE_MS = 250L
 
         @Volatile
         private var sFlashlightController: Any? = null
@@ -179,11 +181,15 @@ class TorchHooks : HookModule {
                     override fun onReceive(c: Context?, intent: Intent?) {
                         if (intent?.action != ACTION_TOGGLE_TORCH) return
                         prefs.forceReload()
-                        if (!prefs.getBoolean(PREF_KEY, false)) return
+                        val fromEssentialKey = intent?.getBooleanExtra(EXTRA_ESSENTIAL, false) == true &&
+                            EssentialKeyHooks.anyGestureUses(prefs, EssentialKeyHooks.ACTION_FLASHLIGHT)
+                        if (!fromEssentialKey && !prefs.getBoolean(PREF_KEY, false)) return
 
                         val targetContext = c ?: sContext ?: AndroidAppHelper.currentApplication() ?: return
                         val now = SystemClock.uptimeMillis()
-                        if (now - lastToggleTime > DEBOUNCE_MS) {
+                        // key presses are at least ~300 ms apart; the long chord debounce would swallow quick toggles
+                        val debounce = if (fromEssentialKey) ESSENTIAL_DEBOUNCE_MS else DEBOUNCE_MS
+                        if (now - lastToggleTime > debounce) {
                             lastToggleTime = now
                             volUpPressTime = 0L
                             volDownPressTime = 0L

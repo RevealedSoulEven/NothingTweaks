@@ -5,6 +5,7 @@
         <item>com.android.systemui</item>
         <item>com.nothing.launcher</item>
         <item>com.google.android.inputmethod.latin</item>
+        <item>com.nothing.ntessentialrecorder</item>
     </string-array>
 
     <string-array name="record_limit_entries">
@@ -37,5 +38,23 @@
     <string-array name="network_traffic_mode_values" translatable="false">
         <item>combined</item>
         <item>separate</item>
+    </string-array>
+
+    <string-array name="essential_action_entries">
+        <item>@string/essential_action_default</item>
+        <item>@string/essential_action_none</item>
+        <item>@string/essential_action_flashlight</item>
+        <item>@string/essential_action_ringer</item>
+        <item>@string/essential_action_screenshot</item>
+        <item>@string/essential_action_app</item>
+    </string-array>
+
+    <string-array name="essential_action_values" translatable="false">
+        <item>default</item>
+        <item>none</item>
+        <item>flashlight</item>
+        <item>ringer</item>
+        <item>screenshot</item>
+        <item>app</item>
     </string-array>
 </resources>

@@ -202,4 +202,34 @@
     <string name="hide_icon_alarm">Alarm</string>
     <string name="pref_screenshot_disable_flash">Disable screenshot flash</string>
     <string name="pref_screenshot_disable_flash_desc">Disable the white screen flash when taking a screenshot.</string>
+
+    <!-- Essential key -->
+    <string name="cat_essential_key">Essential key</string>
+    <string name="pref_essential_single_title">Single press</string>
+    <string name="pref_essential_double_title">Double press</string>
+    <string name="pref_essential_triple_title">Triple press</string>
+    <string name="pref_essential_long_title">Long press</string>
+    <string name="pref_essential_triple_note">Without an action, a triple press counts as a double press.</string>
+    <string name="pref_essential_app_title">App</string>
+    <string name="pref_essential_app_summary">Select an app</string>
+    <string name="essential_action_default">System default</string>
+    <string name="essential_action_none">Do nothing</string>
+    <string name="essential_action_flashlight">Toggle flashlight</string>
+    <string name="essential_action_ringer">Cycle sound mode</string>
+    <string name="essential_action_screenshot">Take screenshot</string>
+    <string name="essential_action_app">Open app</string>
+    <string name="cat_essential_space">Essential key · Essential Space</string>
+    <string name="pref_essential_block_capture_title">Disable screenshot capture</string>
+    <string name="pref_essential_block_capture_summary">Pressing the key does not take a screenshot</string>
+    <string name="pref_essential_block_record_title">Disable voice recording on hold</string>
+    <string name="pref_essential_block_record_summary">Holding the key does not record audio</string>
+    <string name="pref_essential_block_space_title">Disable opening Essential Space</string>
+    <string name="pref_essential_block_space_summary">A double press does not open Essential Space</string>
+    <string name="cat_essential_ai">Essential key · Essential Voice</string>
+    <string name="pref_essential_block_voice_hold_title">Disable dictation on long press</string>
+    <string name="pref_essential_block_voice_hold_summary">Long press does not start Essential Voice</string>
+    <string name="pref_essential_block_voice_double_title">Disable dictation on double press</string>
+    <string name="pref_essential_block_voice_double_summary">Double press does not start Essential Voice</string>
+    <string name="pref_essential_capture_keyboard_title">Screenshot with keyboard open</string>
+    <string name="pref_essential_capture_keyboard_summary">A single press takes a screenshot while a keyboard is shown</string>
 </resources>

@@ -29,6 +29,7 @@ import com.google.android.material.textfield.TextInputLayout
 import com.souleven.nothingos.MainHook
 import com.souleven.nothingos.R
 import com.souleven.nothingos.hooks.BatteryCapSeekBarPreference
+import com.souleven.nothingos.hooks.EssentialKeyHooks
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.RemotePreferenceProvider
 import com.souleven.nothingos.hooks.StatusBarIconHooks
@@ -48,6 +49,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         wireNetworkTrafficDependencies()
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
+        wireEssentialKey()
 
         requireRebootOnEnable("allow_180_rotation")
         requireRebootOnEnable("pref_advanced_power_menu")
@@ -62,6 +64,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         wireNetworkTrafficDependencies()
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
+        wireEssentialKey()
         updateVolumeStepsSummary()
         updateHideStatusBarIconsSummary()
     }
@@ -212,6 +215,48 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         }
     }
 
+    private fun wireEssentialKey() {
+        for (gesture in EssentialKeyHooks.GESTURES) {
+            val actionPref = findPreference<ListPreference>(EssentialKeyHooks.keyAction(gesture)) ?: continue
+            val appPref = findPreference<Preference>(EssentialKeyHooks.keyApp(gesture)) ?: continue
+            val appKey = EssentialKeyHooks.keyApp(gesture)
+
+            fun refreshApp() {
+                val savedPkg = preferenceManager.sharedPreferences?.getString(appKey, null)
+                if (!savedPkg.isNullOrEmpty()) {
+                    try {
+                        val pm = requireContext().packageManager
+                        val info = pm.getApplicationInfo(savedPkg, 0)
+                        appPref.summary = pm.getApplicationLabel(info)
+                        appPref.icon = pm.getApplicationIcon(info)
+                    } catch (_: Throwable) {
+                        appPref.summary = savedPkg
+                        appPref.icon = null
+                    }
+                } else {
+                    appPref.summary = getString(R.string.pref_essential_app_summary)
+                    appPref.icon = null
+                }
+            }
+
+            actionPref.setOnPreferenceChangeListener { _, newValue ->
+                val isApp = newValue == EssentialKeyHooks.ACTION_APP
+                appPref.isVisible = isApp
+                if (isApp && preferenceManager.sharedPreferences?.getString(appKey, null).isNullOrEmpty()) {
+                    showAppPickerDialog(appPref, appKey)
+                }
+                true
+            }
+            appPref.setOnPreferenceClickListener {
+                showAppPickerDialog(appPref, appKey)
+                true
+            }
+
+            appPref.isVisible = actionPref.value == EssentialKeyHooks.ACTION_APP
+            refreshApp()
+        }
+    }
+
     private fun wirePowerButtonDependencies() {
         val switchPref = findPreference<SwitchPreferenceCompat>(PowerButtonHooks.KEY_CUSTOM_APP) ?: return
         val appPref = findPreference<Preference>(PowerButtonHooks.KEY_APP) ?: return
@@ -259,7 +304,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         updateAppSummaryAndIcon()
     }
 
-    private fun showAppPickerDialog(appPref: Preference) {
+    private fun showAppPickerDialog(appPref: Preference, prefKey: String = PowerButtonHooks.KEY_APP) {
         val ctx = context ?: return
         val dialogView = layoutInflater.inflate(R.layout.dialog_app_picker, null)
         val searchEdit = dialogView.findViewById<TextInputEditText>(R.id.search_edit_text)
@@ -324,10 +369,10 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
             activity?.runOnUiThread {
                 if (!isAdded || isDetached) return@runOnUiThread
                 val adapter = AppPickerAdapter(appList) { selectedApp ->
-                    preferenceManager.sharedPreferences?.edit()?.putString(PowerButtonHooks.KEY_APP, selectedApp.packageName)?.apply()
+                    preferenceManager.sharedPreferences?.edit()?.putString(prefKey, selectedApp.packageName)?.apply()
                     appPref.summary = selectedApp.label
                     appPref.icon = selectedApp.icon
-                    onSharedPreferenceChanged(preferenceManager.sharedPreferences, PowerButtonHooks.KEY_APP)
+                    onSharedPreferenceChanged(preferenceManager.sharedPreferences, prefKey)
                     dialog.dismiss()
                 }
                 recyclerView.adapter = adapter
