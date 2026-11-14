@@ -401,6 +401,136 @@
             app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
+    <PreferenceCategory
+        app:title="@string/cat_essential_key"
+        app:iconSpaceReserved="false">
+
+        <ListPreference
+            app:key="pref_essential_single_action"
+            app:title="@string/pref_essential_single_title"
+            app:dialogTitle="@string/pref_essential_single_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_single_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_essential_double_action"
+            app:title="@string/pref_essential_double_title"
+            app:dialogTitle="@string/pref_essential_double_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_double_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_essential_triple_action"
+            app:title="@string/pref_essential_triple_title"
+            app:dialogTitle="@string/pref_essential_triple_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_triple_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_essential_long_action"
+            app:title="@string/pref_essential_long_title"
+            app:dialogTitle="@string/pref_essential_long_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_long_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_triple_note"
+            app:summary="@string/pref_essential_triple_note"
+            app:selectable="false"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="@string/cat_essential_space"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_essential_block_capture"
+            app:title="@string/pref_essential_block_capture_title"
+            app:summary="@string/pref_essential_block_capture_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_essential_capture_with_keyboard"
+            app:title="@string/pref_essential_capture_keyboard_title"
+            app:summary="@string/pref_essential_capture_keyboard_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_essential_block_voice_record"
+            app:title="@string/pref_essential_block_record_title"
+            app:summary="@string/pref_essential_block_record_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_essential_block_open_space"
+            app:title="@string/pref_essential_block_space_title"
+            app:summary="@string/pref_essential_block_space_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
+    <PreferenceCategory
+        app:title="@string/cat_essential_ai"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_essential_block_voice_hold"
+            app:title="@string/pref_essential_block_voice_hold_title"
+            app:summary="@string/pref_essential_block_voice_hold_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="pref_essential_block_voice_double"
+            app:title="@string/pref_essential_block_voice_double_title"
+            app:summary="@string/pref_essential_block_voice_double_summary"
+            app:defaultValue="false"
+            app:iconSpaceReserved="false" />
+
+    </PreferenceCategory>
+
     <!-- 10. Battery & Charging -->
     <PreferenceCategory
         app:title="@string/cat_battery"

@@ -27,6 +27,8 @@ import com.souleven.nothingos.hooks.NetworkTrafficHooks
 import com.souleven.nothingos.hooks.BatteryCapHooks
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.VolumeStepsHooks
+import com.souleven.nothingos.hooks.EssentialKeyHooks
+import com.souleven.nothingos.hooks.EssentialRecorderHooks
 import com.souleven.nothingos.hooks.LauncherHooks
 import com.souleven.nothingos.hooks.StatusBarIconHooks
 import com.souleven.nothingos.hooks.ScreenshotHooks
@@ -57,7 +59,8 @@ class MainHook : IXposedHookLoadPackage {
             PKG_SYSTEMUI,
             PKG_LAUNCHER,
             "android",
-            "com.google.android.inputmethod.latin"
+            "com.google.android.inputmethod.latin",
+            EssentialRecorderHooks.PKG
         )
         if (lpparam.packageName !in allowedPackages) return
 
@@ -114,6 +117,9 @@ class MainHook : IXposedHookLoadPackage {
         if (lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("LauncherHooks" to LauncherHooks())
         }
+        if (lpparam.packageName == EssentialRecorderHooks.PKG) {
+            hooks.add("EssentialRecorderHooks" to EssentialRecorderHooks())
+        }
         if (lpparam.packageName == "com.google.android.inputmethod.latin") {
             hooks.add("ImeNavBarHooks" to ImeNavBarHooks())
         }
@@ -123,6 +129,7 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("BatteryCapHooks" to BatteryCapHooks())
             hooks.add("PowerButtonHooks" to PowerButtonHooks())
             hooks.add("VolumeStepsHooks" to VolumeStepsHooks())
+            hooks.add("EssentialKeyHooks" to EssentialKeyHooks())
         }
 
         if (lpparam.packageName == "android" || lpparam.packageName == PKG_SYSTEMUI) {

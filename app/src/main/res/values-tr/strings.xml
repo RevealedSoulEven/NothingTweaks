@@ -199,4 +199,34 @@
     <string name="hide_icon_sim1">SIM 1 göstergesi</string>
     <string name="hide_icon_sim2">SIM 2 göstergesi</string>
     <string name="hide_icon_alarm">Alarm</string>
+
+    <!-- Essential key -->
+    <string name="cat_essential_key">Essential tuşu</string>
+    <string name="pref_essential_single_title">Tek basış</string>
+    <string name="pref_essential_double_title">Çift basış</string>
+    <string name="pref_essential_triple_title">Üç kez basış</string>
+    <string name="pref_essential_long_title">Uzun basış</string>
+    <string name="pref_essential_triple_note">Eylem atanmazsa üç basış çift basış sayılır.</string>
+    <string name="pref_essential_app_title">Uygulama</string>
+    <string name="pref_essential_app_summary">Uygulama seçin</string>
+    <string name="essential_action_default">Sistem varsayılanı</string>
+    <string name="essential_action_none">Hiçbir şey yapma</string>
+    <string name="essential_action_flashlight">Feneri aç/kapat</string>
+    <string name="essential_action_ringer">Ses modunu değiştir</string>
+    <string name="essential_action_screenshot">Ekran görüntüsü al</string>
+    <string name="essential_action_app">Uygulama aç</string>
+    <string name="cat_essential_space">Essential tuşu · Essential Space</string>
+    <string name="pref_essential_block_capture_title">Ekran görüntüsü almayı kapat</string>
+    <string name="pref_essential_block_capture_summary">Tuşa basmak ekran görüntüsü almaz</string>
+    <string name="pref_essential_block_record_title">Basılı tutunca ses kaydını kapat</string>
+    <string name="pref_essential_block_record_summary">Tuşu basılı tutmak ses kaydetmez</string>
+    <string name="pref_essential_block_space_title">Essential Space\'i açmayı kapat</string>
+    <string name="pref_essential_block_space_summary">Çift basış Essential Space\'i açmaz</string>
+    <string name="cat_essential_ai">Essential tuşu · Essential Voice</string>
+    <string name="pref_essential_block_voice_hold_title">Uzun basışta sesle yazmayı kapat</string>
+    <string name="pref_essential_block_voice_hold_summary">Uzun basış Essential Voice\'i başlatmaz</string>
+    <string name="pref_essential_block_voice_double_title">Çift basışta sesle yazmayı kapat</string>
+    <string name="pref_essential_block_voice_double_summary">Çift basış Essential Voice\'i başlatmaz</string>
+    <string name="pref_essential_capture_keyboard_title">Klavye açıkken ekran görüntüsü</string>
+    <string name="pref_essential_capture_keyboard_summary">Klavye açıkken tek basış ekran görüntüsü alır</string>
 </resources>

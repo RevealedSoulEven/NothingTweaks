@@ -23,8 +23,13 @@ class PowerButtonHooks : HookModule {
         const val KEY_CUSTOM_APP = "pref_power_double_tap_custom_app"
         const val KEY_APP = "pref_power_double_tap_app"
         private const val DEBOUNCE_MS = 600L
+        private const val ESSENTIAL_DEBOUNCE_MS = 250L
 
         private var lastTriggerTime = 0L
+        private var lastEssentialLaunch = 0L
+
+        @Volatile
+        private var essentialReceiverRegistered = false
     }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
@@ -157,6 +162,8 @@ class PowerButtonHooks : HookModule {
     }
 
     private fun hookSystemUI(classLoader: ClassLoader, prefs: Prefs) {
+        hookEssentialLaunchReceiver(classLoader, prefs)
+
         // 1. hook CommandQueue - the AIDL entry point in SystemUI from system_server
         val commandQueueClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.CommandQueue", classLoader)
         if (commandQueueClass != null) {
@@ -263,6 +270,49 @@ class PowerButtonHooks : HookModule {
                 })
             } catch (_: Throwable) {}
         }
+    }
+
+    /**
+     * Receives "open app" requests of the Essential key remap (sent by system_server) and launches the app
+     * through the same SystemUI path as the power button double tap (keyguard aware, wakes the screen).
+     */
+    private fun hookEssentialLaunchReceiver(classLoader: ClassLoader, prefs: Prefs) {
+        val appClass = XposedHelpers.findClassIfExists("com.android.systemui.SystemUIApplication", classLoader) ?: return
+        try {
+            XposedBridge.hookAllMethods(appClass, "onCreate", object : XC_MethodHook() {
+                override fun afterHookedMethod(param: MethodHookParam) {
+                    val app = param.thisObject as? android.app.Application ?: return
+                    if (essentialReceiverRegistered) return
+                    essentialReceiverRegistered = true
+                    try {
+                        val receiver = object : android.content.BroadcastReceiver() {
+                            override fun onReceive(c: Context?, intent: Intent?) {
+                                if (intent?.action != EssentialKeyHooks.ACTION_LAUNCH_APP) return
+                                prefs.forceReload()
+                                val pkg = intent?.getStringExtra(EssentialKeyHooks.EXTRA_PACKAGE).orEmpty()
+                                // only launch what the user assigned to an Essential key gesture
+                                if (!EssentialKeyHooks.isAppAssigned(prefs, pkg)) return
+                                val now = SystemClock.uptimeMillis()
+                                if (now - lastEssentialLaunch < ESSENTIAL_DEBOUNCE_MS) return
+                                lastEssentialLaunch = now
+                                Handler(Looper.getMainLooper()).post {
+                                    launchAppFromSystemUI(app, pkg, classLoader)
+                                }
+                            }
+                        }
+                        // not exported: only system_server (uid 1000, the sender) and SystemUI itself can deliver to it
+                        val filter = android.content.IntentFilter(EssentialKeyHooks.ACTION_LAUNCH_APP)
+                        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+                            app.registerReceiver(receiver, filter, Context.RECEIVER_NOT_EXPORTED)
+                        } else {
+                            app.registerReceiver(receiver, filter)
+                        }
+                    } catch (t: Throwable) {
+                        XposedBridge.log("$TAG [EssentialKey] launch receiver failed: ${t.message}")
+                    }
+                }
+            })
+        } catch (_: Throwable) {}
     }
 
     private fun consumeCameraMethod(param: XC_MethodHook.MethodHookParam) {
