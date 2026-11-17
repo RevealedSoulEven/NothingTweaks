@@ -56,8 +56,8 @@
     <string name="title_hide_ime_bar">कीबोर्ड स्पेस छिपाएं</string>
     <string name="summary_hide_ime_bar">टाइप करते समय कीबोर्ड के नीचे की खाली जगह को हटाता है और नेविगेशन हैंडल को छिपाता है</string>
 
-    <string name="pref_back_gesture_kill_title">ऐप को बंद करने के लिए लंबा बैक स्वाइप</string>
-    <string name="pref_back_gesture_kill_summary">बैक स्वाइप जेस्चर को दबाकर रखें और फिर वर्तमान ऐप को ज़बरदस्ती बंद करने के लिए छोड़ दें।</string>
+    <string name="pref_back_gesture_kill_title">ऐप बंद करने के लिए बैक दबाकर रखें</string>
+    <string name="pref_back_gesture_kill_summary">फ़ोरग्राउंड ऐप को ज़बरदस्ती बंद करने के लिए बैक जेस्चर या बैक बटन को दबाकर रखें।</string>
 
     <!-- Status bar -->
     <string name="cat_statusbar">स्टेटस बार</string>

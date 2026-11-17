@@ -100,7 +100,6 @@ class MainHook : IXposedHookLoadPackage {
             hooks.add("AIClipboardHooks" to AIClipboardHooks())
             hooks.add("MiscHooks" to MiscHooks())
             hooks.add("PowerMenuHooks" to PowerMenuHooks())
-            hooks.add("BackGestureKillHooks" to BackGestureKillHooks())
             hooks.add("NotificationIconHooks" to NotificationIconHooks())
             hooks.add("SpacingHooks" to SpacingHooks())
             hooks.add("StatusBarGestureHooks" to StatusBarGestureHooks())
@@ -111,6 +110,7 @@ class MainHook : IXposedHookLoadPackage {
         }
         if (lpparam.packageName == PKG_SYSTEMUI || lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("NavBarHooks" to NavBarHooks())
+            hooks.add("BackGestureKillHooks" to BackGestureKillHooks())
         }
         if (lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("LauncherHooks" to LauncherHooks())

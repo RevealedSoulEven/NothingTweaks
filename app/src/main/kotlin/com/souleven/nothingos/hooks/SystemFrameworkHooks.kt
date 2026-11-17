@@ -48,6 +48,25 @@ class SystemFrameworkHooks : HookModule {
         }
     }
 
+    private fun resolveFocusedPackage(): String? {
+        return try {
+            val atmClass = Class.forName("android.app.ActivityTaskManager")
+            val iAtm = atmClass.getMethod("getService").invoke(null)
+            val info = iAtm.javaClass.getMethod("getFocusedRootTaskInfo").invoke(iAtm) ?: return null
+            for (field in arrayOf("topActivity", "realActivity", "baseActivity")) {
+                try {
+                    val cn = info.javaClass.getField(field).get(info) as? android.content.ComponentName
+                    val pkg = cn?.packageName
+                    if (!pkg.isNullOrEmpty()) return pkg
+                } catch (_: Throwable) {}
+            }
+            null
+        } catch (t: Throwable) {
+            XposedBridge.log("$TAG [SystemFramework] Focused resolution failed: ${t.message}")
+            null
+        }
+    }
+
     private fun hookAppsFilter(classLoader: ClassLoader) {
         try {
             val appsFilterClass = XposedHelpers.findClassIfExists(
@@ -105,70 +124,78 @@ class SystemFrameworkHooks : HookModule {
                         XposedBridge.log("$TAG Failed to set sys.powerctl from framework: ${e.message}")
                     }
                 } else if (action == "com.souleven.nothingos.FORCE_STOP_APP") {
-                    val packageName = intent.getStringExtra("package_name")
-                    if (packageName != null) {
+                    val provided = intent.getStringExtra("package_name")
+                    val focused = resolveFocusedPackage()
+                    val packageName = focused ?: provided
+                    
+                    
+                    if (packageName.isNullOrEmpty()) {
+                        XposedBridge.log("$TAG [SystemFramework] FORCE_STOP_APP: no usable target; ignoring")
+                        return
+                    }
+                    
+                    val protectedPackages = setOf("com.android.systemui", "com.nothing.launcher", "android")
+                    if (packageName in protectedPackages) {
+                        XposedBridge.log("$TAG [SystemFramework] FORCE_STOP_APP: Refusing to kill protected package: $packageName")
+                        return
+                    }
+
+                    try {
+                        // First, remove matching tasks from recents before force stopping
                         try {
-                            // First, remove from recents before force stopping
-                            try {
-                                val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                            val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                            val getRecentTasksMethod = am.javaClass.getMethod("getRecentTasks", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
+                            val recentTasks = getRecentTasksMethod.invoke(am, 100, 2) as? List<*>
 
-                                val getRecentTasksMethod = am.javaClass.getMethod("getRecentTasks", Int::class.javaPrimitiveType, Int::class.javaPrimitiveType)
-                                val recentTasks = getRecentTasksMethod.invoke(am, 100, 2) as? List<*>
-
-                                val atmClass = Class.forName("android.app.ActivityTaskManager")
-                                val getServiceMethod = atmClass.getMethod("getService")
-                                val iAtm = getServiceMethod.invoke(null)
-                                val removeTaskMethod = iAtm.javaClass.getMethod("removeTask", Int::class.javaPrimitiveType)
-                                
-                                if (recentTasks != null) {
-                                    for (taskObj in recentTasks) {
-                                        if (taskObj == null) continue
-                                        
-                                        var match = false
+                            val atmClass = Class.forName("android.app.ActivityTaskManager")
+                            val getServiceMethod = atmClass.getMethod("getService")
+                            val iAtm = getServiceMethod.invoke(null)
+                            val removeTaskMethod = iAtm.javaClass.getMethod("removeTask", Int::class.javaPrimitiveType)
+                            
+                            if (recentTasks != null) {
+                                for (taskObj in recentTasks) {
+                                    if (taskObj == null) continue
+                                    
+                                    var match = false
+                                    try {
+                                        val baseIntentField = taskObj.javaClass.getField("baseIntent")
+                                        val baseIntent = baseIntentField.get(taskObj) as? Intent
+                                        if (baseIntent?.component?.packageName == packageName) match = true
+                                    } catch (_: Throwable) {}
+                                    
+                                    if (!match) {
                                         try {
-                                            val baseIntentField = taskObj.javaClass.getField("baseIntent")
-                                            val baseIntent = baseIntentField.get(taskObj) as? Intent
-                                            if (baseIntent?.component?.packageName == packageName) match = true
-                                        } catch (e: Exception) {}
-                                        
-                                        if (!match) {
-                                            try {
-                                                val topActivityField = taskObj.javaClass.getField("topActivity")
-                                                val topActivity = topActivityField.get(taskObj) as? android.content.ComponentName
-                                                if (topActivity?.packageName == packageName) match = true
-                                            } catch (e: Exception) {}
-                                        }
-                                        
-                                        if (!match) {
-                                            try {
-                                                val baseActivityField = taskObj.javaClass.getField("baseActivity")
-                                                val baseActivity = baseActivityField.get(taskObj) as? android.content.ComponentName
-                                                if (baseActivity?.packageName == packageName) match = true
-                                            } catch (e: Exception) {}
-                                        }
-                                        
-                                        if (match) {
-                                            try {
-                                                val taskIdField = taskObj.javaClass.getField("taskId")
-                                                val taskId = taskIdField.getInt(taskObj)
-                                                removeTaskMethod.invoke(iAtm, taskId)
-                                            } catch (e: Exception) {
-                                                // Silently fail
-                                            }
-                                        }
+                                            val topActivityField = taskObj.javaClass.getField("topActivity")
+                                            val topActivity = topActivityField.get(taskObj) as? android.content.ComponentName
+                                            if (topActivity?.packageName == packageName) match = true
+                                        } catch (_: Throwable) {}
+                                    }
+                                    
+                                    if (!match) {
+                                        try {
+                                            val baseActivityField = taskObj.javaClass.getField("baseActivity")
+                                            val baseActivity = baseActivityField.get(taskObj) as? android.content.ComponentName
+                                            if (baseActivity?.packageName == packageName) match = true
+                                        } catch (_: Throwable) {}
+                                    }
+                                    
+                                    if (match) {
+                                        try {
+                                            val taskIdField = taskObj.javaClass.getField("taskId")
+                                            val taskId = taskIdField.getInt(taskObj)
+                                            removeTaskMethod.invoke(iAtm, taskId)
+                                        } catch (_: Throwable) {}
                                     }
                                 }
-                            } catch (e: Exception) {
-                                // Silently fail
                             }
+                        } catch (_: Throwable) {}
 
-                            // force stop
-                            val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
-                            val method = am.javaClass.getMethod("forceStopPackage", String::class.java)
-                            method.invoke(am, packageName)
-                        } catch (e: Exception) {
-                            // Silently fail if something goes wrong
-                        }
+                        // force stop
+                        val am = ctx.getSystemService(Context.ACTIVITY_SERVICE) as android.app.ActivityManager
+                        val method = am.javaClass.getMethod("forceStopPackage", String::class.java)
+                        method.invoke(am, packageName)
+                    } catch (e: Exception) {
+                        XposedBridge.log("$TAG [SystemFramework] FORCE_STOP_APP error: ${e.message}")
                     }
                 }
             }
@@ -189,7 +216,7 @@ class SystemFrameworkHooks : HookModule {
             val Context_RECEIVER_EXPORTED = 0x2
             val registerReceiverMethod = context.javaClass.getMethod("registerReceiver", BroadcastReceiver::class.java, IntentFilter::class.java, Int::class.javaPrimitiveType)
             registerReceiverMethod.invoke(context, receiver, filter, Context_RECEIVER_EXPORTED)
-        } catch (e: Exception) {
+        } catch (_: Throwable) {
             // Fallback for older Android versions
             context.registerReceiver(receiver, filter)
         }

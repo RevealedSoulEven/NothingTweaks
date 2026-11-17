@@ -56,8 +56,8 @@
     <string name="title_hide_ime_bar">Ocultar espacio del teclado</string>
     <string name="summary_hide_ime_bar">Elimina el espacio vacío debajo del teclado y oculta el asa de navegación al escribir</string>
 
-    <string name="pref_back_gesture_kill_title">Deslizar atrás prolongado para forzar cierre</string>
-    <string name="pref_back_gesture_kill_summary">Mantén pulsado el gesto de volver atrás y luego suéltalo para forzar el cierre de la aplicación en primer plano.</string>
+    <string name="pref_back_gesture_kill_title">Mantener Atrás para forzar cierre</string>
+    <string name="pref_back_gesture_kill_summary">Mantén presionado el gesto o botón Atrás para forzar el cierre de la app en primer plano.</string>
 
     <!-- Status bar -->
     <string name="cat_statusbar">Barra de estado</string>

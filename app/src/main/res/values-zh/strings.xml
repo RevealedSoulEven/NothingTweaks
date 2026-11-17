@@ -56,8 +56,8 @@
     <string name="title_hide_ime_bar">隐藏键盘底部空白</string>
     <string name="summary_hide_ime_bar">打字时移除键盘底部的空白区域并隐藏导航条。</string>
 
-    <string name="pref_back_gesture_kill_title">长按返回手势强行停止应用</string>
-    <string name="pref_back_gesture_kill_summary">按住返回侧滑手势然后松开，强制停止前台应用。</string>
+    <string name="pref_back_gesture_kill_title">长按返回强行停止应用</string>
+    <string name="pref_back_gesture_kill_summary">长按返回手势或返回键以强制停止前台应用。</string>
 
     <!-- Status bar -->
     <string name="cat_statusbar">状态栏</string>

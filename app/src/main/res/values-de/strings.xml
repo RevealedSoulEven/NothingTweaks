@@ -56,8 +56,8 @@
     <string name="title_hide_ime_bar">Tastaturplatz ausblenden</string>
     <string name="summary_hide_ime_bar">Entfernt den leeren Platz unter der Tastatur und versteckt die Navigationsleiste beim Tippen</string>
 
-    <string name="pref_back_gesture_kill_title">Langes Wischen zurück, um App zu beenden</string>
-    <string name="pref_back_gesture_kill_summary">Halte die Zurück-Wischgeste und lasse sie dann los, um die Vordergrund-App sofort zu beenden.</string>
+    <string name="pref_back_gesture_kill_title">Zurück halten, um App zu beenden</string>
+    <string name="pref_back_gesture_kill_summary">Halte die Zurück-Geste oder Zurück-Taste, um die Vordergrund-App zu beenden.</string>
 
     <!-- Status bar -->
     <string name="cat_statusbar">Statusleiste</string>

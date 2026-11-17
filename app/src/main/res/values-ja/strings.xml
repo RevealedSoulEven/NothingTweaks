@@ -56,8 +56,8 @@
     <string name="title_hide_ime_bar">キーボードのスペースを隠す</string>
     <string name="summary_hide_ime_bar">入力時にキーボードの下の空白部分を削除し、ナビゲーションハンドルを非表示にします。</string>
 
-    <string name="pref_back_gesture_kill_title">戻るジェスチャーの長押しでアプリを強制終了</string>
-    <string name="pref_back_gesture_kill_summary">戻るスワイプジェスチャーを押し続けて離すと、フォアグラウンドのアプリを強制終了します。</string>
+    <string name="pref_back_gesture_kill_title">戻る長押しでアプリを強制終了</string>
+    <string name="pref_back_gesture_kill_summary">戻るジェスチャーまたは戻るボタンを長押ししてフォアグラウンドのアプリを強制終了します。</string>
 
     <!-- Status bar -->
     <string name="cat_statusbar">ステータスバー</string>

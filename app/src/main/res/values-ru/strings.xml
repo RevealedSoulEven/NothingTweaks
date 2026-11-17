@@ -56,8 +56,8 @@
     <string name="title_hide_ime_bar">Скрыть пустое место под клавиатурой</string>
     <string name="summary_hide_ime_bar">Убирает пустое пространство под клавиатурой и скрывает полоску навигации при наборе текста</string>
 
-    <string name="pref_back_gesture_kill_title">Долгий свайп «Назад» для закрытия приложения</string>
-    <string name="pref_back_gesture_kill_summary">Удерживайте свайп «Назад», затем отпустите, чтобы принудительно остановить текущее приложение.</string>
+    <string name="pref_back_gesture_kill_title">Удержание «Назад» для закрытия</string>
+    <string name="pref_back_gesture_kill_summary">Удерживайте жест «Назад» или кнопку «Назад», чтобы принудительно остановить текущее приложение.</string>
 
     <!-- Status bar -->
     <string name="cat_statusbar">Строка состояния</string>
