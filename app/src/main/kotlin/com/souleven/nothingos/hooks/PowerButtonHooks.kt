@@ -25,6 +25,179 @@ class PowerButtonHooks : HookModule {
         private const val DEBOUNCE_MS = 600L
 
         private var lastTriggerTime = 0L
+
+        @Volatile var sActivityStarter: Any? = null
+        @Volatile var sContext: Context? = null
+
+        fun launchAppFromSystemUI(thisObject: Any, targetPackage: String, classLoader: ClassLoader) {
+            val context = try {
+                XposedHelpers.getObjectField(thisObject, "mContext") as? Context
+            } catch (_: Throwable) {
+                try {
+                    XposedHelpers.getObjectField(thisObject, "context") as? Context
+                } catch (_: Throwable) { null }
+            } ?: (thisObject as? Context) ?: sContext ?: AndroidAppHelper.currentApplication() ?: return
+
+            vibrateClick(context)
+
+            val pm = context.packageManager
+            val intent = pm.getLaunchIntentForPackage(targetPackage)?.apply {
+                addFlags(
+                    Intent.FLAG_ACTIVITY_NEW_TASK or
+                    Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
+                    Intent.FLAG_ACTIVITY_CLEAR_TOP
+                )
+            } ?: return
+
+            val activityStarter = sActivityStarter
+                ?: try {
+                    val depClass = XposedHelpers.findClassIfExists("com.android.systemui.Dependency", classLoader)
+                    val starterClass = XposedHelpers.findClassIfExists("com.android.systemui.plugins.ActivityStarter", classLoader)
+                    if (depClass != null && starterClass != null) {
+                        XposedHelpers.callStaticMethod(depClass, "get", starterClass)
+                    } else null
+                } catch (_: Throwable) { null }
+                ?: try {
+                    XposedHelpers.getObjectField(thisObject, "mActivityStarter")
+                } catch (_: Throwable) {
+                    try {
+                        XposedHelpers.getObjectField(thisObject, "activityStarter")
+                    } catch (_: Throwable) { null }
+                }
+                ?: try {
+                    val callbacks = XposedHelpers.getObjectField(thisObject, "mCallbacks") as? java.util.ArrayList<*>
+                    var found: Any? = null
+                    if (callbacks != null) {
+                        for (cb in callbacks) {
+                            if (cb == null) continue
+                            found = try {
+                                XposedHelpers.getObjectField(cb, "mActivityStarter")
+                            } catch (_: Throwable) {
+                                try {
+                                    XposedHelpers.getObjectField(cb, "activityStarter")
+                                } catch (_: Throwable) { null }
+                            }
+                            if (found != null) break
+                        }
+                    }
+                    found
+                } catch (_: Throwable) { null }
+
+            val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
+            if (powerManager != null && !powerManager.isInteractive) {
+                try {
+                    XposedHelpers.callMethod(powerManager, "wakeUp", SystemClock.uptimeMillis(), 4, "AppLaunch")
+                } catch (_: Throwable) {
+                    try {
+                        XposedHelpers.callMethod(powerManager, "wakeUp", SystemClock.uptimeMillis())
+                    } catch (_: Throwable) {}
+                }
+            }
+
+            val km = context.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
+            val isLocked = km?.isKeyguardLocked ?: false
+
+            if (activityStarter != null) {
+                if (!isLocked) {
+                    if (callActivityStarterStartActivity(activityStarter, intent)) {
+                        return
+                    }
+                }
+
+                if (callActivityStarterDismissKeyguard(activityStarter, intent)) {
+                    return
+                }
+
+                if (callActivityStarterStartActivity(activityStarter, intent)) {
+                    return
+                }
+            }
+
+            // fallback: try context.startActivity with Background Activity Launch exemption options
+            val options = android.app.ActivityOptions.makeBasic()
+            try {
+                XposedHelpers.callMethod(options, "setPendingIntentBackgroundActivityStartMode", 1)
+            } catch (_: Throwable) {}
+            try {
+                context.startActivity(intent, options.toBundle())
+            } catch (_: Throwable) {
+                try {
+                    context.startActivity(intent)
+                } catch (t: Throwable) {
+                    XposedBridge.log("$TAG [PowerButton] Launch failed: ${t.message}")
+                }
+            }
+        }
+
+        private fun callActivityStarterStartActivity(starter: Any, intent: Intent): Boolean {
+            try {
+                XposedHelpers.callMethod(starter, "startActivity", intent, true)
+                return true
+            } catch (_: Throwable) {}
+            try {
+                val method = starter.javaClass.methods.firstOrNull {
+                    it.name == "startActivity" && it.parameterTypes.isNotEmpty() && it.parameterTypes[0] == Intent::class.java
+                }
+                if (method != null) {
+                    val args = arrayOfNulls<Any>(method.parameterCount)
+                    args[0] = intent
+                    for (i in 1 until method.parameterCount) {
+                        val pt = method.parameterTypes[i]
+                        args[i] = when (pt) {
+                            java.lang.Boolean.TYPE -> true
+                            java.lang.Integer.TYPE -> 0
+                            else -> null
+                        }
+                    }
+                    method.isAccessible = true
+                    method.invoke(starter, *args)
+                    return true
+                }
+            } catch (_: Throwable) {}
+            return false
+        }
+
+        private fun callActivityStarterDismissKeyguard(starter: Any, intent: Intent): Boolean {
+            try {
+                XposedHelpers.callMethod(starter, "postStartActivityDismissingKeyguard", intent, 0)
+                return true
+            } catch (_: Throwable) {}
+            try {
+                val method = starter.javaClass.methods.firstOrNull {
+                    it.name == "postStartActivityDismissingKeyguard" && it.parameterTypes.isNotEmpty() && it.parameterTypes[0] == Intent::class.java
+                }
+                if (method != null) {
+                    val args = arrayOfNulls<Any>(method.parameterCount)
+                    args[0] = intent
+                    for (i in 1 until method.parameterCount) {
+                        val pt = method.parameterTypes[i]
+                        args[i] = when (pt) {
+                            java.lang.Integer.TYPE -> 0
+                            java.lang.Boolean.TYPE -> false
+                            else -> null
+                        }
+                    }
+                    method.isAccessible = true
+                    method.invoke(starter, *args)
+                    return true
+                }
+            } catch (_: Throwable) {}
+            return false
+        }
+
+        private fun vibrateClick(context: Context) {
+            try {
+                val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
+                if (vibrator.hasVibrator()) {
+                    if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
+                        vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
+                    } else {
+                        @Suppress("DEPRECATION")
+                        vibrator.vibrate(35L)
+                    }
+                }
+            } catch (_: Throwable) {}
+        }
     }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
@@ -157,9 +330,62 @@ class PowerButtonHooks : HookModule {
     }
 
     private fun hookSystemUI(classLoader: ClassLoader, prefs: Prefs) {
+        // cache ActivityStarter from ActivityStarterImpl
+        val starterClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.phone.ActivityStarterImpl", classLoader)
+        if (starterClass != null) {
+            try {
+                XposedBridge.hookAllConstructors(starterClass, object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        sActivityStarter = param.thisObject
+                    }
+                })
+            } catch (_: Throwable) {}
+        }
+
+        // cache ActivityStarter from CentralSurfacesImpl
+        val csImplClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.phone.CentralSurfacesImpl", classLoader)
+        if (csImplClass != null) {
+            try {
+                XposedBridge.hookAllConstructors(csImplClass, object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        try {
+                            val starter = XposedHelpers.getObjectField(param.thisObject, "mActivityStarter")
+                            if (starter != null) {
+                                sActivityStarter = starter
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                })
+                XposedBridge.hookAllMethods(csImplClass, "start", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        try {
+                            val starter = XposedHelpers.getObjectField(param.thisObject, "mActivityStarter")
+                            if (starter != null) {
+                                sActivityStarter = starter
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                })
+            } catch (_: Throwable) {}
+        }
+
         // 1. hook CommandQueue - the AIDL entry point in SystemUI from system_server
         val commandQueueClass = XposedHelpers.findClassIfExists("com.android.systemui.statusbar.CommandQueue", classLoader)
         if (commandQueueClass != null) {
+            try {
+                XposedBridge.hookAllMethods(commandQueueClass, "addCallback", object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val cb = param.args.getOrNull(0) ?: return
+                        try {
+                            val starter = XposedHelpers.getObjectField(cb, "mActivityStarter")
+                            if (starter != null) {
+                                sActivityStarter = starter
+                            }
+                        } catch (_: Throwable) {}
+                    }
+                })
+            } catch (_: Throwable) {}
+
             try {
                 XposedBridge.hookAllMethods(commandQueueClass, "onCameraLaunchGestureDetected", object : XC_MethodHook() {
                     override fun beforeHookedMethod(param: MethodHookParam) {
@@ -179,7 +405,6 @@ class PowerButtonHooks : HookModule {
                         lastTriggerTime = now
 
                         param.result = null // Block camera launch in CommandQueue
-                        XposedBridge.log("$TAG [PowerButton] Intercepted onCameraLaunchGestureDetected in CommandQueue")
 
                         val cmdQueueObj = param.thisObject
                         Handler(Looper.getMainLooper()).post {
@@ -187,7 +412,6 @@ class PowerButtonHooks : HookModule {
                         }
                     }
                 })
-                XposedBridge.log("$TAG [PowerButton] Hooked CommandQueue#onCameraLaunchGestureDetected")
             } catch (t: Throwable) {
                 XposedBridge.log("$TAG [PowerButton] Failed to hook CommandQueue: ${t.message}")
             }
@@ -220,7 +444,6 @@ class PowerButtonHooks : HookModule {
                         lastTriggerTime = now
 
                         param.result = null
-                        XposedBridge.log("$TAG [PowerButton] Intercepted onCameraLaunchGestureDetected in $csName")
 
                         val csObj = param.thisObject
                         Handler(Looper.getMainLooper()).post {
@@ -272,115 +495,5 @@ class PowerButtonHooks : HookModule {
         } else {
             param.result = null
         }
-    }
-
-    private fun launchAppFromSystemUI(thisObject: Any, targetPackage: String, classLoader: ClassLoader) {
-        val context = try {
-            XposedHelpers.getObjectField(thisObject, "mContext") as? Context
-        } catch (_: Throwable) {
-            try {
-                XposedHelpers.getObjectField(thisObject, "context") as? Context
-            } catch (_: Throwable) { null }
-        } ?: AndroidAppHelper.currentApplication() ?: return
-
-        vibrateClick(context)
-
-        val pm = context.packageManager
-        val intent = pm.getLaunchIntentForPackage(targetPackage)?.apply {
-            addFlags(
-                Intent.FLAG_ACTIVITY_NEW_TASK or
-                Intent.FLAG_ACTIVITY_RESET_TASK_IF_NEEDED or
-                Intent.FLAG_ACTIVITY_CLEAR_TOP
-            )
-        } ?: return
-
-        // 1. try Dependency.get(ActivityStarter.class)
-        val activityStarter = try {
-            val depClass = XposedHelpers.findClassIfExists("com.android.systemui.Dependency", classLoader)
-            val starterClass = XposedHelpers.findClassIfExists("com.android.systemui.plugins.ActivityStarter", classLoader)
-            if (depClass != null && starterClass != null) {
-                XposedHelpers.callStaticMethod(depClass, "get", starterClass)
-            } else null
-        } catch (_: Throwable) { null }
-            // 2. try from thisObject fields
-            ?: try {
-                XposedHelpers.getObjectField(thisObject, "mActivityStarter")
-            } catch (_: Throwable) {
-                try {
-                    XposedHelpers.getObjectField(thisObject, "activityStarter")
-                } catch (_: Throwable) { null }
-            }
-            // 3. try searching CommandQueue callbacks (e.g. CentralSurfacesImpl)
-            ?: try {
-                val callbacks = XposedHelpers.getObjectField(thisObject, "mCallbacks") as? java.util.ArrayList<*>
-                var found: Any? = null
-                if (callbacks != null) {
-                    for (cb in callbacks) {
-                        if (cb == null) continue
-                        found = try {
-                            XposedHelpers.getObjectField(cb, "mActivityStarter")
-                        } catch (_: Throwable) {
-                            try {
-                                XposedHelpers.getObjectField(cb, "activityStarter")
-                            } catch (_: Throwable) { null }
-                        }
-                        if (found != null) break
-                    }
-                }
-                found
-            } catch (_: Throwable) { null }
-
-        val powerManager = context.getSystemService(Context.POWER_SERVICE) as? PowerManager
-        if (powerManager != null && !powerManager.isInteractive) {
-            try {
-                XposedHelpers.callMethod(powerManager, "wakeUp", SystemClock.uptimeMillis(), 4, "PowerButtonDoubleTap")
-            } catch (_: Throwable) {
-                try {
-                    XposedHelpers.callMethod(powerManager, "wakeUp", SystemClock.uptimeMillis())
-                } catch (_: Throwable) {}
-            }
-        }
-
-        val km = context.getSystemService(Context.KEYGUARD_SERVICE) as? KeyguardManager
-        val isLocked = km?.isKeyguardLocked ?: false
-
-        if (activityStarter != null) {
-            if (!isLocked) {
-                try {
-                    XposedHelpers.callMethod(activityStarter, "startActivity", intent, true)
-                    XposedBridge.log("$TAG [PowerButton] Launched $targetPackage directly via ActivityStarter#startActivity (unlocked)")
-                    return
-                } catch (_: Throwable) {}
-            }
-
-            try {
-                XposedHelpers.callMethod(activityStarter, "postStartActivityDismissingKeyguard", intent, 0)
-                XposedBridge.log("$TAG [PowerButton] Launched $targetPackage via postStartActivityDismissingKeyguard")
-                return
-            } catch (_: Throwable) {}
-
-            try {
-                XposedHelpers.callMethod(activityStarter, "startActivity", intent, true)
-                XposedBridge.log("$TAG [PowerButton] Launched $targetPackage via ActivityStarter#startActivity")
-                return
-            } catch (_: Throwable) {}
-        }
-
-        context.startActivity(intent)
-        XposedBridge.log("$TAG [PowerButton] Launched $targetPackage via context#startActivity")
-    }
-
-    private fun vibrateClick(context: Context) {
-        try {
-            val vibrator = context.getSystemService(Context.VIBRATOR_SERVICE) as? Vibrator ?: return
-            if (vibrator.hasVibrator()) {
-                if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.Q) {
-                    vibrator.vibrate(VibrationEffect.createPredefined(VibrationEffect.EFFECT_CLICK))
-                } else {
-                    @Suppress("DEPRECATION")
-                    vibrator.vibrate(35L)
-                }
-            }
-        } catch (_: Throwable) {}
     }
 }

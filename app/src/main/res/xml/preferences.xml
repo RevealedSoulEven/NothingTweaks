@@ -171,6 +171,70 @@
             app:title="@string/pref_volume_steps"
             app:summary="@string/pref_volume_steps_desc"
             app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_essential_single_action"
+            app:title="@string/pref_essential_single_title"
+            app:dialogTitle="@string/pref_essential_single_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_single_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_essential_double_action"
+            app:title="@string/pref_essential_double_title"
+            app:dialogTitle="@string/pref_essential_double_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_double_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_essential_triple_action"
+            app:title="@string/pref_essential_triple_title"
+            app:dialogTitle="@string/pref_essential_triple_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_triple_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
+
+        <ListPreference
+            app:key="pref_essential_long_action"
+            app:title="@string/pref_essential_long_title"
+            app:dialogTitle="@string/pref_essential_long_title"
+            app:entries="@array/essential_action_entries"
+            app:entryValues="@array/essential_action_values"
+            app:defaultValue="default"
+            app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_essential_long_app"
+            app:title="@string/pref_essential_app_title"
+            app:summary="@string/pref_essential_app_summary"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <!-- 4. Navigation -->
@@ -311,13 +375,6 @@
         app:iconSpaceReserved="false">
 
         <SwitchPreferenceCompat
-            app:key="screenshot_disable_flash"
-            app:title="@string/pref_screenshot_disable_flash"
-            app:summary="@string/pref_screenshot_disable_flash_desc"
-            app:defaultValue="false"
-            app:iconSpaceReserved="false" />
-
-        <SwitchPreferenceCompat
             app:key="pref_disable_flag_secure"
             app:title="@string/pref_disable_flag_secure"
             app:summary="@string/pref_disable_flag_secure_desc"
@@ -332,6 +389,13 @@
             app:entryValues="@array/record_limit_values"
             app:defaultValue="off"
             app:useSimpleSummaryProvider="true"
+            app:iconSpaceReserved="false" />
+
+        <SwitchPreferenceCompat
+            app:key="screenshot_disable_flash"
+            app:title="@string/pref_screenshot_disable_flash"
+            app:summary="@string/pref_screenshot_disable_flash_desc"
+            app:defaultValue="false"
             app:iconSpaceReserved="false" />
 
         <SwitchPreferenceCompat

@@ -13,7 +13,6 @@ class ScreenshotHooks : HookModule {
     }
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
-        // Verified against Nothing OS C5.0-260924-2115 (Android 17).
         // Use the existing no-flash branch so preview animations and callbacks still run.
         val controller = XposedHelpers.findClassIfExists(
             "com.android.systemui.screenshot.ui.ScreenshotAnimationController",

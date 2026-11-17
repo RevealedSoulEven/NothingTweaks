@@ -179,11 +179,13 @@ class TorchHooks : HookModule {
                     override fun onReceive(c: Context?, intent: Intent?) {
                         if (intent?.action != ACTION_TOGGLE_TORCH) return
                         prefs.forceReload()
-                        if (!prefs.getBoolean(PREF_KEY, false)) return
+                        val fromEssential = intent.getBooleanExtra("from_essential", false)
+                        if (!fromEssential && !prefs.getBoolean(PREF_KEY, false)) return
 
                         val targetContext = c ?: sContext ?: AndroidAppHelper.currentApplication() ?: return
                         val now = SystemClock.uptimeMillis()
-                        if (now - lastToggleTime > DEBOUNCE_MS) {
+                        val debounce = if (fromEssential) 250L else DEBOUNCE_MS
+                        if (now - lastToggleTime > debounce) {
                             lastToggleTime = now
                             volUpPressTime = 0L
                             volDownPressTime = 0L

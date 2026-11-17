@@ -202,4 +202,19 @@
     <string name="hide_icon_alarm">Alarm</string>
     <string name="pref_screenshot_disable_flash">Disable screenshot flash</string>
     <string name="pref_screenshot_disable_flash_desc">Disable the white screen flash when taking a screenshot.</string>
+
+    <!-- Essential key -->
+    <string name="pref_essential_key_header">Essential Key</string>
+    <string name="pref_essential_single_title">Essential key: Single press</string>
+    <string name="pref_essential_double_title">Essential key: Double press</string>
+    <string name="pref_essential_triple_title">Essential key: Triple press</string>
+    <string name="pref_essential_long_title">Essential key: Long press</string>
+    <string name="pref_essential_app_title">App</string>
+    <string name="pref_essential_app_summary">Select an app</string>
+    <string name="essential_action_default">System default</string>
+    <string name="essential_action_none">Do nothing</string>
+    <string name="essential_action_flashlight">Toggle flashlight</string>
+    <string name="essential_action_ringer">Cycle sound mode</string>
+    <string name="essential_action_screenshot">Take screenshot</string>
+    <string name="essential_action_app">Open app</string>
 </resources>
