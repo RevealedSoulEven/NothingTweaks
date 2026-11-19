@@ -31,6 +31,7 @@ import com.souleven.nothingos.hooks.EssentialKeyHooks
 import com.souleven.nothingos.hooks.LauncherHooks
 import com.souleven.nothingos.hooks.StatusBarIconHooks
 import com.souleven.nothingos.hooks.ScreenshotHooks
+import com.souleven.nothingos.hooks.SettingsHooks
 import de.robv.android.xposed.IXposedHookLoadPackage
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XC_MethodReplacement
@@ -45,6 +46,7 @@ class MainHook : IXposedHookLoadPackage {
         const val PREFS_NAME = "settings"
         const val PKG_SYSTEMUI = "com.android.systemui"
         const val PKG_LAUNCHER = "com.nothing.launcher"
+        const val PKG_SETTINGS = "com.android.settings"
         const val PKG_SELF = "com.souleven.nothingos"
     }
 
@@ -57,6 +59,7 @@ class MainHook : IXposedHookLoadPackage {
         val allowedPackages = listOf(
             PKG_SYSTEMUI,
             PKG_LAUNCHER,
+            PKG_SETTINGS,
             "android",
             "com.google.android.inputmethod.latin"
         )
@@ -114,6 +117,10 @@ class MainHook : IXposedHookLoadPackage {
         }
         if (lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("LauncherHooks" to LauncherHooks())
+        }
+        if (lpparam.packageName == PKG_SETTINGS) {
+            XposedBridge.log("$TAG [MainHook] Hooking com.android.settings (process: ${lpparam.processName})")
+            hooks.add("SettingsHooks" to SettingsHooks())
         }
         if (lpparam.packageName == "com.google.android.inputmethod.latin") {
             hooks.add("ImeNavBarHooks" to ImeNavBarHooks())

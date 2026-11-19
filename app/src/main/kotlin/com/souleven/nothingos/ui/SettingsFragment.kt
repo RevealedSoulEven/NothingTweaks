@@ -34,6 +34,9 @@ import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.RemotePreferenceProvider
 import com.souleven.nothingos.hooks.StatusBarIconHooks
 import com.souleven.nothingos.hooks.VolumeStepsHooks
+import kotlinx.coroutines.CoroutineScope
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.launch
 
 class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedPreferenceChangeListener {
 
@@ -56,6 +59,13 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         requireRebootOnEnable("pref_back_gesture_kill")
         requireRebootOnEnable("pref_disable_flag_secure")
         requireRebootOnEnable(PowerButtonHooks.KEY_CUSTOM_APP)
+
+        findPreference<SwitchPreferenceCompat>("pref_integrate_settings")?.setOnPreferenceChangeListener { _, newValue ->
+            val enabled = newValue as Boolean
+            val sp = preferenceManager.sharedPreferences
+            sp?.edit()?.putBoolean("pref_integrate_settings", enabled)?.commit()
+            true
+        }
     }
 
     override fun onResume() {
@@ -92,6 +102,29 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         if (key in StatusBarIconHooks.ALL_KEYS) {
             updateHideStatusBarIconsSummary()
+        }
+
+        if (key == "pref_integrate_settings") {
+            val enabled = sharedPreferences?.getBoolean("pref_integrate_settings", false) ?: false
+            if (enabled) {
+                android.widget.Toast.makeText(
+                    ctx,
+                    "Integrated into Settings. (Make sure 'Settings' is checked in LSPosed scope)",
+                    android.widget.Toast.LENGTH_LONG
+                ).show()
+
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am force-stop com.android.settings"))
+                    } catch (_: Throwable) {}
+                }
+            } else {
+                CoroutineScope(Dispatchers.IO).launch {
+                    try {
+                        Runtime.getRuntime().exec(arrayOf("su", "-c", "am force-stop com.android.settings"))
+                    } catch (_: Throwable) {}
+                }
+            }
         }
 
         try {

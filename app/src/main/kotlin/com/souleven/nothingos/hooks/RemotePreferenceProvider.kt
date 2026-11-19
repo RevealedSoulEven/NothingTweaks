@@ -22,8 +22,63 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
         val CLIPBOARD_URI: Uri = Uri.parse("content://$AUTHORITY/clipboard_text.txt")
         const val METHOD_GET_ALL = "get_all"
         const val METHOD_SET_CLIPBOARD_TEXT = "set_clipboard_text"
+        const val METHOD_PUT = "put"
         private const val CLIPBOARD_FILE_NAME = "clipboard_snippet.txt"
         private const val KEY_MIGRATED = "_migrated_from_ce"
+
+        fun getPrefBoolean(context: Context, key: String, def: Boolean): Boolean {
+            return try {
+                val b = context.contentResolver.call(CONTENT_URI, METHOD_GET_ALL, null, null)
+                if (b != null && b.containsKey(key)) b.getBoolean(key, def) else def
+            } catch (_: Throwable) { def }
+        }
+
+        fun putPrefBoolean(context: Context, key: String, value: Boolean) {
+            try {
+                val extras = Bundle().apply {
+                    putString("key", key)
+                    putString("type", "boolean")
+                    putBoolean("value", value)
+                }
+                context.contentResolver.call(CONTENT_URI, METHOD_PUT, null, extras)
+            } catch (_: Throwable) {}
+        }
+
+        fun getPrefInt(context: Context, key: String, def: Int): Int {
+            return try {
+                val b = context.contentResolver.call(CONTENT_URI, METHOD_GET_ALL, null, null)
+                if (b != null && b.containsKey(key)) b.getInt(key, def) else def
+            } catch (_: Throwable) { def }
+        }
+
+        fun putPrefInt(context: Context, key: String, value: Int) {
+            try {
+                val extras = Bundle().apply {
+                    putString("key", key)
+                    putString("type", "int")
+                    putInt("value", value)
+                }
+                context.contentResolver.call(CONTENT_URI, METHOD_PUT, null, extras)
+            } catch (_: Throwable) {}
+        }
+
+        fun getPrefString(context: Context, key: String, def: String?): String? {
+            return try {
+                val b = context.contentResolver.call(CONTENT_URI, METHOD_GET_ALL, null, null)
+                if (b != null && b.containsKey(key)) b.getString(key, def) else def
+            } catch (_: Throwable) { def }
+        }
+
+        fun putPrefString(context: Context, key: String, value: String?) {
+            try {
+                val extras = Bundle().apply {
+                    putString("key", key)
+                    putString("type", "string")
+                    putString("value", value)
+                }
+                context.contentResolver.call(CONTENT_URI, METHOD_PUT, null, extras)
+            } catch (_: Throwable) {}
+        }
 
         fun getDeviceProtectedPrefs(context: Context): SharedPreferences {
             val deContext = context.createDeviceProtectedStorageContext()
@@ -102,6 +157,9 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
     override fun onCreate(): Boolean {
         val ctx = context ?: return false
         val sharedPrefs = getDeviceProtectedPrefs(ctx)
+        if (!sharedPrefs.contains("pref_integrate_settings")) {
+            sharedPrefs.edit().putBoolean("pref_integrate_settings", true).commit()
+        }
         sharedPrefs.registerOnSharedPreferenceChangeListener(this)
         prefs = sharedPrefs
         return true
@@ -141,6 +199,42 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
             } catch (_: Throwable) {
                 null
             }
+        } else if (method == METHOD_PUT) {
+            val ctx = context ?: return null
+            val bundle = extras ?: return null
+            val key = bundle.getString("key") ?: return null
+            val type = bundle.getString("type") ?: "boolean"
+            val sharedPrefs = prefs ?: getDeviceProtectedPrefs(ctx).also { prefs = it }
+            val editor = sharedPrefs.edit()
+            when (type) {
+                "boolean" -> editor.putBoolean(key, bundle.getBoolean("value"))
+                "int" -> editor.putInt(key, bundle.getInt("value"))
+                "long" -> editor.putLong(key, bundle.getLong("value"))
+                "float" -> editor.putFloat(key, bundle.getFloat("value"))
+                "string" -> editor.putString(key, bundle.getString("value"))
+            }
+            editor.commit()
+
+            try {
+                val uri = Uri.withAppendedPath(CONTENT_URI, key)
+                ctx.contentResolver.notifyChange(uri, null)
+            } catch (_: Throwable) {}
+
+            try {
+                val changeIntent = android.content.Intent("com.souleven.nothingos.PREFERENCES_CHANGED").apply {
+                    setPackage("android")
+                    putExtra("key", key)
+                    if (key == "pref_battery_cap_level" || key == "pref_battery_cap_enabled" || key == "pref_battery_cap_notify") {
+                        action = "com.souleven.nothingos.BATTERY_CAP_CHANGED"
+                        putExtra("pref_battery_cap_enabled", sharedPrefs.getBoolean("pref_battery_cap_enabled", false))
+                        putExtra("pref_battery_cap_level", sharedPrefs.getInt("pref_battery_cap_level", 80))
+                        putExtra("pref_battery_cap_notify", sharedPrefs.getBoolean("pref_battery_cap_notify", true))
+                    }
+                }
+                ctx.sendBroadcast(changeIntent)
+            } catch (_: Throwable) {}
+
+            return Bundle().apply { putBoolean("success", true) }
         }
         return null
     }

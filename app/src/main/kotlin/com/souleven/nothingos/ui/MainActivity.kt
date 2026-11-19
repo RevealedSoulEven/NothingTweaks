@@ -138,8 +138,10 @@ class MainActivity : AppCompatActivity() {
     }
 
     private fun bindFooter() {
-        val githubUrl = "https://github.com/RevealedSoulEven/NothingTweaks"
-        val issuesUrl = "https://github.com/RevealedSoulEven/NothingTweaks/issues"
+        val githubUrl = getString(R.string.about_source_url)
+        val bugUrl = getString(R.string.about_issue_url)
+        val featureUrl = getString(R.string.about_feature_url)
+        val devUrl = getString(R.string.about_developer_url)
 
         fun openUrl(url: String) {
             try {
@@ -152,21 +154,25 @@ class MainActivity : AppCompatActivity() {
             }
         }
 
+        findViewById<View>(R.id.btn_developer_profile)?.setOnClickListener {
+            openUrl(devUrl)
+        }
+
         findViewById<View>(R.id.btn_github_project)?.setOnClickListener {
             openUrl(githubUrl)
         }
 
         findViewById<View>(R.id.btn_report_bug)?.setOnClickListener {
-            openUrl(issuesUrl + "/new?labels=bug&title=%28bug%29+")
+            openUrl(bugUrl)
         }
 
         findViewById<View>(R.id.btn_request_feature)?.setOnClickListener {
-            openUrl(issuesUrl + "/new?labels=enhancement&title=%28feat%29+")
+            openUrl(featureUrl)
         }
 
         try {
             val versionName = packageManager.getPackageInfo(packageName, 0).versionName
-            findViewById<TextView>(R.id.footer_version)?.text = "NothingTweaks v$versionName"
+            findViewById<TextView>(R.id.footer_version)?.text = "Nothing Tweaks v$versionName"
         } catch (_: Throwable) {}
     }
 }

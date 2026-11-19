@@ -2,6 +2,19 @@
 <PreferenceScreen xmlns:android="http://schemas.android.com/apk/res/android"
     xmlns:app="http://schemas.android.com/apk/res-auto">
 
+    <!-- 0. Settings Integration -->
+    <PreferenceCategory
+        app:title="@string/cat_settings_integration"
+        app:iconSpaceReserved="false">
+
+        <SwitchPreferenceCompat
+            app:key="pref_integrate_settings"
+            app:title="@string/pref_integrate_settings_title"
+            app:summary="@string/pref_integrate_settings_summary"
+            app:defaultValue="true"
+            app:iconSpaceReserved="false" />
+    </PreferenceCategory>
+
     <!-- 1. Status Bar -->
     <PreferenceCategory
         app:title="@string/cat_statusbar"

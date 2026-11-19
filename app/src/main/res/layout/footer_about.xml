@@ -58,16 +58,22 @@
 
     <!-- ─── Developer Identity ─── -->
     <LinearLayout
-        android:layout_width="match_parent"
+        android:id="@+id/btn_developer_profile"
+        android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:layout_gravity="center_horizontal"
         android:gravity="center_horizontal"
         android:orientation="vertical"
-        android:layout_marginBottom="36dp">
+        android:clickable="true"
+        android:focusable="true"
+        android:background="?attr/selectableItemBackground"
+        android:padding="8dp"
+        android:layout_marginBottom="32dp">
 
         <TextView
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
-            android:text="DEVELOPER"
+            android:text="@string/about_developer_header"
             android:textAppearance="?attr/textAppearanceLabelSmall"
             android:textColor="?attr/colorPrimary"
             android:textStyle="bold"
@@ -77,7 +83,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="6dp"
-            android:text="Ayush Maurya"
+            android:text="@string/about_developer_name"
             android:textAppearance="?attr/textAppearanceTitleLarge"
             android:textStyle="bold"
             android:textColor="?attr/colorOnSurface" />
@@ -86,7 +92,7 @@
             android:layout_width="wrap_content"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="Revealed SoulEven"
+            android:text="@string/about_developer_handle"
             android:textAppearance="?attr/textAppearanceBodyMedium"
             android:textColor="?attr/colorOnSurfaceVariant" />
     </LinearLayout>
