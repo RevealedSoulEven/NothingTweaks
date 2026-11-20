@@ -19,6 +19,7 @@ import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
 import de.robv.android.xposed.XposedHelpers
 import de.robv.android.xposed.callbacks.XC_LoadPackage.LoadPackageParam
+import java.lang.ref.WeakReference
 import java.util.Collections
 import kotlin.math.abs
 import kotlin.math.hypot
@@ -45,28 +46,34 @@ class StatusBarGestureHooks : HookModule {
     private var isSliding = false
     private var isInStatusBar = false
     private var isDispatchingCancel = false
+    private var dispatchTouchDepth = 0
     private var lastSlideEndTime = 0L
     private var displayId = 0
+    private var phoneStatusBarViewRef: WeakReference<View>? = null
     private val hookedListenerClasses = Collections.synchronizedSet(mutableSetOf<Class<*>>())
 
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
-        // Lockscreen root window touch interception
-        val nswvClass = XposedHelpers.findClassIfExists(
-            "com.android.systemui.shade.NotificationShadeWindowView",
-            lpparam.classLoader
-        ) ?: XposedHelpers.findClassIfExists(
-            "com.android.systemui.statusbar.phone.NotificationShadeWindowView",
-            lpparam.classLoader
-        )
-        if (nswvClass != null) {
+        // lockscreen root window touch interception (NOS 5.0 SceneWindowRootView & NOS 4.0 NotificationShadeWindowView)
+        val rootWindowClasses = listOfNotNull(
+            XposedHelpers.findClassIfExists("com.android.systemui.scene.ui.view.SceneWindowRootView", lpparam.classLoader),
+            XposedHelpers.findClassIfExists("com.android.systemui.shade.NotificationShadeWindowView", lpparam.classLoader),
+            XposedHelpers.findClassIfExists("com.android.systemui.statusbar.phone.NotificationShadeWindowView", lpparam.classLoader)
+        ).distinct()
+
+        for (clazz in rootWindowClasses) {
             try {
                 XposedHelpers.findAndHookMethod(
-                    nswvClass,
+                    clazz,
                     "dispatchTouchEvent",
                     MotionEvent::class.java,
                     object : XC_MethodHook() {
                         override fun beforeHookedMethod(param: MethodHookParam) {
                             if (isDispatchingCancel) return
+                            if (dispatchTouchDepth > 0) {
+                                dispatchTouchDepth++
+                                return
+                            }
+                            dispatchTouchDepth++
                             if (isDoubleTapSleeping) {
                                 val ev = param.args[0] as? MotionEvent
                                 if (ev?.actionMasked == MotionEvent.ACTION_UP || ev?.actionMasked == MotionEvent.ACTION_CANCEL) {
@@ -81,10 +88,16 @@ class StatusBarGestureHooks : HookModule {
                                 param.result = true
                             }
                         }
+
+                        override fun afterHookedMethod(param: MethodHookParam) {
+                            if (dispatchTouchDepth > 0) {
+                                dispatchTouchDepth--
+                            }
+                        }
                     }
                 )
             } catch (t: Throwable) {
-                XposedBridge.log("$TAG [StatusBarGesture] FAILED to hook NotificationShadeWindowView: ${t.message}")
+                XposedBridge.log("$TAG [StatusBarGesture] FAILED to hook ${clazz.name}: ${t.message}")
             }
         }
 
@@ -95,13 +108,24 @@ class StatusBarGestureHooks : HookModule {
         )
         if (statusBarViewClass != null) {
             try {
+                XposedBridge.hookAllConstructors(statusBarViewClass, object : XC_MethodHook() {
+                    override fun afterHookedMethod(param: MethodHookParam) {
+                        val view = param.thisObject as? View ?: return
+                        phoneStatusBarViewRef = WeakReference(view)
+                    }
+                })
+            } catch (_: Throwable) {}
+
+            try {
                 XposedHelpers.findAndHookMethod(
                     statusBarViewClass,
                     "onInterceptTouchEvent",
                     MotionEvent::class.java,
                     object : XC_MethodHook() {
                         override fun beforeHookedMethod(param: MethodHookParam) {
-                            if (isDispatchingCancel) return
+                            val view = param.thisObject as? View ?: return
+                            phoneStatusBarViewRef = WeakReference(view)
+                            if (isDispatchingCancel || dispatchTouchDepth > 0) return
                             if (isDoubleTapSleeping) {
                                 val ev = param.args[0] as? MotionEvent
                                 if (ev?.actionMasked == MotionEvent.ACTION_UP || ev?.actionMasked == MotionEvent.ACTION_CANCEL) {
@@ -115,7 +139,6 @@ class StatusBarGestureHooks : HookModule {
                                 return
                             }
                             val ev = param.args[0] as? MotionEvent ?: return
-                            val view = param.thisObject as? View ?: return
                             if (handleTouch(view, ev, checkBounds = false, prefs = prefs)) {
                                 param.result = true
                             }
@@ -133,7 +156,9 @@ class StatusBarGestureHooks : HookModule {
                     MotionEvent::class.java,
                     object : XC_MethodHook() {
                         override fun beforeHookedMethod(param: MethodHookParam) {
-                            if (isDispatchingCancel) return
+                            val view = param.thisObject as? View ?: return
+                            phoneStatusBarViewRef = WeakReference(view)
+                            if (isDispatchingCancel || dispatchTouchDepth > 0) return
                             if (isDoubleTapSleeping) {
                                 val ev = param.args[0] as? MotionEvent
                                 if (ev?.actionMasked == MotionEvent.ACTION_UP || ev?.actionMasked == MotionEvent.ACTION_CANCEL) {
@@ -143,7 +168,6 @@ class StatusBarGestureHooks : HookModule {
                                 return
                             }
                             val ev = param.args[0] as? MotionEvent ?: return
-                            val view = param.thisObject as? View ?: return
                             if (handleTouch(view, ev, checkBounds = false, prefs = prefs)) {
                                 param.result = true
                             }
@@ -155,12 +179,13 @@ class StatusBarGestureHooks : HookModule {
             }
         }
 
-        // Suppress long press while or right after sliding/double-tapping
-        val detectorClass = XposedHelpers.findClassIfExists(
-            "com.android.systemui.shade.StatusBarLongPressGestureDetector",
-            lpparam.classLoader
+        // suppress long press while or right after sliding/double-tapping (NOS 5.0 & NOS 4.0)
+        val detectorClassNames = listOf(
+            "com.android.systemui.statusbar.gesture.StatusBarLongPressGestureDetector",
+            "com.android.systemui.shade.StatusBarLongPressGestureDetector"
         )
-        if (detectorClass != null) {
+        for (className in detectorClassNames) {
+            val detectorClass = XposedHelpers.findClassIfExists(className, lpparam.classLoader) ?: continue
             try {
                 for (inner in detectorClass.declaredClasses) {
                     if (GestureDetector.OnGestureListener::class.java.isAssignableFrom(inner)) {
@@ -199,27 +224,31 @@ class StatusBarGestureHooks : HookModule {
             } catch (_: Throwable) {}
         }
 
-        val npvcClass = XposedHelpers.findClassIfExists(
-            "com.android.systemui.shade.NotificationPanelViewController",
-            lpparam.classLoader
+        val controllerClasses = listOfNotNull(
+            XposedHelpers.findClassIfExists("com.android.systemui.statusbar.phone.PhoneStatusBarViewController", lpparam.classLoader),
+            XposedHelpers.findClassIfExists("com.android.systemui.shade.NotificationPanelViewController", lpparam.classLoader)
         )
-        if (npvcClass != null) {
+        for (clazz in controllerClasses) {
             try {
-                XposedHelpers.findAndHookMethod(
-                    npvcClass,
-                    "onStatusBarLongPress",
-                    MotionEvent::class.java,
-                    object : XC_MethodHook() {
-                        override fun beforeHookedMethod(param: MethodHookParam) {
-                            if (!prefs.getBoolean(PREF_KEY, false) && !prefs.getBoolean(PREF_DT2S_KEY, false)) return
-                            if (isSliding || isDoubleTapSleeping || SystemClock.uptimeMillis() - lastSlideEndTime < 500L) {
-                                param.result = null
-                            }
-                        }
+                for (method in clazz.declaredMethods) {
+                    val name = method.name
+                    if ((name.startsWith("handleStatusBarLongPress") || name.startsWith("onStatusBarLongPress"))
+                        && method.parameterTypes.contentEquals(arrayOf(MotionEvent::class.java))
+                    ) {
+                        try {
+                            XposedBridge.hookMethod(method, object : XC_MethodHook() {
+                                override fun beforeHookedMethod(param: MethodHookParam) {
+                                    if (!prefs.getBoolean(PREF_KEY, false) && !prefs.getBoolean(PREF_DT2S_KEY, false)) return
+                                    if (isSliding || isDoubleTapSleeping || SystemClock.uptimeMillis() - lastSlideEndTime < 500L) {
+                                        param.result = null
+                                    }
+                                }
+                            })
+                        } catch (_: Throwable) {}
                     }
-                )
+                }
             } catch (t: Throwable) {
-                XposedBridge.log("$TAG [StatusBarGesture] FAILED to hook npvc onStatusBarLongPress: ${t.message}")
+                XposedBridge.log("$TAG [StatusBarGesture] FAILED to hook long press on ${clazz.name}: ${t.message}")
             }
         }
     }
@@ -394,8 +423,10 @@ class StatusBarGestureHooks : HookModule {
 
     private fun collapseAndCancelShade(view: View, ev: MotionEvent) {
         cancelTouches(view, ev)
+        val targetView = phoneStatusBarViewRef?.get() ?: view
         try {
-            val handler = try { XposedHelpers.getObjectField(view, "mTouchEventHandler") } catch (_: Throwable) { null }
+            val handler = try { XposedHelpers.getObjectField(targetView, "mTouchEventHandler") } catch (_: Throwable) { null }
+                ?: try { XposedHelpers.getObjectField(view, "mTouchEventHandler") } catch (_: Throwable) { null }
             if (handler != null) {
                 val controller = try { XposedHelpers.getObjectField(handler, "this$0") } catch (_: Throwable) { null }
                 if (controller != null) {
@@ -462,6 +493,25 @@ class StatusBarGestureHooks : HookModule {
                     XposedHelpers.callMethod(handler, "onTouchEvent", cancelEvent)
                 }
             } catch (_: Throwable) {}
+
+            val psv = phoneStatusBarViewRef?.get()
+            if (psv != null && psv !== view) {
+                try {
+                    psv.dispatchTouchEvent(cancelEvent)
+                } catch (_: Throwable) {}
+                try {
+                    val detector = XposedHelpers.getObjectField(psv, "mStatusBarLongPressGestureDetector")
+                    if (detector != null) {
+                        XposedHelpers.callMethod(detector, "handleTouch", cancelEvent)
+                    }
+                } catch (_: Throwable) {}
+                try {
+                    val handler = XposedHelpers.getObjectField(psv, "mTouchEventHandler")
+                    if (handler != null) {
+                        XposedHelpers.callMethod(handler, "onTouchEvent", cancelEvent)
+                    }
+                } catch (_: Throwable) {}
+            }
         } finally {
             isDispatchingCancel = false
             cancelEvent.recycle()
