@@ -761,78 +761,107 @@ object SettingsBuilder {
             } catch (_: Throwable) {}
         }
 
-        fun setPrefChangeListener(pref: Any, listenerProxy: Any) {
+        // dynamically discover obfuscated listener interfaces
+        val changeListenerIface: Class<*>? = run {
             try {
-                XposedHelpers.callMethod(pref, "setOnPreferenceChangeListener", listenerProxy)
-                return
+                val std = Class.forName("androidx.preference.Preference\$OnPreferenceChangeListener", false, classLoader)
+                if (std != null) return@run std
             } catch (_: Throwable) {}
 
-            val iface = listenerProxy.javaClass.interfaces.firstOrNull() ?: return
-            var c: Class<*>? = pref.javaClass
+            var c: Class<*>? = prefClass
             while (c != null && c != Any::class.java) {
-                if (c == prefClass || c.name == "androidx.preference.Preference") {
-                    for (m in c.declaredMethods) {
-                        if (Modifier.isPublic(m.modifiers) &&
-                            m.parameterTypes.size == 1 &&
-                            m.parameterTypes[0].isAssignableFrom(iface) &&
-                            m.returnType == java.lang.Void.TYPE
-                        ) {
-                            try {
-                                m.isAccessible = true
-                                m.invoke(pref, listenerProxy)
-                                return
-                            } catch (_: Throwable) {}
-                        }
-                    }
-                    for (f in c.declaredFields) {
-                        if (f.type.isAssignableFrom(iface)) {
-                            try {
-                                f.isAccessible = true
-                                f.set(pref, listenerProxy)
-                                return
-                            } catch (_: Throwable) {}
+                for (m in c.declaredMethods) {
+                    if (Modifier.isPublic(m.modifiers) && m.parameterTypes.size == 1) {
+                        val p = m.parameterTypes[0]
+                        if (p.isInterface) {
+                            for (im in p.methods) {
+                                if (im.parameterTypes.size == 2 &&
+                                    im.returnType == java.lang.Boolean.TYPE &&
+                                    isPreferenceType(im.parameterTypes[0], prefClass)
+                                ) {
+                                    return@run p
+                                }
+                            }
                         }
                     }
                 }
                 c = c.superclass
             }
+            null
+        }
 
-            c = pref.javaClass
+        val clickListenerIface: Class<*>? = run {
+            try {
+                val std = Class.forName("androidx.preference.Preference\$OnPreferenceClickListener", false, classLoader)
+                if (std != null) return@run std
+            } catch (_: Throwable) {}
+
+            var c: Class<*>? = prefClass
             while (c != null && c != Any::class.java) {
-                if (c == prefClass || c.name == "androidx.preference.Preference") {
+                for (m in c.declaredMethods) {
+                    if (Modifier.isPublic(m.modifiers) && m.parameterTypes.size == 1) {
+                        val p = m.parameterTypes[0]
+                        if (p.isInterface) {
+                            for (im in p.methods) {
+                                if (im.parameterTypes.size == 1 &&
+                                    im.returnType == java.lang.Boolean.TYPE &&
+                                    isPreferenceType(im.parameterTypes[0], prefClass)
+                                ) {
+                                    return@run p
+                                }
+                            }
+                        }
+                    }
+                }
+                c = c.superclass
+            }
+            null
+        }
+
+        fun setPrefChangeListener(pref: Any, onPreferenceChange: (pref: Any, value: Any) -> Boolean) {
+            val iface = changeListenerIface ?: return
+            val proxy = Proxy.newProxyInstance(classLoader, arrayOf(iface)) { proxyObj, method, args ->
+                if (method.returnType == java.lang.Boolean.TYPE && args?.size == 2) {
+                    val p = args[0]
+                    val v = args[1]
+                    return@newProxyInstance onPreferenceChange(p, v)
+                }
+                when (method.name) {
+                    "equals" -> return@newProxyInstance args?.getOrNull(0) === proxyObj
+                    "hashCode" -> return@newProxyInstance System.identityHashCode(proxyObj)
+                    "toString" -> return@newProxyInstance "OnPreferenceChangeListenerProxy"
+                }
+                null
+            }
+
+            try {
+                XposedHelpers.callMethod(pref, "setOnPreferenceChangeListener", proxy)
+                return
+            } catch (_: Throwable) {}
+
+            var c: Class<*>? = pref.javaClass
+            while (c != null && c != Any::class.java) {
+                if (c == prefClass || c.name.contains("Preference")) {
                     for (m in c.declaredMethods) {
                         if (Modifier.isPublic(m.modifiers) &&
                             m.parameterTypes.size == 1 &&
-                            m.parameterTypes[0].isInterface &&
+                            m.parameterTypes[0] == iface &&
                             m.returnType == java.lang.Void.TYPE
                         ) {
-                            val paramIface = m.parameterTypes[0]
-                            val matchingMethod = paramIface.methods.firstOrNull {
-                                it.parameterTypes.size == 2 &&
-                                    isPreferenceType(it.parameterTypes[0], prefClass) &&
-                                    it.returnType == java.lang.Boolean.TYPE
-                            }
-                            if (matchingMethod != null) {
-                                try {
-                                    val dynamicProxy = Proxy.newProxyInstance(
-                                        classLoader,
-                                        arrayOf(paramIface)
-                                    ) { _, method, args ->
-                                        if (method.name == matchingMethod.name) {
-                                            val p = args?.getOrNull(0) ?: return@newProxyInstance true
-                                            val v = args?.getOrNull(1) ?: return@newProxyInstance true
-                                            val mChange = listenerProxy.javaClass.methods.firstOrNull {
-                                                it.name == "onPreferenceChange" && it.parameterTypes.size == 2
-                                            }
-                                            return@newProxyInstance mChange?.invoke(listenerProxy, p, v) as? Boolean ?: true
-                                        }
-                                        null
-                                    }
-                                    m.isAccessible = true
-                                    m.invoke(pref, dynamicProxy)
-                                    return
-                                } catch (_: Throwable) {}
-                            }
+                            try {
+                                m.isAccessible = true
+                                m.invoke(pref, proxy)
+                                return
+                            } catch (_: Throwable) {}
+                        }
+                    }
+                    for (f in c.declaredFields) {
+                        if (f.type == iface) {
+                            try {
+                                f.isAccessible = true
+                                f.set(pref, proxy)
+                                return
+                            } catch (_: Throwable) {}
                         }
                     }
                 }
@@ -841,87 +870,48 @@ object SettingsBuilder {
         }
 
         fun setPrefClickListener(pref: Any, onClick: () -> Unit) {
-            val listenerClass = XposedHelpers.findClassIfExists(
-                "androidx.preference.Preference\$OnPreferenceClickListener",
-                classLoader
-            )
-
-            if (listenerClass != null) {
-                val proxy = Proxy.newProxyInstance(
-                    classLoader,
-                    arrayOf(listenerClass)
-                ) { _, method, _ ->
-                    if (method.name == "onPreferenceClick") {
-                        onClick()
-                        true
-                    } else null
+            val iface = clickListenerIface ?: return
+            val proxy = Proxy.newProxyInstance(classLoader, arrayOf(iface)) { proxyObj, method, args ->
+                if (method.returnType == java.lang.Boolean.TYPE && args?.size == 1) {
+                    onClick()
+                    return@newProxyInstance true
                 }
-                try {
-                    XposedHelpers.callMethod(pref, "setOnPreferenceClickListener", proxy)
-                    return
-                } catch (_: Throwable) {}
-
-                var c: Class<*>? = pref.javaClass
-                while (c != null && c != Any::class.java) {
-                    if (c == prefClass || c.name == "androidx.preference.Preference") {
-                        for (m in c.declaredMethods) {
-                            if (Modifier.isPublic(m.modifiers) &&
-                                m.parameterTypes.size == 1 &&
-                                m.parameterTypes[0].isAssignableFrom(listenerClass) &&
-                                m.returnType == java.lang.Void.TYPE
-                            ) {
-                                try {
-                                    m.isAccessible = true
-                                    m.invoke(pref, proxy)
-                                    return
-                                } catch (_: Throwable) {}
-                            }
-                        }
-                        for (f in c.declaredFields) {
-                            if (f.type.isAssignableFrom(listenerClass)) {
-                                try {
-                                    f.isAccessible = true
-                                    f.set(pref, proxy)
-                                    return
-                                } catch (_: Throwable) {}
-                            }
-                        }
-                    }
-                    c = c.superclass
+                when (method.name) {
+                    "equals" -> return@newProxyInstance args?.getOrNull(0) === proxyObj
+                    "hashCode" -> return@newProxyInstance System.identityHashCode(proxyObj)
+                    "toString" -> return@newProxyInstance "OnPreferenceClickListenerProxy"
                 }
+                null
             }
+
+            try {
+                XposedHelpers.callMethod(pref, "setOnPreferenceClickListener", proxy)
+                return
+            } catch (_: Throwable) {}
 
             var c: Class<*>? = pref.javaClass
             while (c != null && c != Any::class.java) {
-                if (c == prefClass || c.name == "androidx.preference.Preference") {
+                if (c == prefClass || c.name.contains("Preference")) {
                     for (m in c.declaredMethods) {
                         if (Modifier.isPublic(m.modifiers) &&
                             m.parameterTypes.size == 1 &&
-                            m.parameterTypes[0].isInterface &&
+                            m.parameterTypes[0] == iface &&
                             m.returnType == java.lang.Void.TYPE
                         ) {
-                            val paramIface = m.parameterTypes[0]
-                            val matchingMethod = paramIface.methods.firstOrNull {
-                                it.parameterTypes.size == 1 &&
-                                    isPreferenceType(it.parameterTypes[0], prefClass) &&
-                                    it.returnType == java.lang.Boolean.TYPE
-                            }
-                            if (matchingMethod != null) {
-                                try {
-                                    val proxy = Proxy.newProxyInstance(
-                                        classLoader,
-                                        arrayOf(paramIface)
-                                    ) { _, method, _ ->
-                                        if (method.name == matchingMethod.name) {
-                                            onClick()
-                                            true
-                                        } else null
-                                    }
-                                    m.isAccessible = true
-                                    m.invoke(pref, proxy)
-                                    return
-                                } catch (_: Throwable) {}
-                            }
+                            try {
+                                m.isAccessible = true
+                                m.invoke(pref, proxy)
+                                return
+                            } catch (_: Throwable) {}
+                        }
+                    }
+                    for (f in c.declaredFields) {
+                        if (f.type == iface) {
+                            try {
+                                f.isAccessible = true
+                                f.set(pref, proxy)
+                                return
+                            } catch (_: Throwable) {}
                         }
                     }
                 }
@@ -996,31 +986,18 @@ object SettingsBuilder {
             val currentVal = allPrefs?.getBoolean(key, defaultVal) ?: defaultVal
             setSwitchChecked(pref, currentVal)
 
-            val listenerClass = XposedHelpers.findClassIfExists(
-                "androidx.preference.Preference\$OnPreferenceChangeListener",
-                classLoader
-            )
-            val ifaces = if (listenerClass != null) arrayOf(listenerClass) else emptyArray()
-
-            val proxy = Proxy.newProxyInstance(classLoader, ifaces) { proxyObj, method, args ->
-                when (method.name) {
-                    "onPreferenceChange" -> {
-                        val newVal = args?.getOrNull(1) as? Boolean ?: return@newProxyInstance false
-                        // XposedBridge.log("$TAG [SettingsBuilder] onPreferenceChange: $key = $newVal")
-                        RemotePreferenceProvider.putPrefBoolean(context, key, newVal)
-                        setSwitchChecked(pref, newVal)
-                        if (newVal && requiresReboot) {
-                            Toast.makeText(context, "Please reboot your phone to apply this change.", Toast.LENGTH_LONG).show()
-                        }
-                        return@newProxyInstance true
-                    }
-                    "equals" -> return@newProxyInstance args?.getOrNull(0) === proxyObj
-                    "hashCode" -> return@newProxyInstance System.identityHashCode(proxyObj)
-                    "toString" -> return@newProxyInstance "OnPreferenceChangeListenerProxy"
+            setPrefChangeListener(pref) { _, newValObj ->
+                val newVal = (newValObj as? Boolean)
+                    ?: (newValObj as? String)?.toBooleanStrictOrNull()
+                    ?: (newValObj as? Number)?.let { it.toInt() != 0 }
+                    ?: false
+                RemotePreferenceProvider.putPrefBoolean(context, key, newVal)
+                setSwitchChecked(pref, newVal)
+                if (newVal && requiresReboot) {
+                    Toast.makeText(context, "Please reboot your phone to apply this change.", Toast.LENGTH_LONG).show()
                 }
-                null
+                true
             }
-            setPrefChangeListener(pref, proxy)
             addPref(group, pref)
             return pref
         }
