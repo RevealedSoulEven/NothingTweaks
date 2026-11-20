@@ -6,6 +6,11 @@
     <string name="status_active_desc">Hooks 已成功加载。</string>
     <string name="status_inactive_desc">请在 LSPosed 中启用 Nothing Tweaks，勾选作用域应用，然后重启设备。</string>
 
+    <!-- Settings Integration -->
+    <string name="cat_settings_integration">设置集成</string>
+    <string name="pref_integrate_settings_title">在系统设置中显示</string>
+    <string name="pref_integrate_settings_summary">在系统设置顶部显示 Nothing Tweaks。如果需要，您可以自行在启动器中隐藏应用图标。</string>
+
     <!-- System -->
     <string name="category_system">系统</string>
     
@@ -199,4 +204,39 @@
     <string name="hide_icon_sim1">SIM 1 指示器</string>
     <string name="hide_icon_sim2">SIM 2 指示器</string>
     <string name="hide_icon_alarm">闹钟</string>
+    <string name="hide_icon_dual_sim">双卡指示器</string>
+    <string name="pref_screenshot_disable_flash">禁用截图闪屏</string>
+    <string name="pref_screenshot_disable_flash_desc">截取屏幕截图时禁用白色闪屏动画。</string>
+
+    <!-- Essential key -->
+    <string name="pref_essential_key_header">Essential 键</string>
+    <string name="pref_essential_single_title">Essential 键：单按</string>
+    <string name="pref_essential_double_title">Essential 键：双按</string>
+    <string name="pref_essential_triple_title">Essential 键：三按</string>
+    <string name="pref_essential_long_title">Essential 键：长按</string>
+    <string name="pref_essential_app_title">应用</string>
+    <string name="pref_essential_app_summary">选择一个应用</string>
+    <string name="essential_action_default">系统默认</string>
+    <string name="essential_action_none">无操作</string>
+    <string name="essential_action_flashlight">开关手电筒</string>
+    <string name="essential_action_ringer">切换声音模式</string>
+    <string name="essential_action_screenshot">截取屏幕</string>
+    <string name="essential_action_app">打开应用</string>
+
+    <!-- About & Developer Credits -->
+    <string name="about_category_title">关于与鸣谢</string>
+    <string name="about_developer_header">开发者</string>
+    <string name="about_developer_name">Ayush Maurya</string>
+    <string name="about_developer_handle">Revealed SoulEven (@RevealedSoulEven)</string>
+    <string name="about_developer_url">https://github.com/RevealedSoulEven</string>
+    <string name="about_source_title">源代码</string>
+    <string name="about_source_summary">GitHub 仓库</string>
+    <string name="about_source_url">https://github.com/RevealedSoulEven/NothingTweaks</string>
+    <string name="about_issue_title">反馈问题</string>
+    <string name="about_issue_summary">在 GitHub 上提交错误报告</string>
+    <string name="about_issue_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=bug&amp;title=%28bug%29+</string>
+    <string name="about_feature_title">请求功能</string>
+    <string name="about_feature_summary">提出新想法或功能需求</string>
+    <string name="about_feature_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=enhancement&amp;title=%28feat%29+</string>
+    <string name="about_tagline">为 Nothing OS 倾心❤打造</string>
 </resources>

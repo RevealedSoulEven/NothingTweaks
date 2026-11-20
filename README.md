@@ -9,7 +9,7 @@
 
 By leveraging the modern Xposed framework, this module injects deep system-level tweaks allowing you to tailor your Nothing device exactly to your liking.
 
-> **🌟 Now Supports Nothing OS 5.0**
+> **🌟 Now Supports Nothing OS 5.0** 
 
 
 ## ✨ Features
@@ -68,6 +68,7 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 | **Super Volume Boost** | Enables a higher maximum audio volume ceiling. |
 | **Stepless Volume** | Unlocks continuous, granular volume adjustment levels. |
 | **Customize Volume Steps** | Customize the number of physical volume button steps for Media, Ring, and Alarm. |
+| **Essential Key Remapping** | Fully customize the physical Essential Key with some other functions. |
 
 </details>
 
@@ -123,6 +124,7 @@ Nothing Tweaks comes packed with a variety of modifications to elevate your Noth
 | **Allow Screenshots &amp; Recording Everywhere** | Allows taking screenshots, screen recording, and casting in restricted apps and throughout the system, while blocking screenshot and recording detection. |
 | **Screen Recording Quality Clamp** | Force the built-in screen recorder to clamp at 720p or 1080p @ 60fps for smoother or lower-bandwidth recordings. |
 | **Screenshot Serial Number** | Optionally watermarks your device serial number (`SN: <serial>`) onto captured screenshots. |
+| **Disable Screenshot Flash** | Disables the bright white screen flash animation when capturing screenshots. |
 
 </details>
 

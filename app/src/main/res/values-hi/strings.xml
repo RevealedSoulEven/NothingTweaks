@@ -6,6 +6,11 @@
     <string name="status_active_desc">हुक सफलतापूर्वक लोड हो गए हैं।</string>
     <string name="status_inactive_desc">LSPosed में Nothing Tweaks सक्षम करें, ऐप्स चुनें, और फिर रीबूट करें।</string>
 
+    <!-- Settings Integration -->
+    <string name="cat_settings_integration">सेटिंग्स एकीकरण</string>
+    <string name="pref_integrate_settings_title">सेटिंग्स में दिखाएं</string>
+    <string name="pref_integrate_settings_summary">सिस्टम सेटिंग्स के शीर्ष पर Nothing Tweaks प्रदर्शित करें। यदि चाहें तो आप लॉन्चर से ऐप आइकन छिपा सकते हैं।</string>
+
     <!-- System -->
     <string name="category_system">सिस्टम</string>
     
@@ -199,4 +204,39 @@
     <string name="hide_icon_sim1">SIM 1 संकेतक</string>
     <string name="hide_icon_sim2">SIM 2 संकेतक</string>
     <string name="hide_icon_alarm">अलार्म</string>
+    <string name="hide_icon_dual_sim">डुअल सिम संकेतक</string>
+    <string name="pref_screenshot_disable_flash">स्क्रीनशॉट फ़्लैश बंद करें</string>
+    <string name="pref_screenshot_disable_flash_desc">स्क्रीनशॉट लेते समय सफ़ेद स्क्रीन फ़्लैश को अक्षम करें।</string>
+
+    <!-- Essential key -->
+    <string name="pref_essential_key_header">एसेंशियल की</string>
+    <string name="pref_essential_single_title">एसेंशियल की: एक बार दबाएं</string>
+    <string name="pref_essential_double_title">एसेंशियल की: दो बार दबाएं</string>
+    <string name="pref_essential_triple_title">एसेंशियल की: तीन बार दबाएं</string>
+    <string name="pref_essential_long_title">एसेंशियल की: देर तक दबाएं</string>
+    <string name="pref_essential_app_title">ऐप</string>
+    <string name="pref_essential_app_summary">एक ऐप चुनें</string>
+    <string name="essential_action_default">सिस्टम डिफ़ॉल्ट</string>
+    <string name="essential_action_none">कुछ न करें</string>
+    <string name="essential_action_flashlight">टॉर्च टॉगल करें</string>
+    <string name="essential_action_ringer">साउंड मोड बदलें</string>
+    <string name="essential_action_screenshot">स्क्रीनशॉट लें</string>
+    <string name="essential_action_app">ऐप खोलें</string>
+
+    <!-- About & Developer Credits -->
+    <string name="about_category_title">के बारे में और श्रेय</string>
+    <string name="about_developer_header">डेवलपर</string>
+    <string name="about_developer_name">Ayush Maurya</string>
+    <string name="about_developer_handle">Revealed SoulEven (@RevealedSoulEven)</string>
+    <string name="about_developer_url">https://github.com/RevealedSoulEven</string>
+    <string name="about_source_title">सोर्स कोड</string>
+    <string name="about_source_summary">GitHub रिपॉजिटरी</string>
+    <string name="about_source_url">https://github.com/RevealedSoulEven/NothingTweaks</string>
+    <string name="about_issue_title">समस्या की रिपोर्ट करें</string>
+    <string name="about_issue_summary">GitHub पर बग रिपोर्ट सबमिट करें</string>
+    <string name="about_issue_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=bug&amp;title=%28bug%29+</string>
+    <string name="about_feature_title">सुविधा का अनुरोध करें</string>
+    <string name="about_feature_summary">नए विचार या फीचर का सुझाव दें</string>
+    <string name="about_feature_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=enhancement&amp;title=%28feat%29+</string>
+    <string name="about_tagline">Nothing OS के लिए ❤ से बनाया गया</string>
 </resources>

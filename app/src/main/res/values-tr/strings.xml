@@ -6,6 +6,11 @@
     <string name="status_active_desc">Hook\'lar başarıyla yüklendi.</string>
     <string name="status_inactive_desc">LSPosed\'de Nothing Tweaks\'i etkinleştirin, kapsamdaki uygulamaları seçin, ardından cihazı yeniden başlatın.</string>
 
+    <!-- Settings Integration -->
+    <string name="cat_settings_integration">Ayarlar Entegrasyonu</string>
+    <string name="pref_integrate_settings_title">Ayarlarda Göster</string>
+    <string name="pref_integrate_settings_summary">Nothing Tweaks\'i Sistem Ayarları\'nın en üstünde gösterin. İsterseniz uygulama simgesini başlatıcınızdan gizleyebilirsiniz.</string>
+
     <!-- System -->
     <string name="category_system">Sistem</string>
     
@@ -199,4 +204,39 @@
     <string name="hide_icon_sim1">SIM 1 göstergesi</string>
     <string name="hide_icon_sim2">SIM 2 göstergesi</string>
     <string name="hide_icon_alarm">Alarm</string>
+    <string name="hide_icon_dual_sim">Çift SIM göstergesi</string>
+    <string name="pref_screenshot_disable_flash">Ekran görüntüsü flaşını devre dışı bırak</string>
+    <string name="pref_screenshot_disable_flash_desc">Ekran görüntüsü alırken beyaz ekran flaşını devre dışı bırakır.</string>
+
+    <!-- Essential key -->
+    <string name="pref_essential_key_header">Essential Tuşu</string>
+    <string name="pref_essential_single_title">Essential tuşu: Tek basış</string>
+    <string name="pref_essential_double_title">Essential tuşu: Çift basış</string>
+    <string name="pref_essential_triple_title">Essential tuşu: Üç basış</string>
+    <string name="pref_essential_long_title">Essential tuşu: Uzun basış</string>
+    <string name="pref_essential_app_title">Uygulama</string>
+    <string name="pref_essential_app_summary">Bir uygulama seçin</string>
+    <string name="essential_action_default">Sistem varsayılanı</string>
+    <string name="essential_action_none">Hiçbir şey yapma</string>
+    <string name="essential_action_flashlight">El fenerini aç/kapat</string>
+    <string name="essential_action_ringer">Ses modunu değiştir</string>
+    <string name="essential_action_screenshot">Ekran görüntüsü al</string>
+    <string name="essential_action_app">Uygulama aç</string>
+
+    <!-- About & Developer Credits -->
+    <string name="about_category_title">Hakkında &amp; Emeği Geçenler</string>
+    <string name="about_developer_header">GELİŞTİRİCİ</string>
+    <string name="about_developer_name">Ayush Maurya</string>
+    <string name="about_developer_handle">Revealed SoulEven (@RevealedSoulEven)</string>
+    <string name="about_developer_url">https://github.com/RevealedSoulEven</string>
+    <string name="about_source_title">Kaynak Kodu</string>
+    <string name="about_source_summary">GitHub deposu</string>
+    <string name="about_source_url">https://github.com/RevealedSoulEven/NothingTweaks</string>
+    <string name="about_issue_title">Sorun Bildir</string>
+    <string name="about_issue_summary">GitHub üzerinden hata raporu gönderin</string>
+    <string name="about_issue_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=bug&amp;title=%28bug%29+</string>
+    <string name="about_feature_title">Özellik İsteğinde Bulun</string>
+    <string name="about_feature_summary">Yeni fikirler veya özellik istekleri önerin</string>
+    <string name="about_feature_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=enhancement&amp;title=%28feat%29+</string>
+    <string name="about_tagline">Nothing OS için ❤ ile yapıldı</string>
 </resources>

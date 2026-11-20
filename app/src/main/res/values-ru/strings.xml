@@ -6,6 +6,11 @@
     <string name="status_active_desc">Хуки успешно загружены.</string>
     <string name="status_inactive_desc">Включите Nothing Tweaks в LSPosed, выберите нужные приложения, затем перезагрузите устройство.</string>
 
+    <!-- Settings Integration -->
+    <string name="cat_settings_integration">Интеграция в Настройки</string>
+    <string name="pref_integrate_settings_title">Показывать в Настройках</string>
+    <string name="pref_integrate_settings_summary">Отображать Nothing Tweaks в верхней части системных настроек. При желании вы можете скрыть значок приложения из лаунчера.</string>
+
     <!-- System -->
     <string name="category_system">Система</string>
     
@@ -199,4 +204,39 @@
     <string name="hide_icon_sim1">Индикатор SIM 1</string>
     <string name="hide_icon_sim2">Индикатор SIM 2</string>
     <string name="hide_icon_alarm">Будильник</string>
+    <string name="hide_icon_dual_sim">Индикатор Dual SIM</string>
+    <string name="pref_screenshot_disable_flash">Отключить вспышку скриншота</string>
+    <string name="pref_screenshot_disable_flash_desc">Отключает белую вспышку экрана при создании снимка экрана.</string>
+
+    <!-- Essential key -->
+    <string name="pref_essential_key_header">Клавиша Essential</string>
+    <string name="pref_essential_single_title">Клавиша Essential: Однократное нажатие</string>
+    <string name="pref_essential_double_title">Клавиша Essential: Двойное нажатие</string>
+    <string name="pref_essential_triple_title">Клавиша Essential: Тройное нажатие</string>
+    <string name="pref_essential_long_title">Клавиша Essential: Долгое нажатие</string>
+    <string name="pref_essential_app_title">Приложение</string>
+    <string name="pref_essential_app_summary">Выберите приложение</string>
+    <string name="essential_action_default">По умолчанию</string>
+    <string name="essential_action_none">Ничего не делать</string>
+    <string name="essential_action_flashlight">Переключить фонарик</string>
+    <string name="essential_action_ringer">Переключить режим звука</string>
+    <string name="essential_action_screenshot">Сделать снимок экрана</string>
+    <string name="essential_action_app">Открыть приложение</string>
+
+    <!-- About & Developer Credits -->
+    <string name="about_category_title">О программе и благодарности</string>
+    <string name="about_developer_header">РАЗРАБОТЧИК</string>
+    <string name="about_developer_name">Ayush Maurya</string>
+    <string name="about_developer_handle">Revealed SoulEven (@RevealedSoulEven)</string>
+    <string name="about_developer_url">https://github.com/RevealedSoulEven</string>
+    <string name="about_source_title">Исходный код</string>
+    <string name="about_source_summary">Репозиторий GitHub</string>
+    <string name="about_source_url">https://github.com/RevealedSoulEven/NothingTweaks</string>
+    <string name="about_issue_title">Сообщить об ошибке</string>
+    <string name="about_issue_summary">Отправить отчет об ошибке на GitHub</string>
+    <string name="about_issue_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=bug&amp;title=%28bug%29+</string>
+    <string name="about_feature_title">Предложить функцию</string>
+    <string name="about_feature_summary">Предложить новые идеи или функции</string>
+    <string name="about_feature_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=enhancement&amp;title=%28feat%29+</string>
+    <string name="about_tagline">Сделано с ❤ для Nothing OS</string>
 </resources>

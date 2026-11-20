@@ -6,6 +6,11 @@
     <string name="status_active_desc">Los hooks se cargaron correctamente.</string>
     <string name="status_inactive_desc">Habilita Nothing Tweaks en LSPosed, selecciona las aplicaciones objetivo y luego reinicia.</string>
 
+    <!-- Settings Integration -->
+    <string name="cat_settings_integration">Integración en Ajustes</string>
+    <string name="pref_integrate_settings_title">Mostrar en Ajustes</string>
+    <string name="pref_integrate_settings_summary">Muestra Nothing Tweaks en la parte superior de Ajustes del sistema. Puedes ocultar el icono de la app en tu lanzador si lo deseas.</string>
+
     <!-- System -->
     <string name="category_system">Sistema</string>
     
@@ -199,4 +204,39 @@
     <string name="hide_icon_sim1">Indicador SIM 1</string>
     <string name="hide_icon_sim2">Indicador SIM 2</string>
     <string name="hide_icon_alarm">Alarma</string>
+    <string name="hide_icon_dual_sim">Indicador de doble SIM</string>
+    <string name="pref_screenshot_disable_flash">Desactivar destello de captura</string>
+    <string name="pref_screenshot_disable_flash_desc">Desactiva el destello blanco de la pantalla al hacer una captura de pantalla.</string>
+
+    <!-- Essential key -->
+    <string name="pref_essential_key_header">Botón Essential</string>
+    <string name="pref_essential_single_title">Botón Essential: Pulsación simple</string>
+    <string name="pref_essential_double_title">Botón Essential: Doble pulsación</string>
+    <string name="pref_essential_triple_title">Botón Essential: Triple pulsación</string>
+    <string name="pref_essential_long_title">Botón Essential: Pulsación prolongada</string>
+    <string name="pref_essential_app_title">Aplicación</string>
+    <string name="pref_essential_app_summary">Seleccionar una aplicación</string>
+    <string name="essential_action_default">Predeterminado del sistema</string>
+    <string name="essential_action_none">No hacer nada</string>
+    <string name="essential_action_flashlight">Alternar linterna</string>
+    <string name="essential_action_ringer">Cambiar modo de sonido</string>
+    <string name="essential_action_screenshot">Hacer captura de pantalla</string>
+    <string name="essential_action_app">Abrir aplicación</string>
+
+    <!-- About & Developer Credits -->
+    <string name="about_category_title">Acerca de y Créditos</string>
+    <string name="about_developer_header">DESARROLLADOR</string>
+    <string name="about_developer_name">Ayush Maurya</string>
+    <string name="about_developer_handle">Revealed SoulEven (@RevealedSoulEven)</string>
+    <string name="about_developer_url">https://github.com/RevealedSoulEven</string>
+    <string name="about_source_title">Código fuente</string>
+    <string name="about_source_summary">Repositorio de GitHub</string>
+    <string name="about_source_url">https://github.com/RevealedSoulEven/NothingTweaks</string>
+    <string name="about_issue_title">Informar de un problema</string>
+    <string name="about_issue_summary">Enviar informe de error en GitHub</string>
+    <string name="about_issue_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=bug&amp;title=%28bug%29+</string>
+    <string name="about_feature_title">Sugerir una función</string>
+    <string name="about_feature_summary">Sugerir nuevas ideas o peticiones de funciones</string>
+    <string name="about_feature_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=enhancement&amp;title=%28feat%29+</string>
+    <string name="about_tagline">Hecho con ❤ para Nothing OS</string>
 </resources>

@@ -6,6 +6,11 @@
     <string name="status_active_desc">フックが正常に読み込まれました。</string>
     <string name="status_inactive_desc">LSPosedでNothing Tweaksを有効にし、対象アプリを選択してから再起動してください。</string>
 
+    <!-- Settings Integration -->
+    <string name="cat_settings_integration">設定との統合</string>
+    <string name="pref_integrate_settings_title">設定に表示</string>
+    <string name="pref_integrate_settings_summary">システム設定の先頭にNothing Tweaksを表示します。必要に応じてランチャーからアプリアイコンを非表示にできます。</string>
+
     <!-- System -->
     <string name="category_system">システム</string>
     
@@ -199,4 +204,39 @@
     <string name="hide_icon_sim1">SIM 1 インジケーター</string>
     <string name="hide_icon_sim2">SIM 2 インジケーター</string>
     <string name="hide_icon_alarm">アラーム</string>
+    <string name="hide_icon_dual_sim">デュアルSIMインジケーター</string>
+    <string name="pref_screenshot_disable_flash">スクリーンショットのフラッシュを無効化</string>
+    <string name="pref_screenshot_disable_flash_desc">スクリーンショット撮影時の白い画面フラッシュを無効にします。</string>
+
+    <!-- Essential key -->
+    <string name="pref_essential_key_header">エッセンシャルキー</string>
+    <string name="pref_essential_single_title">エッセンシャルキー: 1回押し</string>
+    <string name="pref_essential_double_title">エッセンシャルキー: 2回押し</string>
+    <string name="pref_essential_triple_title">エッセンシャルキー: 3回押し</string>
+    <string name="pref_essential_long_title">エッセンシャルキー: 長押し</string>
+    <string name="pref_essential_app_title">アプリ</string>
+    <string name="pref_essential_app_summary">アプリを選択</string>
+    <string name="essential_action_default">システムのデフォルト</string>
+    <string name="essential_action_none">何もしない</string>
+    <string name="essential_action_flashlight">フラッシュライトの切り替え</string>
+    <string name="essential_action_ringer">サウンドモードの切り替え</string>
+    <string name="essential_action_screenshot">スクリーンショットを撮影</string>
+    <string name="essential_action_app">アプリを開く</string>
+
+    <!-- About & Developer Credits -->
+    <string name="about_category_title">情報とクレジット</string>
+    <string name="about_developer_header">開発者</string>
+    <string name="about_developer_name">Ayush Maurya</string>
+    <string name="about_developer_handle">Revealed SoulEven (@RevealedSoulEven)</string>
+    <string name="about_developer_url">https://github.com/RevealedSoulEven</string>
+    <string name="about_source_title">ソースコード</string>
+    <string name="about_source_summary">GitHubリポジトリ</string>
+    <string name="about_source_url">https://github.com/RevealedSoulEven/NothingTweaks</string>
+    <string name="about_issue_title">問題を報告</string>
+    <string name="about_issue_summary">GitHubでバグ報告を送信</string>
+    <string name="about_issue_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=bug&amp;title=%28bug%29+</string>
+    <string name="about_feature_title">機能をリクエスト</string>
+    <string name="about_feature_summary">新しいアイデアや機能の要望を提案</string>
+    <string name="about_feature_url" formatted="false">https://github.com/RevealedSoulEven/NothingTweaks/issues/new?labels=enhancement&amp;title=%28feat%29+</string>
+    <string name="about_tagline">Nothing OSのために❤を込めて作成</string>
 </resources>
