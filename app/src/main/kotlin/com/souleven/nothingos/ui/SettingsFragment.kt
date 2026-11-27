@@ -30,6 +30,7 @@ import com.souleven.nothingos.MainHook
 import com.souleven.nothingos.R
 import com.souleven.nothingos.hooks.BatteryCapSeekBarPreference
 import com.souleven.nothingos.hooks.EssentialKeyHooks
+import com.souleven.nothingos.hooks.IconPackScope
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.RemotePreferenceProvider
 import com.souleven.nothingos.hooks.StatusBarIconHooks
@@ -53,6 +54,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
         wireEssentialKey()
+        wireIconPackScope()
 
         requireRebootOnEnable("allow_180_rotation")
         requireRebootOnEnable("pref_advanced_power_menu")
@@ -75,6 +77,7 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
         wireEssentialKey()
+        updateIconPackAvailability()
         updateVolumeStepsSummary()
         updateHideStatusBarIconsSummary()
     }
@@ -336,6 +339,25 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
         updateVisibility(switchPref.isChecked)
         updateAppSummaryAndIcon()
+    }
+
+    private fun wireIconPackScope() {
+        val preference = findPreference<Preference>(IconPackScope.KEY_APPS) ?: return
+        updateIconPackAvailability()
+        preference.setOnPreferenceClickListener {
+            updateIconPackAvailability()
+            if (preference.isEnabled && childFragmentManager.findFragmentByTag(preference.key) == null) {
+                IconPackAppsDialog().show(childFragmentManager, preference.key)
+            }
+            true
+        }
+    }
+
+    private fun updateIconPackAvailability() {
+        val preference = findPreference<Preference>(IconPackScope.KEY_APPS) ?: return
+        val installed = IconPackAppsDialog.isPackInstalled(requireContext().packageManager)
+        preference.isEnabled = installed
+        preference.setSummary(if (installed) R.string.icon_pack_apps_summary else R.string.icon_pack_not_installed)
     }
 
     private fun showAppPickerDialog(appPref: Preference, prefKey: String = PowerButtonHooks.KEY_APP) {

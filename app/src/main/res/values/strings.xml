@@ -195,6 +195,17 @@
 
     <string name="pref_skip_hidden_apps_auth_title">Unlock hidden apps directly</string>
     <string name="pref_skip_hidden_apps_auth_summary">Open hidden apps drawer without asking for biometrics.</string>
+    <string name="icon_pack_apps_title">Monochrome app icons</string>
+    <string name="icon_pack_apps_summary">Choose which apps use the Nothing Icon pack</string>
+    <string name="icon_pack_not_installed">Install the Nothing Icon pack to use this feature</string>
+    <string name="icon_pack_native_monochrome">Built-in monochrome icon</string>
+    <string name="icon_pack_select_all">Select all</string>
+    <string name="icon_pack_deselect_all">Deselect all</string>
+    <string name="icon_pack_editable_only">Show only editable apps</string>
+    <string name="icon_pack_sort">Sort</string>
+    <string name="icon_pack_sort_name">Name</string>
+    <string name="icon_pack_sort_enabled">Enabled first</string>
+    <string name="icon_pack_load_error">Could not load the app list</string>
 
     <string name="pref_hide_statusbar_icons">Hide more status bar icons</string>
     <string name="pref_hide_statusbar_icons_desc">Choose additional status bar icons to hide in real time.</string>
