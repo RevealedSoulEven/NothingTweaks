@@ -77,7 +77,6 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
         wireBatteryCapDependencies()
         wirePowerButtonDependencies()
         wireEssentialKey()
-        updateIconPackAvailability()
         updateVolumeStepsSummary()
         updateHideStatusBarIconsSummary()
     }
@@ -343,21 +342,12 @@ class SettingsFragment : PreferenceFragmentCompat(), SharedPreferences.OnSharedP
 
     private fun wireIconPackScope() {
         val preference = findPreference<Preference>(IconPackScope.KEY_APPS) ?: return
-        updateIconPackAvailability()
         preference.setOnPreferenceClickListener {
-            updateIconPackAvailability()
-            if (preference.isEnabled && childFragmentManager.findFragmentByTag(preference.key) == null) {
+            if (childFragmentManager.findFragmentByTag(preference.key) == null) {
                 IconPackAppsDialog().show(childFragmentManager, preference.key)
             }
             true
         }
-    }
-
-    private fun updateIconPackAvailability() {
-        val preference = findPreference<Preference>(IconPackScope.KEY_APPS) ?: return
-        val installed = IconPackAppsDialog.isPackInstalled(requireContext().packageManager)
-        preference.isEnabled = installed
-        preference.setSummary(if (installed) R.string.icon_pack_apps_summary else R.string.icon_pack_not_installed)
     }
 
     private fun showAppPickerDialog(appPref: Preference, prefKey: String = PowerButtonHooks.KEY_APP) {

@@ -384,6 +384,7 @@
         <Preference
             app:key="pref_nothing_icon_pack_apps"
             app:title="@string/icon_pack_apps_title"
+            app:summary="@string/icon_pack_apps_summary"
             app:persistent="false"
             app:iconSpaceReserved="false" />
     </PreferenceCategory>

@@ -196,12 +196,13 @@
     <string name="pref_skip_hidden_apps_auth_title">直接解锁隐藏应用</string>
     <string name="pref_skip_hidden_apps_auth_summary">无需指纹或密码即可打开隐藏应用抽屉</string>
     <string name="icon_pack_apps_title">单色图标应用</string>
-    <string name="icon_pack_apps_summary">选择使用 Nothing 图标包的应用</string>
-    <string name="icon_pack_not_installed">请先安装 Nothing Icon 图标包</string>
-    <string name="icon_pack_native_monochrome">应用自带单色图标</string>
+    <string name="icon_pack_apps_summary">桌面使用单色样式时，按应用选择显示单色或原色</string>
+    <string name="icon_pack_monochrome_requirement">需安装Nothing Icon强制使用单色图标</string>
     <string name="icon_pack_select_all">全选</string>
     <string name="icon_pack_deselect_all">取消全选</string>
-    <string name="icon_pack_editable_only">仅显示可操作项</string>
+    <string name="icon_pack_filter_native">过滤自带单色图标</string>
+    <string name="icon_pack_preview">长按预览单色图标</string>
+    <string name="icon_pack_preview_help">按住此按钮可预览列表中的单色图标，包括未勾选的应用。松开即恢复原图标。</string>
     <string name="icon_pack_sort">排序</string>
     <string name="icon_pack_sort_name">名称排序</string>
     <string name="icon_pack_sort_enabled">启用优先</string>

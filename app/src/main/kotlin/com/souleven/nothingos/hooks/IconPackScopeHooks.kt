@@ -1,12 +1,9 @@
 package com.souleven.nothingos.hooks
 
-import android.content.ComponentName
 import android.content.Context
-import android.content.pm.ApplicationInfo
-import android.graphics.drawable.Drawable
+import android.graphics.Path
 import android.os.Handler
 import android.os.Looper
-import android.provider.Settings
 import com.souleven.nothingos.MainHook
 import de.robv.android.xposed.XC_MethodHook
 import de.robv.android.xposed.XposedBridge
@@ -23,83 +20,37 @@ class IconPackScopeHooks : HookModule {
     override fun handleLoadPackage(lpparam: LoadPackageParam, prefs: Prefs) {
         if (lpparam.processName != MainHook.PKG_LAUNCHER) return
 
-        // The obfuscated names below are from Nothing Launcher 4.0.21.
         val loader = lpparam.classLoader
-        val iconOptions = XposedHelpers.findClass("com.android.launcher3.icons.BaseIconFactory\$IconOptions", loader)
-        val requestOptions = XposedHelpers.findClass("k7.e", loader)
-        val requestPackage = requestOptions.getDeclaredMethod("f")
-        val sourceHint = XposedHelpers.findField(iconOptions, "mSourceHint")
-        val sourceKey = XposedHelpers.findField(sourceHint.type, "key")
-        val sourceComponent = XposedHelpers.findField(sourceKey.type, "componentName")
-        val createBitmap = XposedHelpers.findMethodExact(
-            "com.android.launcher3.icons.BaseIconFactory", loader,
-            "createBadgedIconBitmap", Drawable::class.java, iconOptions
+        val createDrawable = XposedHelpers.findMethodExact(
+            "com.android.launcher3.icons.BitmapInfo", loader, "newIcon",
+            Context::class.java, Int::class.javaPrimitiveType, Path::class.java, String::class.java
         )
-        val forcedRenderer = XposedHelpers.findClass("m7.i", loader)
-        val render = XposedHelpers.findMethodExact(forcedRenderer, "d", String::class.java)
-        val rendererContext = forcedRenderer.superclass.getDeclaredMethod("b")
-        val iconProvider = XposedHelpers.findClass("com.android.launcher3.icons.IconProvider", loader)
-        val appState = XposedHelpers.findMethodExact(iconProvider, "getStateForApp", ApplicationInfo::class.java)
-        val providerContext = XposedHelpers.findField(iconProvider, "mContext")
         val initializer = XposedHelpers.findClass("com.android.launcher3.model.ModelInitializer", loader)
         val launcherModel = XposedHelpers.findClass("com.android.launcher3.LauncherModel", loader)
         val initializeModel = XposedHelpers.findMethodExact(initializer, "initialize", launcherModel)
         val refreshModel = initializer.getDeclaredMethod("refreshAndReloadLauncher")
-        require(
-            iconOptions.isAssignableFrom(requestOptions) && requestPackage.returnType == String::class.java &&
-                render.returnType == Drawable::class.java && rendererContext.returnType == Context::class.java
-        ) { "Unexpected Nothing Launcher icon pipeline" }
 
-        val packageBeingRendered = ThreadLocal<String>()
-        XposedBridge.hookMethod(createBitmap, object : XC_MethodHook() {
+        // BitmapInfo can draw the original bitmap even when it has a cached monochrome layer.
+        XposedBridge.hookMethod(createDrawable, object : XC_MethodHook() {
             override fun beforeHookedMethod(param: MethodHookParam) {
-                if (scope.excludedPackages.isEmpty()) return
-                val options = param.args[1] ?: return
-                val requestName = if (requestOptions.isInstance(options)) requestPackage.invoke(options) as? String else null
-                val packageName = requestName ?: run {
-                    val key = sourceHint.get(options)?.let(sourceKey::get)
-                    (key?.let(sourceComponent::get) as? ComponentName)?.packageName
-                } ?: return
-                param.setObjectExtra("packageScopeEntered", true)
-                param.setObjectExtra("previousPackage", packageBeingRendered.get())
-                packageBeingRendered.set(packageName)
-            }
-
-            override fun afterHookedMethod(param: MethodHookParam) {
-                if (param.getObjectExtra("packageScopeEntered") != true) return
-                val previousPackage = param.getObjectExtra("previousPackage") as? String
-                if (previousPackage == null) packageBeingRendered.remove()
-                else packageBeingRendered.set(previousPackage)
-            }
-        })
-
-        // This renderer handles generated monochrome layers. App-supplied layers use another renderer.
-        XposedBridge.hookMethod(render, object : XC_MethodHook() {
-            override fun beforeHookedMethod(param: MethodHookParam) {
-                val packageName = (param.args[0] as? String)?.takeIf { it.isNotEmpty() }
-                    ?: packageBeingRendered.get() ?: return
-                if (scope.excludes(packageName) && iconPackForcesMonochrome(rendererContext.invoke(param.thisObject) as Context)) {
-                    param.result = null
-                }
-            }
-        })
-
-        // Mark disk entries so a launcher started after a settings change can detect stale icons.
-        XposedBridge.hookMethod(appState, object : XC_MethodHook() {
-            override fun afterHookedMethod(param: MethodHookParam) {
-                val app = param.args[0] as? ApplicationInfo ?: return
-                val packageName = app.packageName ?: return
-                if (!scope.excludes(packageName)) return
-                val state = param.result as? String ?: return
-                if (iconPackForcesMonochrome(providerContext.get(param.thisObject) as Context)) {
-                    param.result = "$state,nothingtweaks_no_forced_mono"
+                val flags = param.args[1] as Int
+                if (flags and FLAG_THEMED == 0) return
+                val packageName = param.args[3] as? String ?: return
+                if (scope.excludes(packageName)) {
+                    param.args[1] = flags and FLAG_THEMED.inv()
                 }
             }
         })
 
         XposedBridge.hookMethod(initializeModel, object : XC_MethodHook() {
             override fun afterHookedMethod(param: MethodHookParam) {
-                if (!param.hasThrowable()) modelInitializer = param.thisObject
+                if (param.hasThrowable()) return
+                val firstModel = modelInitializer == null
+                modelInitializer = param.thisObject
+                if (firstModel) {
+                    runCatching { LauncherIconPreviews(loader, param.thisObject).register() }
+                        .onFailure { XposedBridge.log("NothingTweaks: Failed to register launcher icon previews: ${it.message}") }
+                }
             }
         })
 
@@ -122,9 +73,7 @@ class IconPackScopeHooks : HookModule {
         }
     }
 
-    private fun iconPackForcesMonochrome(context: Context): Boolean {
-        val resolver = context.contentResolver
-        return Settings.System.getInt(resolver, "nothing_icon_pack_force_render_enable", 0) == 1 &&
-            Settings.System.getInt(resolver, "theme_bauhaus_enable", 0) == 0
+    private companion object {
+        const val FLAG_THEMED = 1
     }
 }

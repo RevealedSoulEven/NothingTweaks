@@ -44,11 +44,11 @@
             android:ellipsize="end" />
 
         <TextView
-            android:id="@+id/app_native_monochrome"
+            android:id="@+id/app_monochrome_requirement"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:layout_marginTop="2dp"
-            android:text="@string/icon_pack_native_monochrome"
+            android:text="@string/icon_pack_monochrome_requirement"
             android:textAppearance="?attr/textAppearanceBodySmall"
             android:textColor="?attr/colorOnSurfaceVariant"
             android:visibility="gone" />
