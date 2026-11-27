@@ -28,6 +28,7 @@ import com.souleven.nothingos.hooks.BatteryCapHooks
 import com.souleven.nothingos.hooks.PowerButtonHooks
 import com.souleven.nothingos.hooks.VolumeStepsHooks
 import com.souleven.nothingos.hooks.EssentialKeyHooks
+import com.souleven.nothingos.hooks.IconPackScopeHooks
 import com.souleven.nothingos.hooks.LauncherHooks
 import com.souleven.nothingos.hooks.StatusBarIconHooks
 import com.souleven.nothingos.hooks.ScreenshotHooks
@@ -117,6 +118,7 @@ class MainHook : IXposedHookLoadPackage {
         }
         if (lpparam.packageName == PKG_LAUNCHER) {
             hooks.add("LauncherHooks" to LauncherHooks())
+            hooks.add("IconPackScopeHooks" to IconPackScopeHooks())
         }
         if (lpparam.packageName == PKG_SETTINGS) {
             XposedBridge.log("$TAG [MainHook] Hooking com.android.settings (process: ${lpparam.processName})")

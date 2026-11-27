@@ -174,6 +174,9 @@ class RemotePreferenceProvider : ContentProvider(), SharedPreferences.OnSharedPr
     }
 
     override fun call(method: String, arg: String?, extras: Bundle?): Bundle? {
+        if (method == IconPreviewRequests.METHOD_TAKE) {
+            return if (callingPackage == MainHook.PKG_LAUNCHER) IconPreviewRequests.take() else null
+        }
         if (method == METHOD_GET_ALL) {
             val ctx = context ?: return null
             val sharedPrefs = prefs ?: getDeviceProtectedPrefs(ctx).also { prefs = it }

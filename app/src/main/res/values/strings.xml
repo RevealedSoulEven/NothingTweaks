@@ -195,6 +195,18 @@
 
     <string name="pref_skip_hidden_apps_auth_title">Unlock hidden apps directly</string>
     <string name="pref_skip_hidden_apps_auth_summary">Open hidden apps drawer without asking for biometrics.</string>
+    <string name="icon_pack_apps_title">Monochrome app icons</string>
+    <string name="icon_pack_apps_summary">Choose which apps use monochrome when the launcher uses a monochrome style</string>
+    <string name="icon_pack_monochrome_requirement">Requires Nothing Icon to force monochrome</string>
+    <string name="icon_pack_select_all">Select all</string>
+    <string name="icon_pack_deselect_all">Deselect all</string>
+    <string name="icon_pack_filter_native">Hide apps with native monochrome icons</string>
+    <string name="icon_pack_preview">Hold to preview monochrome icons</string>
+    <string name="icon_pack_preview_help">Hold this button to preview monochrome icons, including apps you deselected. Release to restore the list icons.</string>
+    <string name="icon_pack_sort">Sort</string>
+    <string name="icon_pack_sort_name">Name</string>
+    <string name="icon_pack_sort_enabled">Enabled first</string>
+    <string name="icon_pack_load_error">Could not load the app list</string>
 
     <string name="pref_hide_statusbar_icons">Hide more status bar icons</string>
     <string name="pref_hide_statusbar_icons_desc">Choose additional status bar icons to hide in real time.</string>

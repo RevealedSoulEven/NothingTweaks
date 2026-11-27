@@ -380,6 +380,13 @@
             app:summary="@string/pref_skip_hidden_apps_auth_summary"
             app:defaultValue="false"
             app:iconSpaceReserved="false" />
+
+        <Preference
+            app:key="pref_nothing_icon_pack_apps"
+            app:title="@string/icon_pack_apps_title"
+            app:summary="@string/icon_pack_apps_summary"
+            app:persistent="false"
+            app:iconSpaceReserved="false" />
     </PreferenceCategory>
 
     <!-- 7. Screenshot & Screen recording -->

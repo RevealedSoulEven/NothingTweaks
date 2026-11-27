@@ -1,0 +1,40 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:app="http://schemas.android.com/apk/res-auto">
+
+    <item
+        android:id="@+id/icon_pack_preview"
+        android:title="@string/icon_pack_preview"
+        app:actionLayout="@layout/action_icon_pack_preview"
+        app:showAsAction="always" />
+    <group android:id="@+id/icon_pack_bulk_actions" android:enabled="false">
+        <item
+            android:id="@+id/icon_pack_select_all"
+            android:title="@string/icon_pack_select_all"
+            app:showAsAction="never" />
+        <item
+            android:id="@+id/icon_pack_deselect_all"
+            android:title="@string/icon_pack_deselect_all"
+            app:showAsAction="never" />
+    </group>
+    <item
+        android:id="@+id/icon_pack_filter_native"
+        android:checkable="true"
+        android:title="@string/icon_pack_filter_native"
+        app:showAsAction="never" />
+    <item
+        android:title="@string/icon_pack_sort"
+        app:showAsAction="never">
+        <menu>
+            <group android:checkableBehavior="single">
+                <item
+                    android:id="@+id/icon_pack_sort_name"
+                    android:checked="true"
+                    android:title="@string/icon_pack_sort_name" />
+                <item
+                    android:id="@+id/icon_pack_sort_enabled"
+                    android:title="@string/icon_pack_sort_enabled" />
+            </group>
+        </menu>
+    </item>
+</menu>
